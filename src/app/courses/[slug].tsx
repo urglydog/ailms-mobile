@@ -99,7 +99,14 @@ export default function CourseDetailScreen() {
       <Text style={{ fontSize: 16, lineHeight: 22 }}>{course.description}</Text>
 
       <View style={{ gap: 8 }}>
-        <Text style={{ fontSize: 18, fontWeight: '700' }}>Nội dung khoá học</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, fontWeight: '700' }}>Nội dung khoá học</Text>
+          {isAuthenticated ? (
+            <Pressable onPress={() => router.push(`/gradebook/${course.id}` as Href)}>
+              <Text style={{ color: '#2563EB' }}>Bảng điểm</Text>
+            </Pressable>
+          ) : null}
+        </View>
         {course.chapters.map((chapter) => (
           <ChapterSection key={chapter.id} chapter={chapter} />
         ))}

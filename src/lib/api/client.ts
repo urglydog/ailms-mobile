@@ -88,6 +88,10 @@ export async function getAccessToken(): Promise<string | null> {
   return tokenStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
+export async function getRefreshToken(): Promise<string | null> {
+  return tokenStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
 export async function setTokens(accessToken: string, refreshToken: string): Promise<void> {
   await tokenStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   await tokenStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);

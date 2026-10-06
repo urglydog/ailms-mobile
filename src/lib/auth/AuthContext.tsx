@@ -1,8 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { authApi } from '@/lib/api/auth';
-import { getAccessToken, setAuthFailureHandler } from '@/lib/api/client';
-import * as SecureStore from 'expo-secure-store';
+import { getAccessToken, getRefreshToken, setAuthFailureHandler } from '@/lib/api/client';
 import type { LoginRequest } from '@/types/auth';
 
 interface AuthContextValue {
@@ -30,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    const refreshToken = await SecureStore.getItemAsync('refreshToken');
+    const refreshToken = await getRefreshToken();
     await authApi.logout(refreshToken ?? '');
     setIsAuthenticated(false);
   };

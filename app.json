@@ -41,7 +41,8 @@
           "cameraPermission": "LinguaLearn cần quyền camera để giám sát trong lúc bạn làm bài thi.",
           "microphonePermission": "LinguaLearn cần quyền micro để ghi âm bằng chứng giám sát trong lúc bạn làm bài thi."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

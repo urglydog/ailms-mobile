@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import type { CourseSummary, Page } from '@/types/course';
+import type { CourseDetail, CourseSummary, Page } from '@/types/course';
 
 export const coursesApi = {
   search(params: { keyword?: string; page?: number } = {}): Promise<Page<CourseSummary>> {
@@ -8,5 +8,10 @@ export const coursesApi = {
     if (params.page !== undefined) query.set('page', String(params.page));
     const qs = query.toString();
     return api.get<Page<CourseSummary>>(`/api/v1/courses${qs ? `?${qs}` : ''}`);
+  },
+
+  /** Lấy theo slug, không phải id — xem CourseDetail. */
+  getDetail(slug: string): Promise<CourseDetail> {
+    return api.get<CourseDetail>(`/api/v1/courses/${encodeURIComponent(slug)}`);
   },
 };

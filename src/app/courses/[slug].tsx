@@ -6,6 +6,8 @@ import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 
 import { ApiError } from '@/lib/api/client';
 import { coursesApi } from '@/lib/api/courses';
 import { enrollmentsApi } from '@/lib/api/enrollments';
+import { wishlistApi } from '@/lib/api/wishlist';
+import { useAuth } from '@/lib/auth/AuthContext';
 import type { CourseChapter } from '@/types/course';
 
 function formatDuration(totalSec: number): string {
@@ -16,6 +18,7 @@ function formatDuration(totalSec: number): string {
 
 export default function CourseDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
   const [enrollError, setEnrollError] = useState<string | null>(null);
@@ -24,6 +27,21 @@ export default function CourseDetailScreen() {
     queryKey: ['course', slug],
     queryFn: () => coursesApi.getDetail(slug),
     enabled: !!slug,
+  });
+
+  const { data: wishlist } = useQuery({
+    queryKey: ['wishlist'],
+    queryFn: () => wishlistApi.getMine(),
+    enabled: isAuthenticated === true,
+  });
+  const isWished = !!course && (wishlist?.some((w) => w.courseId === course.id) ?? false);
+
+  const wishlistMutation = useMutation({
+    mutationFn: async () => {
+      if (isWished) await wishlistApi.removeItem(course!.id);
+      else await wishlistApi.addItem(course!.id);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wishlist'] }),
   });
 
   const enrollMutation = useMutation({
@@ -61,7 +79,14 @@ export default function CourseDetailScreen() {
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
       <Stack.Screen options={{ headerShown: true, title: course.title }} />
 
-      <Text style={{ fontSize: 22, fontWeight: '700' }}>{course.title}</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <Text style={{ fontSize: 22, fontWeight: '700', flex: 1 }}>{course.title}</Text>
+        {isAuthenticated ? (
+          <Pressable onPress={() => wishlistMutation.mutate()} hitSlop={8}>
+            <Text style={{ fontSize: 24, color: isWished ? '#DC2626' : '#CBD5E1' }}>♥</Text>
+          </Pressable>
+        ) : null}
+      </View>
       <Text style={{ color: '#475569' }}>
         {course.instructorName} · {course.categoryName} · {course.level}
       </Text>

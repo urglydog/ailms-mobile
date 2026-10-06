@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Redirect } from 'expo-router';
+import { Redirect, router, type Href } from 'expo-router';
 import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
@@ -52,6 +52,13 @@ export default function ProfileScreen() {
           {me.headline ? <Text style={{ color: '#475569' }}>{me.headline}</Text> : null}
           <Text style={{ color: '#94A3B8', fontSize: 12 }}>Vai trò: {me.role}</Text>
 
+          <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0' }}>
+            <MenuRow label="Khoá học của tôi" href={'/my-courses' as Href} />
+            <MenuRow label="Yêu thích" href={'/wishlist' as Href} />
+            <MenuRow label="Chứng chỉ của tôi" href={'/certificates' as Href} />
+            <MenuRow label="Thông báo" href={'/notifications' as Href} />
+          </View>
+
           <Pressable
             onPress={() => logout()}
             style={{ marginTop: 16, borderWidth: 1, borderColor: '#DC2626', borderRadius: 8, padding: 12, alignItems: 'center', width: '100%' }}
@@ -61,5 +68,17 @@ export default function ProfileScreen() {
         </View>
       )}
     </View>
+  );
+}
+
+function MenuRow({ label, href }: { label: string; href: Href }) {
+  return (
+    <Pressable
+      onPress={() => router.push(href)}
+      style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}
+    >
+      <Text style={{ fontSize: 15 }}>{label}</Text>
+      <Text style={{ color: '#94A3B8' }}>›</Text>
+    </Pressable>
   );
 }

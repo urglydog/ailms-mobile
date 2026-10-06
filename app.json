@@ -42,7 +42,8 @@
           "microphonePermission": "LinguaLearn cần quyền micro để ghi âm bằng chứng giám sát trong lúc bạn làm bài thi."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -14,10 +14,38 @@
  */
 
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import type { ProblemDetail } from '@/types/domain';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
+
+// `expo-secure-store` không có cài đặt cho web (gọi thẳng ném "getValueWithKeyAsync is not
+// a function") — Keychain/Keystore vốn chỉ tồn tại trên iOS/Android. Trên web fallback về
+// `localStorage` (kém an toàn hơn nhưng đây là nền tảng phụ lúc dev/test, không phải mục tiêu
+// chính của app mobile). Giữ nguyên API async để chỗ gọi không cần biết đang chạy nền tảng nào.
+const tokenStorage = {
+  getItem: (key: string): Promise<string | null> => {
+    if (Platform.OS === 'web') {
+      return Promise.resolve(typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null);
+    }
+    return SecureStore.getItemAsync(key);
+  },
+  setItem: async (key: string, value: string): Promise<void> => {
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') localStorage.setItem(key, value);
+      return;
+    }
+    await SecureStore.setItemAsync(key, value);
+  },
+  deleteItem: async (key: string): Promise<void> => {
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') localStorage.removeItem(key);
+      return;
+    }
+    await SecureStore.deleteItemAsync(key);
+  },
+};
 
 /** Lỗi API đã được chuẩn hoá — component bắt lỗi này thay vì đọc Response thô. */
 export class ApiError extends Error {
@@ -57,17 +85,17 @@ export function setAuthFailureHandler(handler: () => void) {
 }
 
 export async function getAccessToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+  return tokenStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
 export async function setTokens(accessToken: string, refreshToken: string): Promise<void> {
-  await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-  await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+  await tokenStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  await tokenStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 }
 
 export async function clearTokens(): Promise<void> {
-  await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-  await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+  await tokenStorage.deleteItem(ACCESS_TOKEN_KEY);
+  await tokenStorage.deleteItem(REFRESH_TOKEN_KEY);
 }
 
 interface RequestOptions extends Omit<RequestInit, 'body'> {
@@ -114,7 +142,7 @@ async function fetchWithRefresh(
   });
 
   if (response.status === 401 || response.status === 403) {
-    const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    const refreshToken = await tokenStorage.getItem(REFRESH_TOKEN_KEY);
     if (refreshToken) {
       if (isRefreshing) {
         try {

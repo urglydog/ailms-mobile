@@ -17,3 +17,11 @@ export interface UserProfile {
   coursesPublic: boolean | null;
   wishlistPublic: boolean | null;
 }
+
+export interface UpdateMyProfileRequest {
+  fullName: string | null;
+  avatarUrl: string | null;
+  headline: string | null;
+  bio: string | null;
+  preferredLanguage: string | null;
+}

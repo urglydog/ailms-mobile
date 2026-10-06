@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { coursesApi } from '@/lib/api/courses';
@@ -10,10 +11,18 @@ import type { CourseSummary } from '@/types/course';
 
 export default function CoursesScreen() {
   const { isAuthenticated } = useAuth();
+  const [searchInput, setSearchInput] = useState('');
+  const [keyword, setKeyword] = useState('');
+
+  // Debounce 400ms — tránh gọi API mỗi lần gõ 1 ký tự.
+  useEffect(() => {
+    const timer = setTimeout(() => setKeyword(searchInput.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
-    queryKey: ['courses'],
-    queryFn: () => coursesApi.search(),
+    queryKey: ['courses', keyword],
+    queryFn: () => coursesApi.search({ keyword: keyword || undefined }),
     enabled: isAuthenticated === true,
   });
 
@@ -24,8 +33,14 @@ export default function CoursesScreen() {
   return (
     <View style={{ flex: 1 }}>
       <TopNav />
-      <View style={{ padding: 16 }}>
+      <View style={{ padding: 16, gap: 10 }}>
         <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>
+        <TextInput
+          placeholder="Tìm khoá học..."
+          value={searchInput}
+          onChangeText={setSearchInput}
+          style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10 }}
+        />
       </View>
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

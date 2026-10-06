@@ -4,6 +4,7 @@ import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { ApiError } from '@/lib/api/client';
+import { streakApi } from '@/lib/api/streak';
 import { usersApi } from '@/lib/api/users';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -13,6 +14,12 @@ export default function ProfileScreen() {
   const { data: me, isLoading, error, refetch } = useQuery({
     queryKey: ['me'],
     queryFn: () => usersApi.getMe(),
+    enabled: isAuthenticated === true,
+  });
+
+  const { data: streak } = useQuery({
+    queryKey: ['streak'],
+    queryFn: () => streakApi.getMine(),
     enabled: isAuthenticated === true,
   });
 
@@ -51,6 +58,37 @@ export default function ProfileScreen() {
           <Text style={{ color: '#475569' }}>{me.email}</Text>
           {me.headline ? <Text style={{ color: '#475569' }}>{me.headline}</Text> : null}
           <Text style={{ color: '#94A3B8', fontSize: 12 }}>Vai trò: {me.role}</Text>
+
+          <Pressable onPress={() => router.push('/edit-profile' as Href)}>
+            <Text style={{ color: '#2563EB', fontWeight: '600' }}>Chỉnh sửa hồ sơ</Text>
+          </Pressable>
+
+          {streak ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-around',
+                width: '100%',
+                backgroundColor: '#FFF7ED',
+                borderRadius: 10,
+                padding: 14,
+                marginTop: 8,
+              }}
+            >
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#EA580C' }}>🔥 {streak.currentStreak}</Text>
+                <Text style={{ fontSize: 11, color: '#92400E' }}>Chuỗi ngày học</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#EA580C' }}>{streak.longestStreak}</Text>
+                <Text style={{ fontSize: 11, color: '#92400E' }}>Kỷ lục</Text>
+              </View>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#EA580C' }}>{streak.freezesRemaining}</Text>
+                <Text style={{ fontSize: 11, color: '#92400E' }}>Lượt đóng băng</Text>
+              </View>
+            </View>
+          ) : null}
 
           <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0' }}>
             <MenuRow label="Khoá học của tôi" href={'/my-courses' as Href} />

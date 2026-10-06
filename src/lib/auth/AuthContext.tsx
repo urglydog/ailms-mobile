@@ -9,6 +9,8 @@ interface AuthContextValue {
   isAuthenticated: boolean | null;
   login: (data: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
+  /** Đánh dấu đã đăng nhập khi token đã được lưu từ nơi khác (vd reset-password tự đăng nhập). */
+  markAuthenticated: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -34,7 +36,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
   };
 
-  return <AuthContext.Provider value={{ isAuthenticated, login, logout }}>{children}</AuthContext.Provider>;
+  const markAuthenticated = () => setIsAuthenticated(true);
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, markAuthenticated }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {

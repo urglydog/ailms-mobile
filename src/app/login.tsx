@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Redirect } from 'expo-router';
+import { Link, Redirect, type Href } from 'expo-router';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 
 import { ApiError } from '@/lib/api/client';
@@ -54,6 +54,13 @@ export default function LoginScreen() {
       >
         {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Đăng nhập</Text>}
       </Pressable>
+
+      <Link href={'/forgot-password' as Href} style={{ textAlign: 'center', color: '#2563EB', marginTop: 4 }}>
+        Quên mật khẩu?
+      </Link>
+      <Link href={'/register' as Href} style={{ textAlign: 'center', color: '#475569', marginTop: 4 }}>
+        Chưa có tài khoản? Đăng ký
+      </Link>
     </View>
   );
 }

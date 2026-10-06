@@ -1,5 +1,4 @@
-// Khớp AuthRequestDto.LoginReq / AuthResponseDto.TokenRes phía BE
-// (`be/src/main/java/com/lms/auth/dto/AuthRequestDto.java` / `AuthResponseDto.java`).
+// Khớp AuthRequestDto / AuthResponseDto phía BE (`be/src/main/java/com/lms/auth/dto/`).
 export interface LoginRequest {
   email: string;
   password: string;
@@ -8,4 +7,29 @@ export interface LoginRequest {
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
+}
+
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
+export interface MessageResponse {
+  message: string;
 }

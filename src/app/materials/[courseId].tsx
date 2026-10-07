@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
-import { ActivityIndicator, Pressable, SectionList, Text, View } from 'react-native';
-import { Brain, Layers, ListChecks, Timer } from 'lucide-react-native';
+import { ActivityIndicator, Linking, Pressable, SectionList, Text, View } from 'react-native';
+import { Brain, FileText, Layers, ListChecks, Timer } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { materialsApi } from '@/lib/api/materials';
+import { courseResourcesApi } from '@/lib/api/courseResources';
 import { BackButton } from '@/components/BackButton';
 import type { MaterialListItem, MaterialType, SharedMaterialListItem } from '@/types/material';
+import type { CourseResource } from '@/types/courseResource';
 
 const TYPE_ICON: Record<MaterialType, typeof Brain> = {
   MINDMAP: Brain,
@@ -20,18 +22,34 @@ const TYPE_LABEL: Record<MaterialType, string> = {
   QUIZ: 'Câu hỏi ôn tập',
 };
 
+type Row = (MaterialListItem | SharedMaterialListItem) | CourseResource;
+
+function isResource(item: Row): item is CourseResource {
+  return 'fileUrl' in item;
+}
+
 /** QUIZ cần phân biệt thêm theo quizType — icon/label khác cho bài thi chính thức (có giờ) so
  * với ôn tập thường, tránh nhầm (bug thật 07/10/2026: 2 loại từng hiện giống hệt nhau). */
-function displayFor(item: { materialType: MaterialType; quizType?: 'LECTURE_QUIZ' | 'OFFICIAL_EXAM' | null }): {
-  Icon: typeof Brain;
-  label: string;
-} {
+function displayFor(item: Row): { Icon: typeof Brain; label: string } {
+  if (isResource(item)) {
+    return { Icon: FileText, label: formatFileSize(item.fileSize) };
+  }
   if (item.materialType === 'QUIZ') {
     return item.quizType === 'OFFICIAL_EXAM'
       ? { Icon: Timer, label: 'Bài thi chính thức · có tính giờ' }
       : { Icon: ListChecks, label: 'Câu hỏi ôn tập · không tính giờ' };
   }
   return { Icon: TYPE_ICON[item.materialType], label: TYPE_LABEL[item.materialType] };
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function titleFor(item: Row): string {
+  if (isResource(item)) return item.title;
+  return item.title || TYPE_LABEL[item.materialType];
 }
 
 export default function MaterialsListScreen() {
@@ -50,8 +68,14 @@ export default function MaterialsListScreen() {
     enabled: !!id,
   });
 
-  const isLoading = personalQuery.isLoading || sharedQuery.isLoading;
-  const error = personalQuery.error || sharedQuery.error;
+  const resourcesQuery = useQuery({
+    queryKey: ['course-resources', id],
+    queryFn: () => courseResourcesApi.listForCourse(id),
+    enabled: !!id,
+  });
+
+  const isLoading = personalQuery.isLoading || sharedQuery.isLoading || resourcesQuery.isLoading;
+  const error = personalQuery.error || sharedQuery.error || resourcesQuery.error;
 
   if (isLoading) {
     return (
@@ -69,6 +93,7 @@ export default function MaterialsListScreen() {
           onPress={() => {
             personalQuery.refetch();
             sharedQuery.refetch();
+            resourcesQuery.refetch();
           }}
         >
           <Text style={{ color: '#2563EB' }}>Thử lại</Text>
@@ -79,23 +104,25 @@ export default function MaterialsListScreen() {
 
   const personal = (personalQuery.data ?? []).filter((m) => m.status === 'COMPLETED');
   const shared = (sharedQuery.data ?? []).filter((m) => m.status === 'COMPLETED');
+  const resources = resourcesQuery.data ?? [];
 
-  const sections = [
+  const sections: { title: string; data: Row[] }[] = [
     { title: 'Kho Học Liệu Official', data: shared },
+    { title: 'Tài nguyên khoá học', data: resources },
     { title: 'Lịch sử tạo cá nhân', data: personal },
   ].filter((s) => s.data.length > 0);
 
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerShown: true, title: 'Học liệu AI', headerLeft: () => <BackButton /> }} />
-      <SectionList<MaterialListItem | SharedMaterialListItem>
+      <SectionList<Row>
         sections={sections}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         contentContainerStyle={{ padding: 16, gap: 10 }}
         stickySectionHeadersEnabled={false}
         ListEmptyComponent={
           <Text style={{ color: '#64748B', textAlign: 'center', marginTop: 40 }}>
-            Khoá học này chưa có học liệu AI nào (flashcard/sơ đồ tư duy/câu hỏi ôn tập) sẵn sàng.
+            Khoá học này chưa có học liệu AI hay tài nguyên nào sẵn sàng.
           </Text>
         }
         renderSectionHeader={({ section }) => (
@@ -105,7 +132,7 @@ export default function MaterialsListScreen() {
           const { Icon, label } = displayFor(item);
           return (
             <Pressable
-              onPress={() => router.push(`/material/${item.id}` as Href)}
+              onPress={() => (isResource(item) ? Linking.openURL(item.fileUrl) : router.push(`/material/${item.id}` as Href))}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -119,7 +146,7 @@ export default function MaterialsListScreen() {
             >
               <Icon size={22} color="#2563EB" strokeWidth={1.75} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: '600' }}>{item.title || TYPE_LABEL[item.materialType]}</Text>
+                <Text style={{ fontWeight: '600' }}>{titleFor(item)}</Text>
                 <Text style={{ color: '#64748B', fontSize: 12 }}>{label}</Text>
               </View>
             </Pressable>

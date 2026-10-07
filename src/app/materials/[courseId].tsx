@@ -64,11 +64,9 @@ export default function MaterialsListScreen() {
         }
         renderItem={({ item }) => {
           const Icon = TYPE_ICON[item.materialType];
-          const supported = item.materialType === 'FLASHCARD' || item.materialType === 'MINDMAP';
           return (
             <Pressable
-              onPress={() => supported && router.push(`/material/${item.id}` as Href)}
-              disabled={!supported}
+              onPress={() => router.push(`/material/${item.id}` as Href)}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -77,16 +75,12 @@ export default function MaterialsListScreen() {
                 borderColor: '#E2E8F0',
                 borderRadius: 10,
                 padding: 14,
-                opacity: supported ? 1 : 0.5,
               }}
             >
               <Icon size={22} color="#2563EB" strokeWidth={1.75} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontWeight: '600' }}>{item.title || TYPE_LABEL[item.materialType]}</Text>
-                <Text style={{ color: '#64748B', fontSize: 12 }}>
-                  {TYPE_LABEL[item.materialType]}
-                  {!supported ? ' · chỉ xem trên Web' : ''}
-                </Text>
+                <Text style={{ color: '#64748B', fontSize: 12 }}>{TYPE_LABEL[item.materialType]}</Text>
               </View>
             </Pressable>
           );

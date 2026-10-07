@@ -26,6 +26,9 @@ export interface FlashcardCard {
 export interface MaterialDetail extends MaterialListItem {
   mermaidCode?: string;
   flashcards?: FlashcardCard[];
+  /** Chỉ có khi materialType=QUIZ — ID Quiz thật, dùng để mở `/exam/{quizId}` (màn làm bài đã
+   * có sẵn, tái dùng nguyên vẹn, không xây mới). */
+  quizId?: number;
 }
 
 export interface FlashcardReviewResult {

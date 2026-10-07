@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ListChecks } from 'lucide-react-native';
+import type { Href } from 'expo-router';
 
 import { ApiError } from '@/lib/api/client';
 import { flashcardsApi } from '@/lib/api/flashcards';
@@ -48,6 +49,26 @@ export default function MaterialDetailScreen() {
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
         <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} />
       ) : null}
+      {material.materialType === 'QUIZ' && material.quizId ? <QuizEntry quizId={material.quizId} /> : null}
+    </View>
+  );
+}
+
+/** Material loại QUIZ trỏ tới đúng 1 Quiz thật (`material.quizId`) — mở thẳng màn làm bài đã có
+ * sẵn (`exam/[quizId]`) thay vì xây lại UI làm bài riêng cho Materials Workspace. */
+function QuizEntry({ quizId }: { quizId: number }) {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
+      <ListChecks size={48} color="#2563EB" strokeWidth={1.5} />
+      <Text style={{ fontSize: 16, color: '#475569', textAlign: 'center' }}>
+        Bắt đầu làm bộ câu hỏi ôn tập để ôn lại kiến thức.
+      </Text>
+      <Pressable
+        onPress={() => router.push(`/exam/${quizId}` as Href)}
+        style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24 }}
+      >
+        <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
+      </Pressable>
     </View>
   );
 }

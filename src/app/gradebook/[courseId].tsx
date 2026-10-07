@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { ApiError } from '@/lib/api/client';
 import { gradebookApi } from '@/lib/api/quizzes';
+import { BackButton } from '@/components/BackButton';
 import type { QuizGrade } from '@/types/quiz';
 
 export default function GradebookScreen() {
@@ -36,7 +37,7 @@ export default function GradebookScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Stack.Screen options={{ headerShown: true, title: `Bảng điểm · ${data.courseTitle}` }} />
+      <Stack.Screen options={{ headerShown: true, title: `Bảng điểm · ${data.courseTitle}`, headerLeft: () => <BackButton /> }} />
 
       {data.quizzes.length === 0 ? (
         <Text style={{ color: '#64748B', textAlign: 'center', marginTop: 40 }}>

@@ -8,6 +8,7 @@ import { Layers } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
+import { BackButton } from '@/components/BackButton';
 import type { ChapterNav, LessonNav } from '@/types/lesson';
 
 /** Gửi tiến độ lên BE mỗi ~15s khi đang phát — khớp chu kỳ bản Web (xem docblock BE
@@ -83,7 +84,7 @@ export default function LessonPlayerScreen() {
 
   return (
     <ScrollView style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: lesson.lessonTitle }} />
+      <Stack.Screen options={{ headerShown: true, title: lesson.lessonTitle, headerLeft: () => <BackButton /> }} />
 
       {isDirectVideo ? (
         <VideoView player={player} style={{ width: '100%', height: 220, backgroundColor: '#000' }} nativeControls />

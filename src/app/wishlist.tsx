@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, Image, Pressable, Text, View } from 'react
 import { ApiError } from '@/lib/api/client';
 import { wishlistApi } from '@/lib/api/wishlist';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { BackButton } from '@/components/BackButton';
 import type { WishlistItem } from '@/types/wishlist';
 
 export default function WishlistScreen() {
@@ -28,7 +29,7 @@ export default function WishlistScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Yêu thích' }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Yêu thích', headerLeft: () => <BackButton /> }} />
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

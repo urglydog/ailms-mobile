@@ -5,6 +5,7 @@ import { Brain, Layers, ListChecks } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { materialsApi } from '@/lib/api/materials';
+import { BackButton } from '@/components/BackButton';
 import type { MaterialListItem } from '@/types/material';
 
 const TYPE_ICON: Record<MaterialListItem['materialType'], typeof Brain> = {
@@ -52,7 +53,7 @@ export default function MaterialsListScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Học liệu AI' }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Học liệu AI', headerLeft: () => <BackButton /> }} />
       <FlatList
         data={completed}
         keyExtractor={(item) => String(item.id)}

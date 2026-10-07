@@ -9,6 +9,7 @@ import { enrollmentsApi } from '@/lib/api/enrollments';
 import { reviewsApi } from '@/lib/api/reviews';
 import { wishlistApi } from '@/lib/api/wishlist';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { BackButton } from '@/components/BackButton';
 import type { CourseChapter } from '@/types/course';
 import type { CourseReview } from '@/types/review';
 
@@ -79,7 +80,7 @@ export default function CourseDetailScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <Stack.Screen options={{ headerShown: true, title: course.title }} />
+      <Stack.Screen options={{ headerShown: true, title: course.title, headerLeft: () => <BackButton /> }} />
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <Text style={{ fontSize: 22, fontWeight: '700', flex: 1 }}>{course.title}</Text>

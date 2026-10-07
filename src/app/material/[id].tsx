@@ -9,7 +9,8 @@ import { ApiError } from '@/lib/api/client';
 import { flashcardsApi } from '@/lib/api/flashcards';
 import { materialsApi } from '@/lib/api/materials';
 import { MindmapView } from '@/components/material/MindmapView';
-import type { FlashcardCard } from '@/types/material';
+import { BackButton } from '@/components/BackButton';
+import type { FlashcardCard, QuizQuestion } from '@/types/material';
 
 export default function MaterialDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,32 +43,171 @@ export default function MaterialDetailScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: material.title || 'Học liệu' }} />
+      <Stack.Screen options={{ headerShown: true, title: material.title || 'Học liệu', headerLeft: () => <BackButton /> }} />
       {material.materialType === 'MINDMAP' && material.mermaidCode ? (
         <MindmapView mermaidCode={material.mermaidCode} />
       ) : null}
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
         <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} />
       ) : null}
-      {material.materialType === 'QUIZ' && material.quizId ? <QuizEntry quizId={material.quizId} /> : null}
+      {material.materialType === 'QUIZ' && material.quizType === 'OFFICIAL_EXAM' && material.quizId ? (
+        <ExamEntry quizId={material.quizId} />
+      ) : null}
+      {material.materialType === 'QUIZ' && material.quizType === 'LECTURE_QUIZ' && material.quizQuestions ? (
+        <LectureQuiz questions={material.quizQuestions} />
+      ) : null}
     </View>
   );
 }
 
-/** Material loại QUIZ trỏ tới đúng 1 Quiz thật (`material.quizId`) — mở thẳng màn làm bài đã có
- * sẵn (`exam/[quizId]`) thay vì xây lại UI làm bài riêng cho Materials Workspace. */
-function QuizEntry({ quizId }: { quizId: number }) {
+/** QUIZ loại OFFICIAL_EXAM (có giờ/giám sát) — mở màn thi chính thức đã có sẵn (`exam/[quizId]`).
+ * KHÔNG dùng cho LECTURE_QUIZ (xem {@link LectureQuiz}) — bug thật 07/10/2026: trước đây mọi
+ * QUIZ material đều bị mở nhầm vào đây bất kể quizType. */
+function ExamEntry({ quizId }: { quizId: number }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
       <ListChecks size={48} color="#2563EB" strokeWidth={1.5} />
       <Text style={{ fontSize: 16, color: '#475569', textAlign: 'center' }}>
-        Bắt đầu làm bộ câu hỏi ôn tập để ôn lại kiến thức.
+        Đây là bài thi chính thức — có tính giờ, chỉ làm được số lần giới hạn.
       </Text>
       <Pressable
         onPress={() => router.push(`/exam/${quizId}` as Href)}
         style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24 }}
       >
         <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/** QUIZ loại LECTURE_QUIZ (ôn tập nhanh) — làm trực tiếp tại chỗ, KHÔNG tính giờ, không giới hạn
+ * số lần, không gửi kết quả lên BE (đúng hành vi bản Web `QuizViewer.tsx` — chấm điểm thuần phía
+ * client, không có "lượt làm bài" nào được lưu). Bỏ tính năng "Hỏi Gia sư AI tại sao sai" và lưu
+ * draft (localStorage) của bản Web để giữ scope gọn — có thể bổ sung sau nếu cần. */
+function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
+  const [isStarted, setIsStarted] = useState(false);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
+  const [score, setScore] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+
+  if (!questions.length) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <Text style={{ color: '#64748B' }}>Chưa có câu hỏi ôn tập nào.</Text>
+      </View>
+    );
+  }
+
+  if (!isStarted) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+        <ListChecks size={48} color="#2563EB" strokeWidth={1.5} />
+        <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Ôn tập nhanh</Text>
+        <Text style={{ color: '#64748B', textAlign: 'center' }}>
+          Bài tập có {questions.length} câu hỏi giúp củng cố kiến thức vừa học — không tính giờ, làm lại bao nhiêu lần tuỳ ý.
+        </Text>
+        <Pressable
+          onPress={() => setIsStarted(true)}
+          style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24, marginTop: 8 }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (isFinished) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+        <CheckCircle2 size={48} color="#16A34A" strokeWidth={1.5} />
+        <Text style={{ fontSize: 18, fontWeight: '700' }}>Hoàn thành bài trắc nghiệm!</Text>
+        <Text style={{ fontSize: 32, fontWeight: '800', color: '#2563EB' }}>
+          {score}/{questions.length}
+        </Text>
+        <Pressable onPress={() => router.back()} style={{ marginTop: 8 }}>
+          <Text style={{ color: '#2563EB', fontWeight: '600' }}>Hoàn tất & quay lại</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const question = questions[currentIdx];
+  const isAnswered = selectedOptionId !== null;
+  const selectedIsCorrect = question.options.find((o) => o.id === selectedOptionId)?.isCorrect ?? false;
+
+  const handleNext = () => {
+    if (selectedIsCorrect) setScore((s) => s + 1);
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx((i) => i + 1);
+      setSelectedOptionId(null);
+    } else {
+      setIsFinished(true);
+    }
+  };
+
+  return (
+    <View style={{ flex: 1, padding: 16, gap: 16 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text style={{ fontWeight: '600', color: '#334155' }}>
+          Câu {currentIdx + 1}/{questions.length}
+        </Text>
+        <View style={{ width: '40%', height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
+          <View style={{ width: `${((currentIdx + 1) / questions.length) * 100}%`, height: '100%', backgroundColor: '#2563EB' }} />
+        </View>
+      </View>
+
+      <Text style={{ fontSize: 18, fontWeight: '600', color: '#0F172A' }}>{question.content}</Text>
+
+      <View style={{ gap: 10 }}>
+        {question.options.map((option) => {
+          const isSelected = selectedOptionId === option.id;
+          let borderColor = '#E2E8F0';
+          let backgroundColor = '#fff';
+          let textColor = '#0F172A';
+          if (isAnswered) {
+            if (option.isCorrect) {
+              borderColor = '#16A34A';
+              backgroundColor = '#F0FDF4';
+              textColor = '#166534';
+            } else if (isSelected) {
+              borderColor = '#DC2626';
+              backgroundColor = '#FEF2F2';
+              textColor = '#991B1B';
+            } else {
+              backgroundColor = '#F8FAFC';
+            }
+          } else if (isSelected) {
+            borderColor = '#2563EB';
+            backgroundColor = '#EFF6FF';
+          }
+          return (
+            <Pressable
+              key={option.id}
+              disabled={isAnswered}
+              onPress={() => setSelectedOptionId(option.id)}
+              style={{ borderWidth: 1, borderColor, backgroundColor, borderRadius: 10, padding: 14 }}
+            >
+              <Text style={{ color: textColor, fontWeight: '500' }}>{option.content}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Pressable
+        disabled={!isAnswered}
+        onPress={handleNext}
+        style={{
+          backgroundColor: isAnswered ? '#2563EB' : '#E2E8F0',
+          borderRadius: 8,
+          paddingVertical: 14,
+          alignItems: 'center',
+          marginTop: 'auto',
+        }}
+      >
+        <Text style={{ color: isAnswered ? '#fff' : '#94A3B8', fontWeight: '600' }}>
+          {currentIdx === questions.length - 1 ? 'Hoàn thành' : 'Câu tiếp theo'}
+        </Text>
       </Pressable>
     </View>
   );

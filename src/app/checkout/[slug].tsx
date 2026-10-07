@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 
 import { coursesApi } from '@/lib/api/courses';
 import { ApiError } from '@/lib/api/client';
 import { purchaseCourseWithPayOs } from '@/lib/payment/payosCheckout';
+import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
 
 export default function CheckoutScreen() {
@@ -88,7 +89,7 @@ export default function CheckoutScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Thanh toán' }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Thanh toán', headerLeft: () => <BackButton /> }} />
       <Text style={{ fontSize: 18, fontWeight: '700' }}>{course.title}</Text>
       <Text style={{ fontSize: 22, fontWeight: '700', color: '#2563EB' }}>{course.finalPrice.toLocaleString('vi-VN')}đ</Text>
 

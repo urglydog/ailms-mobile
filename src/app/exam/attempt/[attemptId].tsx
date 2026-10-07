@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { ExamResultView } from '@/components/ExamResultView';
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
+import { BackButton } from '@/components/BackButton';
 
 export default function ExamAttemptReviewScreen() {
   const { attemptId } = useLocalSearchParams<{ attemptId: string }>();
@@ -36,7 +37,7 @@ export default function ExamAttemptReviewScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: 'Xem lại bài làm' }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Xem lại bài làm', headerLeft: () => <BackButton /> }} />
       <ExamResultView result={data} />
     </>
   );

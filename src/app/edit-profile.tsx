@@ -6,6 +6,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View 
 
 import { apiFormData, ApiError } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
+import { BackButton } from '@/components/BackButton';
 import type { UserProfile } from '@/types/user';
 
 export default function EditProfileScreen() {
@@ -13,7 +14,7 @@ export default function EditProfileScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Chỉnh sửa hồ sơ' }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Chỉnh sửa hồ sơ', headerLeft: () => <BackButton /> }} />
       {isLoading || !me ? (
         <ActivityIndicator style={{ marginTop: 40 }} />
       ) : (

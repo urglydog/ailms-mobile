@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native
 import { certificatesApi } from '@/lib/api/certificates';
 import { ApiError } from '@/lib/api/client';
 import { saveAndShareBlob } from '@/lib/files';
+import { BackButton } from '@/components/BackButton';
 import type { Certificate } from '@/types/certificate';
 
 export default function CertificatesScreen() {
@@ -16,7 +17,7 @@ export default function CertificatesScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Chứng chỉ của tôi' }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Chứng chỉ của tôi', headerLeft: () => <BackButton /> }} />
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

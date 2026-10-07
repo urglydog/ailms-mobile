@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native
 
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
+import { BackButton } from '@/components/BackButton';
 import type { QuizAttemptHistoryItem } from '@/types/quiz';
 
 export default function ExamHistoryScreen() {
@@ -17,7 +18,7 @@ export default function ExamHistoryScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Lịch sử làm bài' }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Lịch sử làm bài', headerLeft: () => <BackButton /> }} />
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

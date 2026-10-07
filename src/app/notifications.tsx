@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native
 
 import { ApiError } from '@/lib/api/client';
 import { notificationsApi } from '@/lib/api/notifications';
+import { BackButton } from '@/components/BackButton';
 import type { Notification } from '@/types/notification';
 
 function timeAgo(iso: string): string {
@@ -42,6 +43,7 @@ export default function NotificationsScreen() {
         options={{
           headerShown: true,
           title: 'Thông báo',
+          headerLeft: () => <BackButton />,
           headerRight: () =>
             unreadCount > 0 ? (
               <Pressable onPress={() => markAllReadMutation.mutate()}>

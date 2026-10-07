@@ -23,11 +23,29 @@ export interface FlashcardCard {
   isDue: boolean;
 }
 
+export interface QuizOption {
+  id: number;
+  content: string;
+  isCorrect: boolean;
+}
+
+export interface QuizQuestion {
+  id: number;
+  content: string;
+  displayOrder: number;
+  options: QuizOption[];
+}
+
 export interface MaterialDetail extends MaterialListItem {
   mermaidCode?: string;
   flashcards?: FlashcardCard[];
-  /** Chỉ có khi materialType=QUIZ — ID Quiz thật, dùng để mở `/exam/{quizId}` (màn làm bài đã
-   * có sẵn, tái dùng nguyên vẹn, không xây mới). */
+  quizQuestions?: QuizQuestion[];
+  /** 'LECTURE_QUIZ' = ôn tập thường (không giờ, làm tại chỗ) · 'OFFICIAL_EXAM' = thi chính thức
+   * (có giờ/giám sát) — PHẢI rẽ nhánh theo field này, không phải cứ QUIZ là mở `/exam/{quizId}`
+   * (bug thật 07/10/2026: mọi QUIZ material từng bị mở nhầm vào màn thi chính thức). */
+  quizType?: 'LECTURE_QUIZ' | 'OFFICIAL_EXAM';
+  /** Chỉ có khi materialType=QUIZ — ID Quiz thật, CHỈ dùng để mở `/exam/{quizId}` khi
+   * quizType=OFFICIAL_EXAM. LECTURE_QUIZ làm trực tiếp từ `quizQuestions`, không cần field này. */
   quizId?: number;
 }
 

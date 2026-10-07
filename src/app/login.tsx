@@ -6,10 +6,11 @@ import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function LoginScreen() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (isAuthenticated) {
@@ -28,9 +29,51 @@ export default function LoginScreen() {
     }
   };
 
+  const handleGoogleSubmit = async () => {
+    setError(null);
+    setIsGoogleSubmitting(true);
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Đăng nhập Google thất bại, vui lòng thử lại.');
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
+
   return (
     <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
       <Text style={{ fontSize: 24, fontWeight: '700', marginBottom: 12 }}>Đăng nhập</Text>
+
+      <Pressable
+        onPress={handleGoogleSubmit}
+        disabled={isGoogleSubmitting}
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 8,
+          borderWidth: 1,
+          borderColor: '#CBD5E1',
+          borderRadius: 8,
+          padding: 14,
+          backgroundColor: '#fff',
+          opacity: isGoogleSubmitting ? 0.6 : 1,
+        }}
+      >
+        {isGoogleSubmitting ? (
+          <ActivityIndicator color="#1F2937" />
+        ) : (
+          <Text style={{ color: '#1F2937', fontWeight: '600' }}>Đăng nhập với Google</Text>
+        )}
+      </Pressable>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 4 }}>
+        <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
+        <Text style={{ color: '#94A3B8', fontSize: 12 }}>hoặc</Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
+      </View>
+
       <TextInput
         placeholder="Email"
         value={email}

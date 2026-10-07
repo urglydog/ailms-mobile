@@ -33,3 +33,8 @@ export interface ResetPasswordRequest {
 export interface MessageResponse {
   message: string;
 }
+
+/** Luồng Google OAuth mobile — đổi mã dùng-1-lần (từ redirect `/oauth/google/mobile-callback`) lấy JWT thật. */
+export interface GoogleMobileExchangeRequest {
+  code: string;
+}

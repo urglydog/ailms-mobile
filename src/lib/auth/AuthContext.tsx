@@ -2,12 +2,14 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 
 import { authApi } from '@/lib/api/auth';
 import { getAccessToken, getRefreshToken, setAuthFailureHandler } from '@/lib/api/client';
+import { signInWithGoogle } from '@/lib/auth/googleAuth';
 import type { LoginRequest } from '@/types/auth';
 
 interface AuthContextValue {
   /** `null` = đang kiểm tra token đã lưu lúc mở app, chưa biết trạng thái. */
   isAuthenticated: boolean | null;
   login: (data: LoginRequest) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   /** Đánh dấu đã đăng nhập khi token đã được lưu từ nơi khác (vd reset-password tự đăng nhập). */
   markAuthenticated: () => void;
@@ -30,6 +32,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(true);
   };
 
+  const loginWithGoogle = async () => {
+    await signInWithGoogle();
+    setIsAuthenticated(true);
+  };
+
   const logout = async () => {
     const refreshToken = await getRefreshToken();
     await authApi.logout(refreshToken ?? '');
@@ -39,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const markAuthenticated = () => setIsAuthenticated(true);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, markAuthenticated }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, loginWithGoogle, logout, markAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,7 @@
 import { api, clearTokens, setTokens } from '@/lib/api/client';
 import type {
   ForgotPasswordRequest,
+  GoogleMobileExchangeRequest,
   LoginRequest,
   MessageResponse,
   RegisterRequest,
@@ -43,6 +44,16 @@ export const authApi = {
   /** Khớp bản Web — đặt lại mật khẩu xong BE trả token luôn (tự đăng nhập), không cần quay lại màn login. */
   async resetPassword(data: ResetPasswordRequest): Promise<TokenResponse> {
     const tokens = await api.post<TokenResponse>('/api/v1/auth/reset-password', data);
+    await setTokens(tokens.accessToken, tokens.refreshToken);
+    return tokens;
+  },
+
+  /**
+   * Bước cuối đăng nhập Google trên mobile — đổi mã dùng-1-lần (app nhận được sau khi
+   * `signInWithGoogle` mở trình duyệt xong) lấy JWT thật. Xem `lib/auth/googleAuth.ts`.
+   */
+  async exchangeGoogleCode(data: GoogleMobileExchangeRequest): Promise<TokenResponse> {
+    const tokens = await api.post<TokenResponse>('/api/v1/auth/oauth/google/mobile-exchange', data);
     await setTokens(tokens.accessToken, tokens.refreshToken);
     return tokens;
   },

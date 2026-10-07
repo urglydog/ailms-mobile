@@ -10,6 +10,10 @@ export interface MaterialListItem {
   versionNo: number;
   status: MaterialStatus;
   createdAt: string;
+  /** Chỉ có giá trị khi materialType='QUIZ' — phân biệt NGAY ở danh sách giữa ôn tập thường
+   * (LECTURE_QUIZ) và thi chính thức (OFFICIAL_EXAM), tránh nhầm như bug thật 07/10/2026 (2 loại
+   * từng hiện label giống hệt nhau "Câu hỏi ôn tập", không cách nào phân biệt trước khi bấm vào). */
+  quizType?: 'LECTURE_QUIZ' | 'OFFICIAL_EXAM' | null;
 }
 
 export interface FlashcardCard {

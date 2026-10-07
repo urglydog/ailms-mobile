@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
-import { Brain, Layers, ListChecks } from 'lucide-react-native';
+import { Brain, Layers, ListChecks, Timer } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { materialsApi } from '@/lib/api/materials';
@@ -19,6 +19,15 @@ const TYPE_LABEL: Record<MaterialListItem['materialType'], string> = {
   FLASHCARD: 'Flashcard',
   QUIZ: 'Câu hỏi ôn tập',
 };
+
+/** QUIZ cần phân biệt thêm theo quizType — icon/label khác cho bài thi chính thức (có giờ) so
+ * với ôn tập thường, tránh nhầm (bug thật 07/10/2026: 2 loại từng hiện giống hệt nhau). */
+function quizDisplay(item: MaterialListItem): { Icon: typeof Brain; label: string } {
+  if (item.quizType === 'OFFICIAL_EXAM') {
+    return { Icon: Timer, label: 'Bài thi chính thức · có tính giờ' };
+  }
+  return { Icon: ListChecks, label: 'Câu hỏi ôn tập · không tính giờ' };
+}
 
 export default function MaterialsListScreen() {
   const { courseId } = useLocalSearchParams<{ courseId: string }>();
@@ -64,7 +73,7 @@ export default function MaterialsListScreen() {
           </Text>
         }
         renderItem={({ item }) => {
-          const Icon = TYPE_ICON[item.materialType];
+          const { Icon, label } = item.materialType === 'QUIZ' ? quizDisplay(item) : { Icon: TYPE_ICON[item.materialType], label: TYPE_LABEL[item.materialType] };
           return (
             <Pressable
               onPress={() => router.push(`/material/${item.id}` as Href)}
@@ -81,7 +90,7 @@ export default function MaterialsListScreen() {
               <Icon size={22} color="#2563EB" strokeWidth={1.75} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontWeight: '600' }}>{item.title || TYPE_LABEL[item.materialType]}</Text>
-                <Text style={{ color: '#64748B', fontSize: 12 }}>{TYPE_LABEL[item.materialType]}</Text>
+                <Text style={{ color: '#64748B', fontSize: 12 }}>{label}</Text>
               </View>
             </Pressable>
           );

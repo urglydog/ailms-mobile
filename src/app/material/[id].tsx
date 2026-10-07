@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { WebView } from 'react-native-webview';
 import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { flashcardsApi } from '@/lib/api/flashcards';
 import { materialsApi } from '@/lib/api/materials';
+import { MindmapView } from '@/components/material/MindmapView';
 import type { FlashcardCard } from '@/types/material';
 
 export default function MaterialDetailScreen() {
@@ -50,33 +50,6 @@ export default function MaterialDetailScreen() {
       ) : null}
     </View>
   );
-}
-
-function MindmapView({ mermaidCode }: { mermaidCode: string }) {
-  const html = useMemo(
-    () => `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3" />
-          <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-          <style>
-            body { margin: 0; padding: 16px; background: #fff; }
-            #graph { display: flex; justify-content: center; }
-          </style>
-        </head>
-        <body>
-          <pre class="mermaid" id="graph">${mermaidCode.replace(/</g, '&lt;')}</pre>
-          <script>
-            mermaid.initialize({ startOnLoad: true, theme: 'default' });
-          </script>
-        </body>
-      </html>
-    `,
-    [mermaidCode],
-  );
-
-  return <WebView source={{ html }} style={{ flex: 1 }} originWhitelist={['*']} />;
 }
 
 type WorkspaceMode = 'browse' | 'study';

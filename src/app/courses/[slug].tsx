@@ -104,14 +104,9 @@ export default function CourseDetailScreen() {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ fontSize: 18, fontWeight: '700' }}>Nội dung khoá học</Text>
           {isAuthenticated ? (
-            <View style={{ flexDirection: 'row', gap: 16 }}>
-              <Pressable onPress={() => router.push(`/materials/${course.id}` as Href)}>
-                <Text style={{ color: '#2563EB' }}>Học liệu AI</Text>
-              </Pressable>
-              <Pressable onPress={() => router.push(`/gradebook/${course.id}` as Href)}>
-                <Text style={{ color: '#2563EB' }}>Bảng điểm</Text>
-              </Pressable>
-            </View>
+            <Pressable onPress={() => router.push(`/gradebook/${course.id}` as Href)}>
+              <Text style={{ color: '#2563EB' }}>Bảng điểm</Text>
+            </Pressable>
           ) : null}
         </View>
         {course.chapters.map((chapter) => (

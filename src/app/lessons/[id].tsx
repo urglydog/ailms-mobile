@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Layers } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
@@ -104,6 +105,15 @@ export default function LessonPlayerScreen() {
         <Text style={{ color: '#475569' }}>{lesson.courseTitle}</Text>
         {!lesson.enrolled && lesson.isPreview ? (
           <Text style={{ color: '#D97706' }}>Bạn đang xem thử — ghi danh để xem toàn bộ khoá học.</Text>
+        ) : null}
+        {lesson.enrolled ? (
+          <Pressable
+            onPress={() => router.push(`/materials/${lesson.courseId}` as Href)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}
+          >
+            <Layers size={18} color="#2563EB" strokeWidth={1.75} />
+            <Text style={{ color: '#2563EB', fontWeight: '600' }}>Học liệu AI</Text>
+          </Pressable>
         ) : null}
       </View>
 

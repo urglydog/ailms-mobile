@@ -53,6 +53,23 @@ export interface MaterialDetail extends MaterialListItem {
   quizId?: number;
 }
 
+/**
+ * Mục trong "Kho Học Liệu Official" (`GET /api/v1/instructor/materials/courses/{courseId}`) —
+ * khác `MaterialListItem` ("Lịch sử tạo cá nhân", chỉ học liệu CHÍNH học viên tự tạo): endpoint
+ * này (dù path có chữ "instructor", học viên gọi được — `@PreAuthorize("isAuthenticated()")`)
+ * trả về học liệu do giảng viên tạo + đánh dấu Official + đã gán (assign) vào bài học, nên mới
+ * đúng là nơi hiện "Câu hỏi ôn tập"/"Sơ đồ tư duy"/"Flashcard" CHÍNH THỐNG của khoá học — bug
+ * thật 07/10/2026: mobile ban đầu chỉ gọi `MaterialListItem`, bỏ sót hẳn danh sách này.
+ */
+export interface SharedMaterialListItem {
+  id: number;
+  materialType: MaterialType;
+  title: string | null;
+  status: MaterialStatus;
+  isOfficial: boolean;
+  quizType?: 'LECTURE_QUIZ' | 'OFFICIAL_EXAM' | null;
+}
+
 export interface FlashcardReviewResult {
   flashcardId: number;
   nextReviewAt: string;

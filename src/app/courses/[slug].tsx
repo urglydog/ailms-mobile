@@ -144,11 +144,12 @@ export default function CourseDetailScreen() {
             </Pressable>
           </>
         ) : (
-          // Thanh toán khoá học trả phí (VNPay/Momo...) chưa có trên mobile — chỉ Web hỗ trợ lúc
-          // này. Không build luồng thanh toán riêng ở đây vì nằm ngoài phạm vi "hiển thị dữ liệu".
-          <Text style={{ color: '#64748B' }}>
-            Khoá học trả phí — vui lòng mở bản Web để thanh toán và ghi danh.
-          </Text>
+          <Pressable
+            onPress={() => router.push(`/checkout/${slug}` as Href)}
+            style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center' }}
+          >
+            <Text style={{ color: '#fff', fontWeight: '600' }}>Mua khoá học</Text>
+          </Pressable>
         )}
       </View>
 

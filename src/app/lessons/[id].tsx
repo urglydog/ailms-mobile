@@ -351,6 +351,10 @@ export default function LessonPlayerScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId, isDirectVideo]);
 
+  useEffect(() => {
+    player.muted = audioSrc !== null;
+  }, [audioSrc, player]);
+
   if (isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -370,9 +374,7 @@ export default function LessonPlayerScreen() {
     );
   }
 
-  useEffect(() => {
-    player.muted = audioSrc !== null;
-  }, [audioSrc, player]);
+
 
   const activeLangOption = voiceOptions?.find((vo) => vo.language === activeLang);
   const voicesForActiveLang = voiceOptions?.filter((vo) => vo.language === activeLang) ?? [];

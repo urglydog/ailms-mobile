@@ -3,8 +3,9 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View, Platform } from 'react-native';
 import { Layers } from 'lucide-react-native';
+import * as crypto from 'expo-crypto';
 
 import { ApiError } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
@@ -61,6 +62,50 @@ export default function LessonPlayerScreen() {
     p.play();
   });
 
+  const sessionIdRef = useRef<string | null>(null);
+  const [streamConflict, setStreamConflict] = useState(false);
+
+  useEffect(() => {
+    if (!sessionIdRef.current) {
+      sessionIdRef.current = crypto.randomUUID();
+    }
+  }, [lessonId]);
+
+  useEffect(() => {
+    if (!lessonId || streamConflict) return;
+    
+    const sendPing = async (force: boolean) => {
+      if (!sessionIdRef.current) return;
+      try {
+        await lessonsApi.sendHeartbeat(lessonId, sessionIdRef.current, `${Platform.OS} App`, force);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          setStreamConflict(true);
+          player.pause();
+        }
+      }
+    };
+
+    void sendPing(true);
+
+    const intervalId = setInterval(() => {
+      void sendPing(false);
+    }, 20000);
+
+    return () => clearInterval(intervalId);
+  }, [lessonId, streamConflict, player]);
+
+  const handleResumeStream = async () => {
+    if (!sessionIdRef.current) return;
+    try {
+      await lessonsApi.sendHeartbeat(lessonId, sessionIdRef.current, `${Platform.OS} App`, true);
+      setStreamConflict(false);
+      player.play();
+    } catch {
+      // Best effort
+    }
+  };
+
   const lastReportedAtRef = useRef(0);
 
   useEventListener(player, 'timeUpdate', ({ currentTime }) => {
@@ -111,7 +156,17 @@ export default function LessonPlayerScreen() {
     <ScrollView style={{ flex: 1 }}>
       <Stack.Screen options={{ headerShown: true, title: lesson.lessonTitle, headerLeft: () => <BackButton /> }} />
 
-      {isDirectVideo ? (
+      {streamConflict ? (
+        <View style={{ width: '100%', height: 220, backgroundColor: '#0F172A', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+          <Text style={{ color: '#F87171', fontWeight: '700', fontSize: 16 }}>Phiên xem bị giới hạn</Text>
+          <Text style={{ color: '#CBD5E1', textAlign: 'center', fontSize: 13, lineHeight: 20 }}>
+            Tài khoản của bạn đang mở bài giảng này ở một thiết bị khác. Vui lòng dừng ở thiết bị kia, hoặc bấm giành lại quyền phát tại đây.
+          </Text>
+          <Pressable onPress={handleResumeStream} style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, marginTop: 8 }}>
+            <Text style={{ color: '#fff', fontWeight: '600' }}>Giành quyền phát</Text>
+          </Pressable>
+        </View>
+      ) : isDirectVideo ? (
         <VideoView player={player} style={{ width: '100%', height: 220, backgroundColor: '#000' }} nativeControls />
       ) : lesson.youtubeId ? (
         <Pressable

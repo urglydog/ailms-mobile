@@ -26,6 +26,16 @@ export async function purchaseCourseWithPayOs(
   return pollPaymentResult(txnRef);
 }
 
+export async function purchaseBatchWithPayOs(
+  req: Omit<import('@/types/payment').CreateBatchPaymentReq, 'paymentMethod'>,
+): Promise<PaymentRecord> {
+  const { paymentUrl, txnRef } = await paymentsApi.createBatch({ ...req, paymentMethod: 'PAYOS' });
+
+  await WebBrowser.openBrowserAsync(paymentUrl);
+
+  return pollPaymentResult(txnRef);
+}
+
 async function pollPaymentResult(txnRef: string): Promise<PaymentRecord> {
   const deadline = Date.now() + POLL_TIMEOUT_MS;
 

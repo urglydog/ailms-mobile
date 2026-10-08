@@ -6,6 +6,10 @@ export const paymentsApi = {
     return api.post<PaymentUrlResponse>('/api/v1/payments/create', data);
   },
 
+  createBatch(data: import('@/types/payment').CreateBatchPaymentReq): Promise<PaymentUrlResponse> {
+    return api.post<PaymentUrlResponse>('/api/v1/payments/create-batch', data);
+  },
+
   listMine(): Promise<PaymentRecord[]> {
     return api.get<PaymentRecord[]>('/api/v1/payments/mine');
   },

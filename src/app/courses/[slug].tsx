@@ -8,6 +8,7 @@ import { coursesApi } from '@/lib/api/courses';
 import { enrollmentsApi } from '@/lib/api/enrollments';
 import { reviewsApi } from '@/lib/api/reviews';
 import { wishlistApi } from '@/lib/api/wishlist';
+import { cartApi } from '@/lib/api/cart';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { BackButton } from '@/components/BackButton';
 import { LiveBanner } from '@/components/course/LiveBanner';
@@ -40,6 +41,21 @@ export default function CourseDetailScreen() {
     enabled: isAuthenticated === true,
   });
   const isWished = !!course && (wishlist?.some((w) => w.courseId === course.id) ?? false);
+
+  const { data: cart } = useQuery({
+    queryKey: ['cart'],
+    queryFn: () => cartApi.list(),
+    enabled: isAuthenticated === true,
+  });
+  const isInCart = !!course && (cart?.some((c) => c.courseId === course.id) ?? false);
+
+  const cartMutation = useMutation({
+    mutationFn: async () => {
+      if (isInCart) await cartApi.remove(course!.id);
+      else await cartApi.add(course!.id);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+  });
 
   const wishlistMutation = useMutation({
     mutationFn: async () => {
@@ -149,12 +165,25 @@ export default function CourseDetailScreen() {
             </Pressable>
           </>
         ) : (
-          <Pressable
-            onPress={() => router.push(`/checkout/${slug}` as Href)}
-            style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center' }}
-          >
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Mua khoá học</Text>
-          </Pressable>
+          <View style={{ gap: 8 }}>
+            <Pressable
+              onPress={() => router.push(`/checkout/${slug}` as Href)}
+              style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center' }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Mua ngay</Text>
+            </Pressable>
+            {isAuthenticated ? (
+              <Pressable
+                onPress={() => cartMutation.mutate()}
+                disabled={cartMutation.isPending}
+                style={{ borderWidth: 1, borderColor: '#2563EB', backgroundColor: isInCart ? '#EFF6FF' : '#fff', borderRadius: 8, padding: 14, alignItems: 'center', opacity: cartMutation.isPending ? 0.6 : 1 }}
+              >
+                <Text style={{ color: '#2563EB', fontWeight: '600' }}>
+                  {isInCart ? 'Đã thêm vào giỏ hàng' : 'Thêm vào giỏ hàng'}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
         )}
 
         <BundleUpsellWidget courseId={course.id} />

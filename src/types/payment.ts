@@ -11,6 +11,16 @@ export interface CreatePaymentRequest {
   referralCode?: string;
 }
 
+export interface CreateBatchPaymentReq {
+  courseIds: number[];
+  paymentMethod: 'PAYOS';
+  billingName?: string;
+  billingPhone?: string;
+  couponCode?: string;
+  referralCodes?: Record<number, string>;
+  bundleIds?: number[];
+}
+
 export interface PaymentUrlResponse {
   paymentUrl: string;
   /** Mobile không có trang web nào để landing sau khi thanh toán — poll `/payments/mine` lọc

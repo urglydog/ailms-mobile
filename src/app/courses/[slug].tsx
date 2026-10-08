@@ -10,6 +10,8 @@ import { reviewsApi } from '@/lib/api/reviews';
 import { wishlistApi } from '@/lib/api/wishlist';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { BackButton } from '@/components/BackButton';
+import { LiveBanner } from '@/components/course/LiveBanner';
+import { BundleUpsellWidget } from '@/components/course/BundleUpsellWidget';
 import type { CourseChapter } from '@/types/course';
 import type { CourseReview } from '@/types/review';
 
@@ -99,6 +101,8 @@ export default function CourseDetailScreen() {
       </Text>
       <Text style={{ color: '#475569' }}>{formatDuration(course.totalDurationSec)}</Text>
 
+      <LiveBanner courseId={course.id} />
+
       <Text style={{ fontSize: 16, lineHeight: 22 }}>{course.description}</Text>
 
       <View style={{ gap: 8 }}>
@@ -152,6 +156,8 @@ export default function CourseDetailScreen() {
             <Text style={{ color: '#fff', fontWeight: '600' }}>Mua khoá học</Text>
           </Pressable>
         )}
+
+        <BundleUpsellWidget courseId={course.id} />
       </View>
 
       <ReviewsSection courseId={course.id} isAuthenticated={isAuthenticated === true} />

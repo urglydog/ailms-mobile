@@ -6,10 +6,10 @@ import { Trophy } from 'lucide-react-native';
 import { gradebookApi } from '@/lib/api/quizzes';
 import type { QuizGrade } from '@/types/quiz';
 
-/** Port rút gọn từ `fe/components/course/CourseGradebookTab.tsx` — bỏ `KnowledgeGapsWidget`
- * (AI phân tích điểm yếu, mục #4 trong bảng ưu tiên UpComming_Plan.md, không nằm trong 4 việc
- * đã chốt lần này) và phân trang (danh sách quiz mỗi khoá thường không nhiều, cuộn tay đủ dùng
- * trên mobile). Tái dùng nguyên `gradebookApi`/`QuizGrade` đã có sẵn cho màn `gradebook/[courseId]`. */
+import { KnowledgeGapsWidget } from '@/components/gradebook/KnowledgeGapsWidget';
+
+/** Port rút gọn từ `fe/components/course/CourseGradebookTab.tsx` — nay đã thêm lại `KnowledgeGapsWidget`
+ * (AI phân tích điểm yếu, mục #4 trong bảng ưu tiên UpComming_Plan.md). Tái dùng nguyên `gradebookApi`/`QuizGrade` đã có sẵn cho màn `gradebook/[courseId]`. */
 export function GradebookTab({ courseId }: { courseId: number }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['gradebook', courseId],
@@ -45,10 +45,13 @@ export function GradebookTab({ courseId }: { courseId: number }) {
   );
 
   return (
-    <View style={{ padding: 16, gap: 10 }}>
+    <View style={{ gap: 10, paddingVertical: 16 }}>
+      <KnowledgeGapsWidget courseId={courseId} />
+      <View style={{ paddingHorizontal: 16, gap: 10 }}>
       {sorted.map((quiz) => (
         <QuizGradeRow key={quiz.quizId} quiz={quiz} />
       ))}
+      </View>
     </View>
   );
 }

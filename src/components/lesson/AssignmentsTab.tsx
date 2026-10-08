@@ -37,7 +37,9 @@ export function AssignmentsTab({ lessonId, enrolled, courseSlug }: { lessonId: n
   if (!assignments || assignments.length === 0) {
     return (
       <View style={{ padding: 24, alignItems: 'center' }}>
-        <Text style={{ color: '#64748B', fontSize: 13 }}>Bài học này chưa có bài tập nào.</Text>
+        <Text style={{ color: '#64748B', fontSize: 13, textAlign: 'center' }}>
+          Bài học này không có bài tập tự luận/nộp file nào.
+        </Text>
       </View>
     );
   }

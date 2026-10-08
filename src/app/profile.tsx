@@ -106,6 +106,7 @@ export default function ProfileScreen() {
             <MenuRow label="Khoá học của tôi" href={'/my-courses' as Href} />
             <MenuRow label="Yêu thích" href={'/wishlist' as Href} />
             <MenuRow label="Chứng chỉ của tôi" href={'/certificates' as Href} />
+            <MenuRow label="Lịch sử thanh toán" href={'/payments' as Href} />
             <MenuRow label="Thông báo" href={'/notifications' as Href} />
           </View>
 

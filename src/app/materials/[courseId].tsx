@@ -125,7 +125,14 @@ export default function MaterialsListScreen() {
         // "Học liệu" cùng học liệu AI, không phải tab riêng — chỉ hiện khi vào từ đúng 1 bài học
         // cụ thể (`?lessonId=`), vì bài tập gắn với lessonId chứ không phải courseId.
         ListHeaderComponent={
-          lessonId ? <AssignmentsTab lessonId={Number(lessonId)} enrolled courseSlug="" /> : null
+          lessonId ? (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontWeight: '700', fontSize: 15, color: '#334155', marginTop: 12, marginBottom: 6 }}>
+                Bài Tập Tự Luận (Giảng viên giao)
+              </Text>
+              <AssignmentsTab lessonId={Number(lessonId)} enrolled courseSlug="" />
+            </View>
+          ) : null
         }
         ListEmptyComponent={
           <Text style={{ color: '#64748B', textAlign: 'center', marginTop: 40 }}>

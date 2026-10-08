@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { ApiError } from '@/lib/api/client';
 import { gradebookApi } from '@/lib/api/quizzes';
 import { BackButton } from '@/components/BackButton';
+import { KnowledgeGapsWidget } from '@/components/gradebook/KnowledgeGapsWidget';
 import type { QuizGrade } from '@/types/quiz';
 
 export default function GradebookScreen() {
@@ -36,15 +37,19 @@ export default function GradebookScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+    <ScrollView contentContainerStyle={{ paddingVertical: 16, gap: 12 }}>
       <Stack.Screen options={{ headerShown: true, title: `Bảng điểm · ${data.courseTitle}`, headerLeft: () => <BackButton /> }} />
+
+      <KnowledgeGapsWidget courseId={Number(courseId)} />
 
       {data.quizzes.length === 0 ? (
         <Text style={{ color: '#64748B', textAlign: 'center', marginTop: 40 }}>
           Chưa có bài thi nào đã làm trong khoá này. Bài thi mới xuất hiện ở đây sau lần làm đầu tiên.
         </Text>
       ) : (
-        data.quizzes.map((quiz) => <QuizGradeCard key={quiz.quizId} quiz={quiz} />)
+        <View style={{ paddingHorizontal: 16, gap: 12 }}>
+          {data.quizzes.map((quiz) => <QuizGradeCard key={quiz.quizId} quiz={quiz} />)}
+        </View>
       )}
     </ScrollView>
   );

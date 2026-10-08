@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ExamResultView } from '@/components/ExamResultView';
+import { BackButton } from '@/components/BackButton';
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
 import type { QuizAttemptResult, QuizQuestion } from '@/types/quiz';
@@ -99,7 +100,10 @@ export default function ExamScreen() {
   if (attempt.isProctored) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Stack.Screen options={{ headerShown: true, title: 'Bài thi' }} />
+        {/* (08/10/2026) — an toàn để thêm back ở đây: chưa vào bài thi, chưa có gì để mất. Màn
+            đang làm bài (bên dưới) CỐ Ý không có back, tránh bấm nhầm mất lượt làm bài đang
+            tính giờ — giống UX phổ biến của app thi trắc nghiệm. */}
+        <Stack.Screen options={{ headerShown: true, title: 'Bài thi', headerLeft: () => <BackButton /> }} />
         <Text style={{ fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
           Bài thi này yêu cầu giám sát camera trong lúc làm bài.
         </Text>

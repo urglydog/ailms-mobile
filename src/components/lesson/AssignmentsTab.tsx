@@ -10,9 +10,11 @@ import { assignmentApi } from '@/lib/api/communication';
 import { LockedFeatureNotice } from '@/components/lesson/LockedFeatureNotice';
 import type { StudentAssignmentItem } from '@/types/lessonPlayer';
 
-/** Port từ `fe/components/course/LessonAssignmentsList.tsx` — dời từ tab "Học liệu" (web) sang
- * tab riêng "Bài tập" ở bản mobile (vì theo `lessonId`, không phải `courseId` — `MaterialManager`
- * quản lý học liệu khoá học đã có sẵn ở các màn Materials Workspace riêng, không lặp lại ở đây). */
+/** Port từ `fe/components/course/LessonAssignmentsList.tsx` — web đặt khối này NGAY TRONG tab
+ * "Học liệu" (cùng `MaterialManager`), không có tab riêng nào (08/10/2026, sửa lại sau khi
+ * khảo sát sai ban đầu tự tách thành 1 tab "Bài tập" không tồn tại trên web). Mobile đặt ở đầu
+ * màn `/materials/[courseId]` (xem file đó) — theo `lessonId` vì bài tập gắn với 1 bài học cụ
+ * thể, không phải toàn khoá. */
 export function AssignmentsTab({ lessonId, enrolled, courseSlug }: { lessonId: number; enrolled: boolean; courseSlug: string }) {
   const { data: assignments, isLoading } = useQuery({
     queryKey: ['lesson-assignments', lessonId],

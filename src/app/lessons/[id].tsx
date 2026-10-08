@@ -12,21 +12,23 @@ import { BackButton } from '@/components/BackButton';
 import { OverviewTab } from '@/components/lesson/OverviewTab';
 import { StudyPlanTab } from '@/components/lesson/StudyPlanTab';
 import { QnaTab } from '@/components/lesson/QnaTab';
-import { AssignmentsTab } from '@/components/lesson/AssignmentsTab';
 import { GradebookTab } from '@/components/lesson/GradebookTab';
 import { ResourcesTab } from '@/components/lesson/ResourcesTab';
 import { ReviewsTab } from '@/components/lesson/ReviewsTab';
 import { TutorChat } from '@/components/lesson/TutorChat';
 import type { ChapterNav, LessonNav } from '@/types/lesson';
 
-type MainTab = 'overview' | 'study-plan' | 'qna' | 'assignments' | 'gradebook' | 'resources' | 'reviews' | 'tutor';
+// (08/10/2026, theo phản hồi) — bỏ tab "Bài tập" riêng: trên web, bài tập GV giao
+// (LessonAssignmentsList) và học liệu AI (MaterialManager) nằm CHUNG 1 tab "Học liệu" (không
+// có tab bài tập tách riêng nào cả — khảo sát lại đúng `fe/app/(learn)/learn/[lessonId]/
+// page.tsx`). Dời AssignmentsTab sang đầu màn `/materials/[courseId]` (xem file đó).
+type MainTab = 'overview' | 'study-plan' | 'qna' | 'gradebook' | 'resources' | 'reviews' | 'tutor';
 
 const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: 'overview', label: 'Tổng quan' },
   { key: 'study-plan', label: 'Lộ trình AI' },
   { key: 'qna', label: 'Hỏi đáp' },
   { key: 'tutor', label: 'AI Gia sư' },
-  { key: 'assignments', label: 'Bài tập' },
   { key: 'gradebook', label: 'Bảng điểm' },
   { key: 'resources', label: 'Tài nguyên' },
   { key: 'reviews', label: 'Đánh giá' },
@@ -132,11 +134,13 @@ export default function LessonPlayerScreen() {
         ) : null}
         {lesson.enrolled ? (
           <Pressable
-            onPress={() => router.push(`/materials/${lesson.courseId}` as Href)}
+            onPress={() => router.push(`/materials/${lesson.courseId}?lessonId=${lesson.lessonId}` as Href)}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}
           >
             <Layers size={18} color="#2563EB" strokeWidth={1.75} />
-            <Text style={{ color: '#2563EB', fontWeight: '600' }}>Học liệu AI</Text>
+            {/* (08/10/2026, theo phản hồi) — đổi tên khớp đúng web: web gọi tab này "Học liệu",
+                không có khái niệm "Học liệu AI" nào. */}
+            <Text style={{ color: '#2563EB', fontWeight: '600' }}>Học liệu</Text>
           </Pressable>
         ) : null}
       </View>
@@ -169,7 +173,6 @@ export default function LessonPlayerScreen() {
         {mainTab === 'study-plan' && <StudyPlanTab courseId={lesson.courseId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
         {mainTab === 'qna' && <QnaTab lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
         {mainTab === 'tutor' && <TutorChat courseId={lesson.courseId} lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
-        {mainTab === 'assignments' && <AssignmentsTab lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
         {mainTab === 'gradebook' && <GradebookTab courseId={lesson.courseId} />}
         {mainTab === 'resources' && <ResourcesTab courseId={lesson.courseId} />}
         {mainTab === 'reviews' && <ReviewsTab courseId={lesson.courseId} />}

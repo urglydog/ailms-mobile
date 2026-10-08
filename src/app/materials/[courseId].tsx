@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/api/client';
 import { materialsApi } from '@/lib/api/materials';
 import { courseResourcesApi } from '@/lib/api/courseResources';
 import { BackButton } from '@/components/BackButton';
+import { AssignmentsTab } from '@/components/lesson/AssignmentsTab';
 import type { MaterialListItem, MaterialType, SharedMaterialListItem } from '@/types/material';
 import type { CourseResource } from '@/types/courseResource';
 
@@ -53,7 +54,7 @@ function titleFor(item: Row): string {
 }
 
 export default function MaterialsListScreen() {
-  const { courseId } = useLocalSearchParams<{ courseId: string }>();
+  const { courseId, lessonId } = useLocalSearchParams<{ courseId: string; lessonId?: string }>();
   const id = Number(courseId);
 
   const personalQuery = useQuery({
@@ -114,15 +115,21 @@ export default function MaterialsListScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Học liệu AI', headerLeft: () => <BackButton /> }} />
+      <Stack.Screen options={{ headerShown: true, title: 'Học liệu', headerLeft: () => <BackButton /> }} />
       <SectionList<Row>
         sections={sections}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         contentContainerStyle={{ padding: 16, gap: 10 }}
         stickySectionHeadersEnabled={false}
+        // (08/10/2026) — bài tập GV giao (`LessonAssignmentsList` bên web) nằm NGAY TRONG tab
+        // "Học liệu" cùng học liệu AI, không phải tab riêng — chỉ hiện khi vào từ đúng 1 bài học
+        // cụ thể (`?lessonId=`), vì bài tập gắn với lessonId chứ không phải courseId.
+        ListHeaderComponent={
+          lessonId ? <AssignmentsTab lessonId={Number(lessonId)} enrolled courseSlug="" /> : null
+        }
         ListEmptyComponent={
           <Text style={{ color: '#64748B', textAlign: 'center', marginTop: 40 }}>
-            Khoá học này chưa có học liệu AI hay tài nguyên nào sẵn sàng.
+            Khoá học này chưa có học liệu hay tài nguyên nào sẵn sàng.
           </Text>
         }
         renderSectionHeader={({ section }) => (

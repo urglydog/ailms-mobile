@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
+import { BottomNav } from '@/components/BottomNav';
 import { coursesApi } from '@/lib/api/courses';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -62,11 +63,15 @@ export default function CoursesScreen() {
           keyExtractor={(item) => String(item.id)}
           refreshing={isRefetching}
           onRefresh={refetch}
-          contentContainerStyle={{ padding: 16, gap: 12 }}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
+          contentContainerStyle={{ paddingBottom: 16, paddingTop: 16, gap: 12 }}
           ListHeaderComponent={<RankingBanner />}
+          ListHeaderComponentStyle={{ marginBottom: 12, paddingHorizontal: 16 }}
           renderItem={({ item }) => <CourseCard course={item} />}
         />
       )}
+      <BottomNav />
     </View>
   );
 }
@@ -75,15 +80,17 @@ function CourseCard({ course }: { course: CourseSummary }) {
   return (
     <Pressable
       onPress={() => router.push(`/courses/${course.slug}` as Href)}
-      style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden' }}
+      style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
     >
       {course.thumbnailUrl ? (
-        <Image source={{ uri: course.thumbnailUrl }} style={{ width: '100%', height: 160 }} resizeMode="cover" />
-      ) : null}
-      <View style={{ padding: 12, gap: 4 }}>
-        <Text style={{ fontWeight: '600', fontSize: 16 }}>{course.title}</Text>
-        <Text style={{ color: '#475569' }}>{course.instructorName}</Text>
-        <Text style={{ color: '#2563EB', fontWeight: '600' }}>
+        <Image source={{ uri: course.thumbnailUrl }} style={{ width: '100%', height: 100 }} resizeMode="cover" />
+      ) : (
+        <View style={{ width: '100%', height: 100, backgroundColor: '#E2E8F0' }} />
+      )}
+      <View style={{ padding: 10, gap: 4 }}>
+        <Text style={{ fontWeight: '700', fontSize: 13, color: '#1E293B' }} numberOfLines={2}>{course.title}</Text>
+        <Text style={{ color: '#64748B', fontSize: 11 }} numberOfLines={1}>{course.instructorName}</Text>
+        <Text style={{ color: '#2563EB', fontWeight: '700', fontSize: 13, marginTop: 4 }}>
           {course.isFree ? 'Miễn phí' : `${course.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>
       </View>

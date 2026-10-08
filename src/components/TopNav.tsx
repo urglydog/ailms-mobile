@@ -5,15 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { cartApi } from '@/lib/api/cart';
 import { useAuth } from '@/lib/auth/AuthContext';
 
-const TABS = [
-  { href: '/courses', label: 'Khoá học' },
-  { href: '/my-courses', label: 'Của tôi' },
-  { href: '/profile', label: 'Hồ sơ' },
-] as const;
-
-/** Thanh điều hướng tối giản — app chưa cần (tabs) layout riêng vì mới có 3 màn hình chính. */
 export function TopNav() {
-  const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   
   const { data: cart } = useQuery({
@@ -23,23 +15,13 @@ export function TopNav() {
   });
 
   return (
-    <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
-      {TABS.map((tab) => {
-        const active = pathname === tab.href;
-        return (
-          <Pressable
-            key={tab.href}
-            onPress={() => router.push(tab.href as Href)}
-            style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: active ? '#2563EB' : 'transparent' }}
-          >
-            <Text style={{ color: active ? '#2563EB' : '#475569', fontWeight: active ? '700' : '500' }}>{tab.label}</Text>
-          </Pressable>
-        );
-      })}
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#FFFFFF' }}>
+      <Text style={{ fontSize: 20, fontWeight: '900', color: '#2563EB', letterSpacing: -0.5 }}>ai<Text style={{ color: '#0F172A' }}>lms.</Text></Text>
+      
       {isAuthenticated && (
         <Pressable
           onPress={() => router.push('/cart' as Href)}
-          style={{ paddingHorizontal: 16, justifyContent: 'center', alignItems: 'center' }}
+          style={{ padding: 8, justifyContent: 'center', alignItems: 'center' }}
         >
           <View>
             <ShoppingCart size={24} color="#475569" />

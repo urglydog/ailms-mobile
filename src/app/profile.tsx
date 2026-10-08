@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
-import { ActivityIndicator, Image, Pressable, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, Switch, Text, View, ScrollView } from 'react-native';
 import { Monitor } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';
+import { BottomNav } from '@/components/BottomNav';
 import { ApiError } from '@/lib/api/client';
 import { streakApi } from '@/lib/api/streak';
 import { usersApi } from '@/lib/api/users';
@@ -30,11 +31,12 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <TopNav />
-      <View style={{ padding: 16 }}>
-        <Text style={{ fontSize: 20, fontWeight: '700' }}>Hồ sơ</Text>
-      </View>
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ padding: 16 }}>
+          <Text style={{ fontSize: 20, fontWeight: '700' }}>Hồ sơ</Text>
+        </View>
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -121,6 +123,8 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       )}
+      </ScrollView>
+      <BottomNav />
     </View>
   );
 }

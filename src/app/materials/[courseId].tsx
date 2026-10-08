@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
-import { ActivityIndicator, Linking, Pressable, SectionList, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Linking, Pressable, FlatList, ScrollView, Text, View } from 'react-native';
 import { Brain, FileText, Layers, ListChecks, Timer } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
@@ -56,6 +57,7 @@ function titleFor(item: Row): string {
 export default function MaterialsListScreen() {
   const { courseId, lessonId } = useLocalSearchParams<{ courseId: string; lessonId?: string }>();
   const id = Number(courseId);
+  const [activeTab, setActiveTab] = useState<string>(lessonId ? 'assignments' : 'shared');
 
   const personalQuery = useQuery({
     queryKey: ['materials', id, 'personal'],
@@ -107,66 +109,84 @@ export default function MaterialsListScreen() {
   const shared = (sharedQuery.data ?? []).filter((m) => m.status === 'COMPLETED');
   const resources = resourcesQuery.data ?? [];
 
-  const sections: { title: string; data: Row[] }[] = [
-    { title: 'Kho Học Liệu Official', data: shared },
-    { title: 'Tài nguyên khoá học', data: resources },
-    { title: 'Lịch sử tạo cá nhân', data: personal },
-  ].filter((s) => s.data.length > 0);
+  const tabs = [
+    ...(lessonId ? [{ key: 'assignments', label: 'Bài tập GV giao' }] : []),
+    { key: 'shared', label: 'Kho Học Liệu Official' },
+    { key: 'resources', label: 'Tài nguyên khoá học' },
+    { key: 'personal', label: 'Lịch sử tạo cá nhân' },
+  ];
+
+  let currentData: Row[] = [];
+  if (activeTab === 'shared') currentData = shared;
+  else if (activeTab === 'resources') currentData = resources;
+  else if (activeTab === 'personal') currentData = personal;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <Stack.Screen options={{ headerShown: true, title: 'Học liệu', headerLeft: () => <BackButton /> }} />
-      <SectionList<Row>
-        sections={sections}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
-        contentContainerStyle={{ padding: 16, gap: 10 }}
-        stickySectionHeadersEnabled={false}
-        // (08/10/2026) — bài tập GV giao (`LessonAssignmentsList` bên web) nằm NGAY TRONG tab
-        // "Học liệu" cùng học liệu AI, không phải tab riêng — chỉ hiện khi vào từ đúng 1 bài học
-        // cụ thể (`?lessonId=`), vì bài tập gắn với lessonId chứ không phải courseId.
-        ListHeaderComponent={
-          lessonId ? (
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{ fontWeight: '700', fontSize: 15, color: '#334155', marginTop: 12, marginBottom: 6 }}>
-                Bài Tập Tự Luận (Giảng viên giao)
-              </Text>
-              <AssignmentsTab lessonId={Number(lessonId)} enrolled courseSlug="" />
-            </View>
-          ) : null
-        }
-        ListEmptyComponent={
-          <Text style={{ color: '#64748B', textAlign: 'center', marginTop: 40 }}>
-            Khoá học này chưa có học liệu hay tài nguyên nào sẵn sàng.
-          </Text>
-        }
-        renderSectionHeader={({ section }) => (
-          <Text style={{ fontWeight: '700', fontSize: 15, color: '#334155', marginTop: 12, marginBottom: 6 }}>{section.title}</Text>
-        )}
-        renderItem={({ item }) => {
-          const { Icon, label } = displayFor(item);
-          return (
+      
+      {/* Tabs */}
+      <View style={{ borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 8 }}>
+          {tabs.map((tab) => (
             <Pressable
-              onPress={() => (isResource(item) ? Linking.openURL(item.fileUrl) : router.push(`/material/${item.id}` as Href))}
+              key={tab.key}
+              onPress={() => setActiveTab(tab.key)}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                borderWidth: 1,
-                borderColor: '#E2E8F0',
-                borderRadius: 10,
-                padding: 14,
-                marginBottom: 10,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                borderBottomWidth: 2,
+                borderBottomColor: activeTab === tab.key ? '#2563EB' : 'transparent',
               }}
             >
-              <Icon size={22} color="#2563EB" strokeWidth={1.75} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: '600' }}>{titleFor(item)}</Text>
-                <Text style={{ color: '#64748B', fontSize: 12 }}>{label}</Text>
-              </View>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: activeTab === tab.key ? '#2563EB' : '#64748B' }}>
+                {tab.label}
+              </Text>
             </Pressable>
-          );
-        }}
-      />
+          ))}
+        </ScrollView>
+      </View>
+
+      {activeTab === 'assignments' && lessonId ? (
+        <ScrollView style={{ flex: 1, padding: 16 }}>
+          <AssignmentsTab lessonId={Number(lessonId)} enrolled courseSlug="" />
+        </ScrollView>
+      ) : (
+        <FlatList<Row>
+          data={currentData}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          contentContainerStyle={{ padding: 16, gap: 10 }}
+          ListEmptyComponent={
+            <Text style={{ color: '#64748B', textAlign: 'center', marginTop: 40 }}>
+              Không có dữ liệu trong mục này.
+            </Text>
+          }
+          renderItem={({ item }) => {
+            const { Icon, label } = displayFor(item);
+            return (
+              <Pressable
+                onPress={() => (isResource(item) ? Linking.openURL(item.fileUrl) : router.push(`/material/${item.id}` as Href))}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  borderWidth: 1,
+                  borderColor: '#E2E8F0',
+                  borderRadius: 10,
+                  padding: 14,
+                  backgroundColor: '#F8FAFC',
+                }}
+              >
+                <Icon size={22} color="#2563EB" strokeWidth={1.75} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: '600', fontSize: 14, color: '#1E293B' }}>{titleFor(item)}</Text>
+                  <Text style={{ color: '#64748B', fontSize: 12, marginTop: 2 }}>{label}</Text>
+                </View>
+              </Pressable>
+            );
+          }}
+        />
+      )}
     </View>
   );
 }

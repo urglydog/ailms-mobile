@@ -2,14 +2,35 @@ import { useEventListener } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { Layers } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
 import { BackButton } from '@/components/BackButton';
+import { OverviewTab } from '@/components/lesson/OverviewTab';
+import { StudyPlanTab } from '@/components/lesson/StudyPlanTab';
+import { QnaTab } from '@/components/lesson/QnaTab';
+import { AssignmentsTab } from '@/components/lesson/AssignmentsTab';
+import { GradebookTab } from '@/components/lesson/GradebookTab';
+import { ResourcesTab } from '@/components/lesson/ResourcesTab';
+import { ReviewsTab } from '@/components/lesson/ReviewsTab';
+import { TutorChat } from '@/components/lesson/TutorChat';
 import type { ChapterNav, LessonNav } from '@/types/lesson';
+
+type MainTab = 'overview' | 'study-plan' | 'qna' | 'assignments' | 'gradebook' | 'resources' | 'reviews' | 'tutor';
+
+const MAIN_TABS: { key: MainTab; label: string }[] = [
+  { key: 'overview', label: 'Tổng quan' },
+  { key: 'study-plan', label: 'Lộ trình AI' },
+  { key: 'qna', label: 'Hỏi đáp' },
+  { key: 'tutor', label: 'AI Gia sư' },
+  { key: 'assignments', label: 'Bài tập' },
+  { key: 'gradebook', label: 'Bảng điểm' },
+  { key: 'resources', label: 'Tài nguyên' },
+  { key: 'reviews', label: 'Đánh giá' },
+];
 
 /** Gửi tiến độ lên BE mỗi ~15s khi đang phát — khớp chu kỳ bản Web (xem docblock BE
  * `LessonProgressController`), tránh spam request mỗi lần timeUpdate (0.5-1s/lần). */
@@ -25,6 +46,8 @@ export default function LessonPlayerScreen() {
     queryFn: () => lessonsApi.getPlayer(lessonId),
     enabled: Number.isFinite(lessonId),
   });
+
+  const [mainTab, setMainTab] = useState<MainTab>('overview');
 
   // Video bản thân có native code riêng (iOS AVPlayer/Android ExoPlayer qua expo-video) nên chỉ
   // tạo player khi đã có `videoUrl` — nguồn YouTube (videoSource khác) không phát được qua đây.
@@ -118,7 +141,42 @@ export default function LessonPlayerScreen() {
         ) : null}
       </View>
 
+      {/* (08/10/2026) — port cấu trúc tab dưới video từ web (gộp luôn tab "AI Gia sư" vốn nằm ở
+          sidebar riêng bên web vào chung 1 hàng tab, hợp lý hơn cho màn hình hẹp của mobile thay
+          vì chia 2 tầng tab như bản web). KHÔNG port dubbing/transcript/giới hạn phiên xem đồng
+          thời — ngoài phạm vi 4 việc đã chốt, xem UpComming_Plan.md. */}
+      <View style={{ borderTopWidth: 1, borderTopColor: '#E2E8F0', marginTop: 8 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
+          {MAIN_TABS.map((tab) => (
+            <Pressable
+              key={tab.key}
+              onPress={() => setMainTab(tab.key)}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                borderBottomWidth: 2,
+                borderBottomColor: mainTab === tab.key ? '#2563EB' : 'transparent',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '600', color: mainTab === tab.key ? '#2563EB' : '#64748B' }}>
+                {tab.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {mainTab === 'overview' && <OverviewTab courseSlug={lesson.courseSlug} courseId={lesson.courseId} enrolled={lesson.enrolled} />}
+        {mainTab === 'study-plan' && <StudyPlanTab courseId={lesson.courseId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
+        {mainTab === 'qna' && <QnaTab lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
+        {mainTab === 'tutor' && <TutorChat courseId={lesson.courseId} lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
+        {mainTab === 'assignments' && <AssignmentsTab lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
+        {mainTab === 'gradebook' && <GradebookTab courseId={lesson.courseId} />}
+        {mainTab === 'resources' && <ResourcesTab courseId={lesson.courseId} />}
+        {mainTab === 'reviews' && <ReviewsTab courseId={lesson.courseId} />}
+      </View>
+
       <View style={{ padding: 16, gap: 12 }}>
+        <Text style={{ fontWeight: '700', fontSize: 14, color: '#0F172A' }}>Nội dung khóa học</Text>
         {lesson.chapters.map((chapter) => (
           <ChapterNavSection key={chapter.chapterId} chapter={chapter} currentLessonId={lesson.lessonId} />
         ))}

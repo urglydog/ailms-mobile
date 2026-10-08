@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, Switch, Text, View, ScrollView } from 'react-native';
 import { Monitor } from 'lucide-react-native';
 
@@ -168,6 +169,8 @@ function SecuritySection() {
     queryFn: () => usersApi.getSessions(),
   });
 
+  const [expanded, setExpanded] = useState(false);
+
   const logoutAll = useMutation({
     mutationFn: () => usersApi.logoutAllOtherDevices(),
   });
@@ -178,17 +181,24 @@ function SecuritySection() {
 
       {sessions && sessions.length > 0 ? (
         <View style={{ gap: 6 }}>
-          {sessions.map((s, idx) => (
+          {(expanded ? sessions : sessions.slice(0, 3)).map((s, idx) => (
             <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10 }}>
               <Monitor size={16} color="#64748B" />
               <View style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontSize: 12.5, fontWeight: '600', color: '#0F172A' }}>{s.deviceName}</Text>
                 <Text style={{ fontSize: 10.5, color: '#94A3B8' }}>
-                  {s.ip ? `IP: ${s.ip} · ` : ''}Hoạt động gần đây: {new Date(s.lastActiveAt).toLocaleString('vi-VN')}
+                  {s.ip ? `IP: ${s.ip} · ` : ''}Hoạt động: {new Date(s.lastActiveAt).toLocaleString('vi-VN')}
                 </Text>
               </View>
             </View>
           ))}
+          {sessions.length > 3 && (
+            <Pressable onPress={() => setExpanded(!expanded)} style={{ paddingVertical: 8, alignItems: 'center' }}>
+              <Text style={{ color: '#2563EB', fontWeight: '600', fontSize: 13 }}>
+                {expanded ? 'Thu gọn' : `Xem thêm ${sessions.length - 3} thiết bị`}
+              </Text>
+            </Pressable>
+          )}
         </View>
       ) : null}
 

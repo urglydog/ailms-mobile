@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ApiError } from '@/lib/api/client';
@@ -19,6 +20,7 @@ function timeAgo(iso: string): string {
 
 export default function NotificationsScreen() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['notifications'],
@@ -36,6 +38,7 @@ export default function NotificationsScreen() {
   });
 
   const unreadCount = data?.filter((n) => !n.isRead).length ?? 0;
+  const filteredData = activeTab === 'all' ? data : data?.filter(n => !n.isRead);
 
   return (
     <View style={{ flex: 1 }}>
@@ -69,15 +72,36 @@ export default function NotificationsScreen() {
           <Text style={{ color: '#64748B' }}>Chưa có thông báo nào.</Text>
         </View>
       ) : (
-        <FlatList
-          data={data}
-          keyExtractor={(item) => String(item.id)}
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          renderItem={({ item }) => (
-            <NotificationRow item={item} onPress={() => !item.isRead && markReadMutation.mutate(item.id)} />
-          )}
-        />
+        <>
+          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#fff' }}>
+            <Pressable
+              onPress={() => setActiveTab('all')}
+              style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'all' ? '#2563EB' : 'transparent' }}
+            >
+              <Text style={{ fontWeight: '600', color: activeTab === 'all' ? '#2563EB' : '#64748B' }}>Tất cả</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setActiveTab('unread')}
+              style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'unread' ? '#2563EB' : 'transparent' }}
+            >
+              <Text style={{ fontWeight: '600', color: activeTab === 'unread' ? '#2563EB' : '#64748B' }}>Chưa đọc</Text>
+            </Pressable>
+          </View>
+          <FlatList
+            data={filteredData}
+            keyExtractor={(item) => String(item.id)}
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+                <Text style={{ color: '#64748B' }}>Không có thông báo chưa đọc.</Text>
+              </View>
+            }
+            renderItem={({ item }) => (
+              <NotificationRow item={item} onPress={() => !item.isRead && markReadMutation.mutate(item.id)} />
+            )}
+          />
+        </>
       )}
     </View>
   );

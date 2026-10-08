@@ -15,7 +15,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider value={DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
+          </Stack>
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>

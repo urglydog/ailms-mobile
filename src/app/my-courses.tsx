@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, Text, View, Dimensions } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
@@ -60,6 +60,9 @@ export default function MyCoursesScreen() {
   );
 }
 
+const { width } = Dimensions.get('window');
+const cardWidth = (width - 32 - 12) / 2;
+
 function EnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
   return (
     <Pressable
@@ -67,7 +70,7 @@ function EnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
         if (enrollment.firstLessonId) router.push(`/lessons/${enrollment.firstLessonId}` as Href);
         else router.push(`/courses/${enrollment.courseSlug}` as Href);
       }}
-      style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
+      style={{ width: cardWidth, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
     >
       {enrollment.thumbnailUrl ? (
         <Image source={{ uri: enrollment.thumbnailUrl }} style={{ width: '100%', height: 100 }} resizeMode="cover" />

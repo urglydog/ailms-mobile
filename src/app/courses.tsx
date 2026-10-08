@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, Dimensions, ScrollView } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
@@ -16,6 +16,7 @@ export default function CoursesScreen() {
   const { isAuthenticated } = useAuth();
   const [searchInput, setSearchInput] = useState('');
   const [keyword, setKeyword] = useState('');
+  const [levelFilter, setLevelFilter] = useState<string | null>(null);
 
   // Debounce 400ms — tránh gọi API mỗi lần gõ 1 ký tự.
   useEffect(() => {
@@ -24,8 +25,8 @@ export default function CoursesScreen() {
   }, [searchInput]);
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
-    queryKey: ['courses', keyword],
-    queryFn: () => coursesApi.search({ keyword: keyword || undefined }),
+    queryKey: ['courses', keyword, levelFilter],
+    queryFn: () => coursesApi.search({ keyword: keyword || undefined, level: levelFilter || undefined }),
     enabled: isAuthenticated === true,
   });
 
@@ -36,7 +37,7 @@ export default function CoursesScreen() {
   return (
     <View style={{ flex: 1 }}>
       <TopNav />
-      <View style={{ padding: 16, gap: 10 }}>
+      <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>
         <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>
         <TextInput
           placeholder="Tìm khoá học..."
@@ -44,6 +45,20 @@ export default function CoursesScreen() {
           onChangeText={setSearchInput}
           style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10 }}
         />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
+          <Pressable onPress={() => setLevelFilter(null)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === null ? '#2563EB' : '#F1F5F9' }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === null ? '#FFF' : '#475569' }}>Tất cả cấp độ</Text>
+          </Pressable>
+          <Pressable onPress={() => setLevelFilter('BEGINNER')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'BEGINNER' ? '#2563EB' : '#F1F5F9' }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'BEGINNER' ? '#FFF' : '#475569' }}>Cơ bản</Text>
+          </Pressable>
+          <Pressable onPress={() => setLevelFilter('INTERMEDIATE')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'INTERMEDIATE' ? '#2563EB' : '#F1F5F9' }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'INTERMEDIATE' ? '#FFF' : '#475569' }}>Trung cấp</Text>
+          </Pressable>
+          <Pressable onPress={() => setLevelFilter('ADVANCED')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'ADVANCED' ? '#2563EB' : '#F1F5F9' }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'ADVANCED' ? '#FFF' : '#475569' }}>Nâng cao</Text>
+          </Pressable>
+        </ScrollView>
       </View>
       <SystemAnnouncementBanner />
       {isLoading ? (
@@ -76,11 +91,14 @@ export default function CoursesScreen() {
   );
 }
 
+const { width } = Dimensions.get('window');
+const cardWidth = (width - 32 - 12) / 2;
+
 function CourseCard({ course }: { course: CourseSummary }) {
   return (
     <Pressable
       onPress={() => router.push(`/courses/${course.slug}` as Href)}
-      style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
+      style={{ width: cardWidth, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
     >
       {course.thumbnailUrl ? (
         <Image source={{ uri: course.thumbnailUrl }} style={{ width: '100%', height: 100 }} resizeMode="cover" />

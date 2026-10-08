@@ -35,57 +35,65 @@ export default function CoursesScreen() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       <TopNav />
-      <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>
-        <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>
-        <TextInput
-          placeholder="Tìm khoá học..."
-          value={searchInput}
-          onChangeText={setSearchInput}
-          style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10 }}
-        />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
-          <Pressable onPress={() => setLevelFilter(null)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === null ? '#2563EB' : '#F1F5F9' }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === null ? '#FFF' : '#475569' }}>Tất cả cấp độ</Text>
-          </Pressable>
-          <Pressable onPress={() => setLevelFilter('BEGINNER')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'BEGINNER' ? '#2563EB' : '#F1F5F9' }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'BEGINNER' ? '#FFF' : '#475569' }}>Cơ bản</Text>
-          </Pressable>
-          <Pressable onPress={() => setLevelFilter('INTERMEDIATE')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'INTERMEDIATE' ? '#2563EB' : '#F1F5F9' }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'INTERMEDIATE' ? '#FFF' : '#475569' }}>Trung cấp</Text>
-          </Pressable>
-          <Pressable onPress={() => setLevelFilter('ADVANCED')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'ADVANCED' ? '#2563EB' : '#F1F5F9' }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'ADVANCED' ? '#FFF' : '#475569' }}>Nâng cao</Text>
-          </Pressable>
-        </ScrollView>
-      </View>
-      <SystemAnnouncementBanner />
-      {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator />
-        </View>
-      ) : error ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách khoá học.'}</Text>
-          <Pressable onPress={() => refetch()}>
-            <Text style={{ color: '#2563EB' }}>Thử lại</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <FlatList
-          data={data?.content ?? []}
-          keyExtractor={(item) => String(item.id)}
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          numColumns={2}
-          columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
-          contentContainerStyle={{ paddingBottom: 16, paddingTop: 16, gap: 12 }}
-          ListHeaderComponent={<RankingBanner />}
-          ListHeaderComponentStyle={{ marginBottom: 12, paddingHorizontal: 16 }}
-          renderItem={({ item }) => <CourseCard course={item} />}
-        />
-      )}
+      <FlatList
+        data={data?.content ?? []}
+        keyExtractor={(item) => String(item.id)}
+        refreshing={isRefetching}
+        onRefresh={refetch}
+        numColumns={2}
+        columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingBottom: 16, gap: 12 }}
+        ListHeaderComponent={
+          <>
+            <SystemAnnouncementBanner />
+            <RankingBanner />
+            <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>
+              <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>
+              <TextInput
+                placeholder="Tìm khoá học..."
+                value={searchInput}
+                onChangeText={setSearchInput}
+                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10 }}
+              />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
+                <Pressable onPress={() => setLevelFilter(null)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === null ? '#2563EB' : '#F1F5F9' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === null ? '#FFF' : '#475569' }}>Tất cả cấp độ</Text>
+                </Pressable>
+                <Pressable onPress={() => setLevelFilter('BEGINNER')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'BEGINNER' ? '#2563EB' : '#F1F5F9' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'BEGINNER' ? '#FFF' : '#475569' }}>Cơ bản</Text>
+                </Pressable>
+                <Pressable onPress={() => setLevelFilter('INTERMEDIATE')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'INTERMEDIATE' ? '#2563EB' : '#F1F5F9' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'INTERMEDIATE' ? '#FFF' : '#475569' }}>Trung cấp</Text>
+                </Pressable>
+                <Pressable onPress={() => setLevelFilter('ADVANCED')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'ADVANCED' ? '#2563EB' : '#F1F5F9' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'ADVANCED' ? '#FFF' : '#475569' }}>Nâng cao</Text>
+                </Pressable>
+              </ScrollView>
+            </View>
+          </>
+        }
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator />
+            </View>
+          ) : error ? (
+            <View style={{ padding: 24, alignItems: 'center', gap: 12 }}>
+              <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách khoá học.'}</Text>
+              <Pressable onPress={() => refetch()}>
+                <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <Text style={{ color: '#64748B' }}>Không tìm thấy khoá học nào.</Text>
+            </View>
+          )
+        }
+        renderItem={({ item }) => <CourseCard course={item} />}
+      />
       <BottomNav />
     </View>
   );

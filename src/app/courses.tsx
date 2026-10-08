@@ -7,6 +7,8 @@ import { TopNav } from '@/components/TopNav';
 import { coursesApi } from '@/lib/api/courses';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { RankingBanner } from '@/components/ranking/RankingBanner';
+import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
 import type { CourseSummary } from '@/types/course';
 
 export default function CoursesScreen() {
@@ -42,6 +44,7 @@ export default function CoursesScreen() {
           style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10 }}
         />
       </View>
+      <SystemAnnouncementBanner />
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator />
@@ -60,6 +63,7 @@ export default function CoursesScreen() {
           refreshing={isRefetching}
           onRefresh={refetch}
           contentContainerStyle={{ padding: 16, gap: 12 }}
+          ListHeaderComponent={<RankingBanner />}
           renderItem={({ item }) => <CourseCard course={item} />}
         />
       )}

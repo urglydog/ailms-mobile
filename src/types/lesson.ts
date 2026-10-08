@@ -24,6 +24,7 @@ export interface AudioTrack {
 export interface LessonLanguage {
   code: string;
   label: string;
+  flag: string;
   available: boolean;
   track: AudioTrack | null;
   subtitles: SubtitleSegment[];

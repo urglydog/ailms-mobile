@@ -8,6 +8,8 @@ import type { Href } from 'expo-router';
 import { ApiError } from '@/lib/api/client';
 import { flashcardsApi } from '@/lib/api/flashcards';
 import { materialsApi } from '@/lib/api/materials';
+import { flashcardDb } from '@/lib/db/flashcardDb';
+import { syncService } from '@/lib/db/syncService';
 import { MindmapView } from '@/components/material/MindmapView';
 import { BackButton } from '@/components/BackButton';
 import type { FlashcardCard, QuizQuestion } from '@/types/material';
@@ -18,7 +20,13 @@ export default function MaterialDetailScreen() {
 
   const { data: material, isLoading, error, refetch } = useQuery({
     queryKey: ['material', materialId],
-    queryFn: () => materialsApi.getDetail(materialId),
+    queryFn: async () => {
+      const data = await materialsApi.getDetail(materialId);
+      if (data.materialType === 'FLASHCARD' && data.flashcards) {
+        await flashcardDb.syncMaterialFlashcards(materialId, data.flashcards);
+      }
+      return data;
+    },
     enabled: !!materialId,
   });
 
@@ -245,18 +253,23 @@ function ModeTab({ label, active, onPress }: { label: string; active: boolean; o
  * âm (Web Speech API không có trên RN) và điều chỉnh cỡ chữ để giữ màn đơn giản. */
 function FlashcardStudy({ materialId, initialCards }: { materialId: number; initialCards: FlashcardCard[] }) {
   const queryClient = useQueryClient();
-  const cards = initialCards;
+  const { data: cards = initialCards, refetch } = useQuery({
+    queryKey: ['offline-flashcards', materialId],
+    queryFn: () => flashcardDb.getOfflineFlashcards(materialId),
+  });
   const [completedIds, setCompletedIds] = useState<Set<number>>(new Set());
   const [isFlipped, setIsFlipped] = useState(false);
 
   const reviewMutation = useMutation({
-    mutationFn: ({ flashcardId, quality }: { flashcardId: number; quality: number }) =>
-      flashcardsApi.review(flashcardId, quality),
+    mutationFn: async ({ flashcardId, quality }: { flashcardId: number; quality: number }) => {
+      await flashcardDb.recordReview(flashcardId, quality);
+      syncService.syncOfflineReviews().catch(console.error); // Sync ngầm
+    },
     onSuccess: (_, { flashcardId }) => {
       setCompletedIds((prev) => new Set(prev).add(flashcardId));
       setIsFlipped(false);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['material', materialId] }),
+    onSettled: () => refetch(),
   });
 
   const newCards = cards.filter((c) => c.isDue && c.repetitions === 0 && !completedIds.has(c.id));

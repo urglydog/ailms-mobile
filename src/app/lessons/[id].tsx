@@ -19,7 +19,7 @@ import { GradebookTab } from '@/components/lesson/GradebookTab';
 import { ResourcesTab } from '@/components/lesson/ResourcesTab';
 import { ReviewsTab } from '@/components/lesson/ReviewsTab';
 import { TutorChat } from '@/components/lesson/TutorChat';
-import { MaterialsWorkspace } from '@/components/materials/MaterialsWorkspace';
+import { MaterialsWorkspace, matchesLessonContext } from '@/components/materials/MaterialsWorkspace';
 import { LanguageDropdown } from '@/components/player/LanguageDropdown';
 import { DubbingActivatePanel } from '@/components/player/DubbingActivatePanel';
 import { PipelineProgress } from '@/components/player/PipelineProgress';
@@ -100,10 +100,8 @@ export default function LessonPlayerScreen() {
   const [mainTab, setMainTab] = useState<MainTab>('overview');
 
   // Badge đỏ trên tab "Học liệu" — khớp `fe`'s `currentLessonMaterialCount` (official materials +
-  // tài nguyên khoá học gắn với bài/chương hiện tại). `SharedMaterialListItem` ở mobile CHƯA có
-  // field `assignments` (chỉ web mới lọc được theo bài/chương cho official materials), nên đếm
-  // official materials TOÀN KHOÁ (không lọc theo bài) — gần đúng hơn là không có badge nào, chưa
-  // phải parity tuyệt đối với web.
+  // tài nguyên khoá học gắn với bài/chương hiện tại), dùng chung `matchesLessonContext` với
+  // `MaterialsWorkspace` để không lệch số giữa badge và nội dung thật khi mở tab.
   const { data: sharedMaterialsForBadge } = useQuery({
     queryKey: ['materials', lesson?.courseId, 'shared'],
     queryFn: () => materialsApi.listSharedForCourse(lesson!.courseId),
@@ -114,11 +112,14 @@ export default function LessonPlayerScreen() {
     queryFn: () => courseResourcesApi.listForCourse(lesson!.courseId),
     enabled: !!lesson?.courseId && lesson.enrolled,
   });
-  const currentChapter = lesson?.chapters.find((c) => c.lessons.some((l) => l.lessonId === lessonId));
   const lessonMaterialCount =
-    (sharedMaterialsForBadge?.filter((m) => m.status === 'COMPLETED').length ?? 0) +
-    (courseResourcesForBadge?.filter(
-      (r) => r.lessonId === lessonId || (currentChapter && r.chapterId === currentChapter.chapterId),
+    (sharedMaterialsForBadge?.filter((m) => m.status === 'COMPLETED' && matchesLessonContext(m.assignments, lessonId, lesson?.chapters)).length ?? 0) +
+    (courseResourcesForBadge?.filter((r) =>
+      matchesLessonContext(
+        r.chapterId != null || r.lessonId != null ? [{ id: 0, chapterId: r.chapterId ?? undefined, lessonId: r.lessonId ?? undefined }] : [],
+        lessonId,
+        lesson?.chapters,
+      ),
     ).length ?? 0);
 
   const [activeLang, setActiveLang] = useState<string | null>(null);
@@ -522,6 +523,7 @@ export default function LessonPlayerScreen() {
             <MaterialsWorkspace
               courseId={lesson.courseId}
               lessonId={lesson.lessonId}
+              chapters={lesson.chapters}
               enrolled={lesson.enrolled}
               courseSlug={lesson.courseSlug}
             />

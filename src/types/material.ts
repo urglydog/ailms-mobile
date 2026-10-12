@@ -66,6 +66,18 @@ export interface MaterialDetail extends MaterialListItem {
  * đúng là nơi hiện "Câu hỏi ôn tập"/"Sơ đồ tư duy"/"Flashcard" CHÍNH THỐNG của khoá học — bug
  * thật 07/10/2026: mobile ban đầu chỉ gọi `MaterialListItem`, bỏ sót hẳn danh sách này.
  */
+/** Gán (assign) tới 1 bài học/chương cụ thể — `InstructorMaterialController.getMaterialsForCourse`
+ * trả list rỗng khi học liệu ở mức CẢ KHOÁ (không gán riêng bài/chương nào). FE/mobile dùng field
+ * này để lọc đúng học liệu hiện theo ngữ cảnh đang xem (bài học cụ thể vs toàn khoá) — khớp
+ * `fe`'s `filteredOfficialMaterials`/`filteredCourseResources`
+ * (`components/materials/MaterialManager.tsx`). */
+export interface MaterialAssignment {
+  id: number;
+  lessonId?: number;
+  chapterId?: number;
+  courseId?: number;
+}
+
 export interface SharedMaterialListItem {
   id: number;
   materialType: MaterialType;
@@ -73,6 +85,7 @@ export interface SharedMaterialListItem {
   status: MaterialStatus;
   isOfficial: boolean;
   quizType?: 'LECTURE_QUIZ' | 'OFFICIAL_EXAM' | null;
+  assignments: MaterialAssignment[];
 }
 
 export interface FlashcardReviewResult {

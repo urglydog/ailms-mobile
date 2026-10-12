@@ -9,8 +9,9 @@ import { materialsApi } from '@/lib/api/materials';
 import { courseResourcesApi } from '@/lib/api/courseResources';
 import { AssignmentsTab } from '@/components/lesson/AssignmentsTab';
 import { LockedFeatureNotice } from '@/components/lesson/LockedFeatureNotice';
-import type { MaterialListItem, MaterialType, SharedMaterialListItem } from '@/types/material';
+import type { MaterialAssignment, MaterialListItem, MaterialType, SharedMaterialListItem } from '@/types/material';
 import type { CourseResource } from '@/types/courseResource';
+import type { ChapterNav } from '@/types/lesson';
 
 const TYPE_ICON: Record<MaterialType, typeof Brain> = {
   MINDMAP: Brain,
@@ -60,6 +61,24 @@ function titleFor(item: Row): string {
   return item.title || TYPE_LABEL[item.materialType];
 }
 
+/** Lọc học liệu Official theo ngữ cảnh đang xem — khớp CHÍNH XÁC `fe`'s
+ * `filteredOfficialMaterials`/`filteredCourseResources` (`MaterialManager.tsx`). Không truyền
+ * `lessonId` (xem ở mức khoá học) → chỉ hiện học liệu KHÔNG gán riêng bài/chương nào (mức cả
+ * khoá). Có `lessonId` (xem trong 1 bài học) → hiện học liệu gán trực tiếp cho bài đó, HOẶC gán
+ * cho chương chứa bài đó. */
+export function matchesLessonContext(assignments: MaterialAssignment[], lessonId: number | undefined, chapters: ChapterNav[] | undefined): boolean {
+  if (lessonId == null) {
+    return !assignments.some((a) => a.lessonId != null) && !assignments.some((a) => a.chapterId != null);
+  }
+  if (assignments.some((a) => a.lessonId === lessonId)) return true;
+  const chapterAssignment = assignments.find((a) => a.chapterId != null);
+  if (chapterAssignment && chapters) {
+    const chapter = chapters.find((c) => c.chapterId === chapterAssignment.chapterId);
+    if (chapter && chapter.lessons.some((l) => l.lessonId === lessonId)) return true;
+  }
+  return false;
+}
+
 /** Port từ `fe/components/materials/MaterialManager.tsx` + `LessonAssignmentsList` (12/10/2026,
  * sửa theo phản hồi) — web KHÔNG có 4 tab tách riêng như bản mobile cũ (Bài tập GV giao/Kho Học
  * Liệu Official/Tài nguyên/Lịch sử cá nhân). Cấu trúc thật của web: Bài tập GV giao đứng XẾP
@@ -68,10 +87,13 @@ function titleFor(item: Row): string {
  * Nhân". Dùng chung component này cho cả màn `/materials/[courseId]` (điều hướng độc lập) lẫn tab
  * "Học liệu" lồng trong lesson player (`lessons/[id].tsx`). */
 export function MaterialsWorkspace({
-  courseId, lessonId, enrolled, courseSlug,
+  courseId, lessonId, chapters, enrolled, courseSlug,
 }: {
   courseId: number;
   lessonId?: number;
+  /** Để resolve "học liệu gán theo CHƯƠNG chứa bài học hiện tại" — không truyền thì bỏ qua nhánh
+   * đó, chỉ khớp theo gán trực tiếp lessonId (xem {@link filterByLessonContext}). */
+  chapters?: ChapterNav[];
   enrolled: boolean;
   courseSlug: string;
 }) {
@@ -128,8 +150,16 @@ export function MaterialsWorkspace({
   }
 
   const personal = (personalQuery.data ?? []).filter((m) => m.status === 'COMPLETED');
-  const shared = (sharedQuery.data ?? []).filter((m) => m.status === 'COMPLETED');
-  const resources = resourcesQuery.data ?? [];
+  const shared = (sharedQuery.data ?? [])
+    .filter((m) => m.status === 'COMPLETED')
+    .filter((m) => matchesLessonContext(m.assignments, lessonId, chapters));
+  const resources = (resourcesQuery.data ?? []).filter((r) =>
+    matchesLessonContext(
+      r.chapterId != null || r.lessonId != null ? [{ id: 0, chapterId: r.chapterId ?? undefined, lessonId: r.lessonId ?? undefined }] : [],
+      lessonId,
+      chapters,
+    ),
+  );
   // "Kho Học Liệu Official" gộp chung tài nguyên tĩnh + học liệu official vào 1 danh sách, khớp
   // đúng `fe`'s `filteredCourseResources.map(...)` rồi `filteredOfficialMaterials.map(...)` nối
   // tiếp nhau trong CÙNG `<div className="space-y-4">`.

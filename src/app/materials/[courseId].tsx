@@ -31,13 +31,22 @@ function isResource(item: Row): item is CourseResource {
 }
 
 /** QUIZ cần phân biệt thêm theo quizType — icon/label khác cho bài thi chính thức (có giờ) so
- * với ôn tập thường, tránh nhầm (bug thật 07/10/2026: 2 loại từng hiện giống hệt nhau). */
+ * với ôn tập thường, tránh nhầm (bug thật 07/10/2026: 2 loại từng hiện giống hệt nhau).
+ *
+ * (12/10/2026, sửa lỗi) — BE có bug data: quiz cá nhân (tab "Lịch sử tạo cá nhân") tạo ở scope
+ * KHÓA HỌC/CHƯƠNG từng bị mặc định `quizType='OFFICIAL_EXAM'` dù không phải quiz chính thức thật,
+ * khiến mục này hiện nhầm "Bài thi chính thức" cho quiz cá nhân bình thường. Quiz cá nhân (tab
+ * "Lịch sử tạo cá nhân", kiểu `MaterialListItem`) KHÔNG THỂ là thi chính thức thật theo định nghĩa
+ * (chỉ giảng viên publish mới thành Official, qua luồng khác hẳn) — chỉ tin `quizType ===
+ * 'OFFICIAL_EXAM'` khi item có field `isOfficial` thật (`SharedMaterialListItem`, tab Official) và
+ * field đó cũng là `true`. */
 function displayFor(item: Row): { Icon: typeof Brain; label: string } {
   if (isResource(item)) {
     return { Icon: FileText, label: formatFileSize(item.fileSize) };
   }
   if (item.materialType === 'QUIZ') {
-    return item.quizType === 'OFFICIAL_EXAM'
+    const isRealOfficialExam = item.quizType === 'OFFICIAL_EXAM' && 'isOfficial' in item && item.isOfficial === true;
+    return isRealOfficialExam
       ? { Icon: Timer, label: 'Bài thi chính thức · có tính giờ' }
       : { Icon: ListChecks, label: 'Câu hỏi ôn tập · không tính giờ' };
   }

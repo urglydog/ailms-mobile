@@ -13,7 +13,18 @@ import { syncService } from '@/lib/db/syncService';
 import { MindmapView } from '@/components/material/MindmapView';
 import { QuizPersonalEditor } from '@/components/material/QuizPersonalEditor';
 import { BackButton } from '@/components/BackButton';
-import type { FlashcardCard, QuizQuestion } from '@/types/material';
+import type { FlashcardCard, MaterialDetail, QuizQuestion } from '@/types/material';
+
+/** BE có bug data (12/10/2026, rà soát bởi user): quiz cá nhân tạo ở scope KHÓA HỌC/CHƯƠNG (không
+ * phải CUSTOM_LESSONS) bị mặc định `quizType='OFFICIAL_EXAM'` dù chưa từng được publish chính
+ * thức — khiến quiz cá nhân hiện nhãn/mở nhầm vào `ExamEntry`, bấm "Bắt đầu làm bài" bị BE từ chối
+ * (`isOfficial=false` thật, nhưng FE chỉ check `quizType`). Field `isOfficial` (BE mới trả thêm,
+ * xem `MaterialDetailRes`) mới là nguồn xác thực — chỉ coi là thi chính thức khi CẢ 2 đúng, để vẫn
+ * mở đúng chế độ "Làm bài/Soạn câu hỏi" cho các quiz cá nhân cũ đã lỡ bị gắn sai `quizType` trong
+ * DB (không cần chờ sửa data mới hoạt động đúng). */
+function isRealOfficialExam(material: MaterialDetail): boolean {
+  return material.quizType === 'OFFICIAL_EXAM' && !!material.isOfficial;
+}
 
 export default function MaterialDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -59,16 +70,17 @@ export default function MaterialDetailScreen() {
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
         <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} />
       ) : null}
-      {material.materialType === 'QUIZ' && material.quizType === 'OFFICIAL_EXAM' && material.quizId ? (
-        <ExamEntry quizId={material.quizId} />
-      ) : null}
-      {material.materialType === 'QUIZ' && material.quizType === 'LECTURE_QUIZ' && material.quizQuestions ? (
-        <LectureQuizWorkspace
-          questions={material.quizQuestions}
-          quizId={material.quizId}
-          materialId={materialId}
-          isOfficial={!!material.isOfficial}
-        />
+      {material.materialType === 'QUIZ' ? (
+        isRealOfficialExam(material) && material.quizId ? (
+          <ExamEntry quizId={material.quizId} />
+        ) : material.quizQuestions ? (
+          <LectureQuizWorkspace
+            questions={material.quizQuestions}
+            quizId={material.quizId}
+            materialId={materialId}
+            isOfficial={!!material.isOfficial}
+          />
+        ) : null
       ) : null}
     </View>
   );

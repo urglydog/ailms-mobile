@@ -51,6 +51,11 @@ export interface MaterialDetail extends MaterialListItem {
   /** Chỉ có khi materialType=QUIZ — ID Quiz thật, CHỈ dùng để mở `/exam/{quizId}` khi
    * quizType=OFFICIAL_EXAM. LECTURE_QUIZ làm trực tiếp từ `quizQuestions`, không cần field này. */
   quizId?: number;
+  /** (12/10/2026, BE bổ sung field `MaterialDetailRes.isOfficial`) — quyết định có cho soạn/sửa
+   * câu hỏi quiz cá nhân (`QuizPersonalEditor`) hay không. BE tự chặn server-side nếu cố sửa học
+   * liệu Official (`AccessDeniedDomainException`), field này chỉ để FE ẩn/hiện đúng UI, không
+   * phải lớp bảo mật duy nhất. */
+  isOfficial?: boolean;
 }
 
 /**

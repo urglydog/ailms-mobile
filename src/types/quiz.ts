@@ -16,11 +16,33 @@ export interface QuizAttemptStart {
   attemptId: number;
   quizId: number;
   questions: QuizQuestion[];
-  /** Thi có giám sát camera — mobile CHƯA hỗ trợ, phải chặn lại (xem màn hình exam). */
+  /** Thi có giám sát camera — `ProctoringCameraView` quay video + chụp frame định kỳ gửi
+   * `/proctor-frame` để BE (Gemini Vision) xác minh. */
   isProctored: boolean;
   maxViolations: number;
   durationMinutes: number | null;
   startedAt: string;
+}
+
+/** Khớp `ViolationRes`/`ProctorFrameRes` phía web (`fe/lib/api/quizzes.ts`) — cả vi phạm hành vi
+ * (tab switch...) và vi phạm hình ảnh (Gemini Vision) đều trả chung dạng này để màn thi quyết
+ * định có tự động nộp bài hay không. */
+export interface ViolationRes {
+  violationCount: number;
+  maxViolations: number | null;
+  shouldAutoSubmit: boolean;
+}
+
+export interface ProctorFrameReq {
+  imageBase64: string;
+  mimeType: string;
+  clientOffsetSec?: number;
+}
+
+export interface ProctorFrameRes extends ViolationRes {
+  personCount: number | null;
+  gazeDirection: string | null;
+  flagged: boolean;
 }
 
 export interface QuizAnswerDetail {

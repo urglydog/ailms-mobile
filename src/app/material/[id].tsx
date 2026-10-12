@@ -11,6 +11,7 @@ import { materialsApi } from '@/lib/api/materials';
 import { flashcardDb } from '@/lib/db/flashcardDb';
 import { syncService } from '@/lib/db/syncService';
 import { MindmapView } from '@/components/material/MindmapView';
+import { QuizPersonalEditor } from '@/components/material/QuizPersonalEditor';
 import { BackButton } from '@/components/BackButton';
 import type { FlashcardCard, QuizQuestion } from '@/types/material';
 
@@ -62,7 +63,12 @@ export default function MaterialDetailScreen() {
         <ExamEntry quizId={material.quizId} />
       ) : null}
       {material.materialType === 'QUIZ' && material.quizType === 'LECTURE_QUIZ' && material.quizQuestions ? (
-        <LectureQuiz questions={material.quizQuestions} />
+        <LectureQuizWorkspace
+          questions={material.quizQuestions}
+          quizId={material.quizId}
+          materialId={materialId}
+          isOfficial={!!material.isOfficial}
+        />
       ) : null}
     </View>
   );
@@ -84,6 +90,45 @@ function ExamEntry({ quizId }: { quizId: number }) {
       >
         <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
       </Pressable>
+    </View>
+  );
+}
+
+/** Bọc ngoài `LectureQuiz` thêm tab "Soạn câu hỏi" (`QuizPersonalEditor`, 12/10/2026) — CHỈ hiện
+ * khi `!isOfficial` (quiz cá nhân của chính học viên), khớp `fe`'s gating
+ * `!isOfficial && material.quizQuestions...` ở `app/(student)/materials/[id]/page.tsx`. Học liệu
+ * Official chỉ có đúng 1 chế độ (làm bài), không có tab để chuyển. */
+function LectureQuizWorkspace({
+  questions, quizId, materialId, isOfficial,
+}: {
+  questions: QuizQuestion[];
+  quizId: number | undefined;
+  materialId: number;
+  isOfficial: boolean;
+}) {
+  const [mode, setMode] = useState<'study' | 'edit'>('study');
+  const canEdit = !isOfficial && !!quizId && questions.length > 0;
+
+  return (
+    <View style={{ flex: 1 }}>
+      {canEdit ? (
+        <View style={{ flexDirection: 'row', gap: 20, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', paddingHorizontal: 16, paddingTop: 12 }}>
+          <Pressable onPress={() => setMode('study')} style={{ paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: mode === 'study' ? '#2563EB' : 'transparent' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: mode === 'study' ? '#2563EB' : '#64748B' }}>📖 Làm bài</Text>
+          </Pressable>
+          <Pressable onPress={() => setMode('edit')} style={{ paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: mode === 'edit' ? '#2563EB' : 'transparent' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: mode === 'edit' ? '#2563EB' : '#64748B' }}>📋 Soạn câu hỏi</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {mode === 'edit' && canEdit && quizId ? (
+        <View style={{ flex: 1, padding: 16 }}>
+          <QuizPersonalEditor questions={questions} quizId={quizId} materialId={materialId} />
+        </View>
+      ) : (
+        <LectureQuiz questions={questions} />
+      )}
     </View>
   );
 }

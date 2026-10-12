@@ -3,22 +3,33 @@ import { View, Text, StyleSheet, AppState, AppStateStatus } from 'react-native';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { ShieldAlert, Video } from 'lucide-react-native';
 import { quizzesApi } from '@/lib/api/quizzes';
+import type { ProctorFrameRes } from '@/types/quiz';
 
 interface Props {
   attemptId: number;
   isStarted: boolean;
   onViolation: (type: string, detail: string) => void;
   onRecordingReady: (fileUri: string, durationSec: number) => void;
+  /** Kết quả BE (Gemini Vision) chấm 1 khung hình chụp định kỳ — port từ `fe`'s
+   * `analyzeProctorFrame`/`sendProctorFrame`, nguồn vi phạm hình ảnh được SERVER xác thực, khác
+   * `onViolation` (chỉ bắt được `TAB_SWITCH` phía client). */
+  onProctorResult: (res: ProctorFrameRes) => void;
 }
 
-export function ProctoringCameraView({ attemptId, isStarted, onViolation, onRecordingReady }: Props) {
+/** Random 30-60s giữa 2 lần chụp, giống `fe`'s `scheduleNext` — học viên không thể căn giờ. */
+function randomProctorDelayMs(): number {
+  return 30_000 + Math.random() * 30_000;
+}
+
+export function ProctoringCameraView({ attemptId, isStarted, onViolation, onRecordingReady, onProctorResult }: Props) {
   const [camPermission, requestCam] = useCameraPermissions();
   const [micPermission, requestMic] = useMicrophonePermissions();
   const cameraRef = useRef<any>(null);
-  
+
   const startTimeRef = useRef<number>(0);
   const isRecordingRef = useRef<boolean>(false);
-  
+  const proctorFrameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (!camPermission?.granted) requestCam();
     if (!micPermission?.granted) requestMic();
@@ -32,14 +43,6 @@ export function ProctoringCameraView({ attemptId, isStarted, onViolation, onReco
     });
     return () => sub.remove();
   }, [isStarted, onViolation]);
-
-  useEffect(() => {
-    if (isStarted && camPermission?.granted && micPermission?.granted) {
-      startRecording();
-    } else if (!isStarted && isRecordingRef.current) {
-      stopRecording();
-    }
-  }, [isStarted, camPermission, micPermission]);
 
   const startRecording = async () => {
     if (!cameraRef.current || isRecordingRef.current) return;
@@ -67,15 +70,59 @@ export function ProctoringCameraView({ attemptId, isStarted, onViolation, onReco
     }
   };
 
-  const handleFacesDetected = ({ faces }: any) => {
-    if (!isStarted) return;
-    if (faces.length === 0) {
-      // Too noisy to trigger immediately, but we could throttle this
-      // onViolation('NO_FACE', 'Không tìm thấy khuôn mặt học viên');
-    } else if (faces.length > 1) {
-      onViolation('MULTIPLE_FACES', 'Phát hiện nhiều người trong khung hình');
+  useEffect(() => {
+    if (isStarted && camPermission?.granted && micPermission?.granted) {
+      startRecording();
+    } else if (!isStarted && isRecordingRef.current) {
+      stopRecording();
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStarted, camPermission, micPermission]);
+
+  // `expo-camera`'s `CameraView` (managed workflow) không hỗ trợ face detection trực tiếp
+  // (`onFacesDetected` không tồn tại trên API hiện tại — khác bản cũ `expo-face-detector` đã bị
+  // loại khỏi Expo SDK) — nên NO_FACE/MULTIPLE_FACES/HEAD_TURNED/GAZE_AWAY không thể phát hiện
+  // on-device như web (`@vladmandic/face-api`). Thay vào đó, chụp 1 khung hình định kỳ (random
+  // 30-60s, giống `fe`'s `scheduleNext`) gửi lên BE để Gemini Vision xác thực — đúng nguồn vi
+  // phạm hình ảnh web cũng dùng làm xác thực chính (client face-api chỉ là "cò súng" hiển thị,
+  // không phải nguồn xác thực). CHƯA xác nhận trên thiết bị thật `takePictureAsync()` có làm
+  // gián đoạn `recordAsync()` đang quay song song hay không — nếu phát hiện video bị cắt ngắn khi
+  // chụp frame, cân nhắc bỏ quay video liên tục, chỉ dựa vào chuỗi frame định kỳ.
+  useEffect(() => {
+    if (!isStarted) {
+      if (proctorFrameTimer.current) clearTimeout(proctorFrameTimer.current);
+      return;
+    }
+
+    const captureAndSend = async () => {
+      try {
+        if (!cameraRef.current) return;
+        const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.5 });
+        if (!photo?.base64) return;
+        const clientOffsetSec = Math.round((Date.now() - startTimeRef.current) / 1000);
+        const res = await quizzesApi.analyzeProctorFrame(attemptId, {
+          imageBase64: photo.base64,
+          mimeType: 'image/jpeg',
+          clientOffsetSec,
+        });
+        onProctorResult(res);
+      } catch (err) {
+        console.warn('Proctor frame error:', err);
+      }
+    };
+
+    const scheduleNext = () => {
+      proctorFrameTimer.current = setTimeout(() => {
+        captureAndSend().finally(scheduleNext);
+      }, randomProctorDelayMs());
+    };
+    scheduleNext();
+
+    return () => {
+      if (proctorFrameTimer.current) clearTimeout(proctorFrameTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStarted, attemptId]);
 
   if (!camPermission?.granted || !micPermission?.granted) {
     return (

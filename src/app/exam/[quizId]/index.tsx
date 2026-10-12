@@ -1,14 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ExamResultView } from '@/components/ExamResultView';
 import { BackButton } from '@/components/BackButton';
 import { ProctoringCameraView } from '@/components/ProctoringCameraView';
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
-import type { QuizAttemptResult, QuizQuestion } from '@/types/quiz';
+import type { ProctorFrameRes, QuizAttemptResult, QuizQuestion, ViolationRes } from '@/types/quiz';
 
 function formatClock(totalSec: number): string {
   const m = Math.floor(totalSec / 60);
@@ -43,9 +43,32 @@ export default function ExamScreen() {
       quizzesApi.uploadRecording(attempt!.attemptId, fileUri, durationSec),
   });
 
+  // Vi phạm từ 2 nguồn: `onViolation` (hành vi phía client, vd TAB_SWITCH) và `onProctorResult`
+  // (hình ảnh, BE/Gemini Vision xác thực) — cùng chung format response `{violationCount,
+  // maxViolations, shouldAutoSubmit}` nên dùng 1 hàm xử lý chung (port từ `fe`'s `handleViolation`
+  // — trước đây mobile BỎ QUA response này hoàn toàn, khiến auto-submit khi vượt số lần vi phạm
+  // không bao giờ xảy ra dù BE đã đếm đúng).
+  const handleAutoSubmitCheck = (res: ViolationRes, reason: string) => {
+    if (autoSubmittedRef.current) return;
+    if (res.shouldAutoSubmit) {
+      autoSubmittedRef.current = true;
+      Alert.alert('Vi phạm quá số lần cho phép', `Bạn đã vi phạm quá ${res.maxViolations ?? 3} lần. Hệ thống tự động nộp bài!`);
+      submitMutation.mutate();
+    } else {
+      Alert.alert('Cảnh báo vi phạm', `(${res.violationCount}/${res.maxViolations ?? 3}): ${reason}`);
+    }
+  };
+
   const handleViolation = (type: string, detail: string) => {
     if (!attempt || result) return;
-    quizzesApi.recordViolation(attempt.attemptId, { type, detail }).catch(() => {});
+    quizzesApi.recordViolation(attempt.attemptId, { type, detail })
+      .then((res) => handleAutoSubmitCheck(res, detail))
+      .catch(() => {});
+  };
+
+  const handleProctorResult = (res: ProctorFrameRes) => {
+    if (!attempt || result || !res.flagged) return;
+    handleAutoSubmitCheck(res, 'bất thường camera (AI Vision)');
   };
 
   useEffect(() => {
@@ -189,6 +212,7 @@ export default function ExamScreen() {
             isStarted={!result}
             onViolation={handleViolation}
             onRecordingReady={(uri, duration) => uploadVideoMutation.mutate({ fileUri: uri, durationSec: duration })}
+            onProctorResult={handleProctorResult}
           />
         </View>
       )}

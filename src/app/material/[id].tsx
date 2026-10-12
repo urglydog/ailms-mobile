@@ -414,7 +414,7 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
         <Text style={{ color: '#16A34A', fontWeight: '700' }}>{reviewCards.length}</Text>
       </View>
 
-      <View style={{ flex: 1, position: 'relative' }}>
+      <View style={{ height: 280, position: 'relative' }}>
         <Pressable
           onPress={() => {
             Speech.stop();
@@ -499,7 +499,7 @@ function FlashcardBrowse({ cards, language }: { cards: FlashcardCard[]; language
       <Text style={{ textAlign: 'center', color: '#64748B' }}>
         {index + 1}/{cards.length}
       </Text>
-      <View style={{ flex: 1, position: 'relative' }}>
+      <View style={{ height: 280, position: 'relative' }}>
         <Pressable
           onPress={() => {
             Speech.stop();

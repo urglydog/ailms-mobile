@@ -82,12 +82,17 @@ export function DiscoveryChat() {
       <Pressable
         onPress={() => setIsOpen(true)}
         style={{
-          position: 'absolute', bottom: 28, right: 20, width: 56, height: 56, borderRadius: 16,
-          backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center',
-          shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6,
+          // (12/10/2026, sửa theo phản hồi) — bản cũ 56x56 + bottom:28 đè lên nút cuối trong hàng
+          // nút đánh giá flashcard (và nhiều control đáy màn khác). Thu nhỏ còn 44x44, nhích cao
+          // hơn hẳn (bottom: 90) để hầu hết nội dung đáy màn hình (hàng nút, thanh nộp bài...)
+          // không bị che — vẫn không có cách nào loại trừ HOÀN TOÀN đè UI trên mọi màn hình với 1
+          // nút nổi cố định vị trí toàn cục, đây là đánh đổi hợp lý thay vì làm riêng từng màn.
+          position: 'absolute', bottom: 90, right: 16, width: 44, height: 44, borderRadius: 22,
+          backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', opacity: 0.92,
+          shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 5,
         }}
       >
-        <MessageCircle size={24} color="#fff" />
+        <MessageCircle size={20} color="#fff" />
       </Pressable>
 
       <Modal visible={isOpen} animationType="slide" transparent onRequestClose={() => setIsOpen(false)}>

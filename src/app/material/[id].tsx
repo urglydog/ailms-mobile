@@ -405,7 +405,7 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
   ];
 
   return (
-    <View style={{ flex: 1, padding: 16, gap: 12 }}>
+    <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: 'center' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
         <Text style={{ color: '#2563EB', fontWeight: '700' }}>{newCards.length}</Text>
         <Text style={{ color: '#94A3B8' }}>+</Text>
@@ -495,7 +495,7 @@ function FlashcardBrowse({ cards, language }: { cards: FlashcardCard[]; language
   };
 
   return (
-    <View style={{ flex: 1, padding: 16, gap: 12 }}>
+    <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: 'center' }}>
       <Text style={{ textAlign: 'center', color: '#64748B' }}>
         {index + 1}/{cards.length}
       </Text>

@@ -1,6 +1,7 @@
 import { router, type Href } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+import { ExplainWrongAnswer } from '@/components/quiz/ExplainWrongAnswer';
 import type { QuizAttemptResult } from '@/types/quiz';
 
 /** Hiển thị kết quả 1 lượt làm bài — dùng chung cho lúc vừa nộp bài VÀ lúc xem lại lịch sử. */
@@ -45,6 +46,14 @@ export function ExamResultView({ result }: { result: QuizAttemptResult }) {
               </Text>
             );
           })}
+          {!d.isCorrect ? (
+            <ExplainWrongAnswer
+              questionId={d.questionId}
+              selectedOptionId={d.selectedOptionIds[0] ?? null}
+              referenceLessonId={d.referenceLessonId}
+              videoTimestamp={d.videoTimestamp}
+            />
+          ) : null}
         </View>
       ))}
 

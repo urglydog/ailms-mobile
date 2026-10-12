@@ -11,6 +11,15 @@ import type {
   ViolationRes,
 } from '@/types/quiz';
 
+export interface ExplainWrongAnswerReq {
+  questionId: number;
+  selectedOptionId: number | null;
+}
+
+export interface ExplainWrongAnswerRes {
+  explanation: string;
+}
+
 export const quizzesApi = {
   startAttempt(quizId: number): Promise<QuizAttemptStart> {
     return api.get<QuizAttemptStart>(`/api/v1/quizzes/${quizId}/start-attempt`);
@@ -37,6 +46,13 @@ export const quizzesApi = {
    * analyzeProctorFrame`), khác `ProctoringCameraView` chỉ phát hiện `TAB_SWITCH` phía client. */
   analyzeProctorFrame(attemptId: number, data: ProctorFrameReq): Promise<ProctorFrameRes> {
     return api.post<ProctorFrameRes>(`/api/v1/quizzes/attempts/${attemptId}/proctor-frame`, data);
+  },
+
+  /** AI Gia sư giải thích tại sao chọn sai — port từ `fe`'s `explainWrongAnswer`
+   * (`hooks/useQuizzes.ts`). Dùng chung cho cả kết quả thi chính thức (`ExamResultView`) lẫn quiz
+   * ôn tập cá nhân (`LectureQuiz`). */
+  explainWrongAnswer(data: ExplainWrongAnswerReq): Promise<ExplainWrongAnswerRes> {
+    return api.post<ExplainWrongAnswerRes>('/api/v1/quizzes/tutor/explain', data);
   },
 
   async uploadRecording(attemptId: number, fileUri: string, durationSec: number): Promise<void> {

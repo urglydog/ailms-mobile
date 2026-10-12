@@ -12,6 +12,7 @@ import { flashcardDb } from '@/lib/db/flashcardDb';
 import { syncService } from '@/lib/db/syncService';
 import { MindmapView } from '@/components/material/MindmapView';
 import { QuizPersonalEditor } from '@/components/material/QuizPersonalEditor';
+import { ExplainWrongAnswer } from '@/components/quiz/ExplainWrongAnswer';
 import { BackButton } from '@/components/BackButton';
 import type { FlashcardCard, MaterialDetail, QuizQuestion } from '@/types/material';
 
@@ -147,8 +148,8 @@ function LectureQuizWorkspace({
 
 /** QUIZ loại LECTURE_QUIZ (ôn tập nhanh) — làm trực tiếp tại chỗ, KHÔNG tính giờ, không giới hạn
  * số lần, không gửi kết quả lên BE (đúng hành vi bản Web `QuizViewer.tsx` — chấm điểm thuần phía
- * client, không có "lượt làm bài" nào được lưu). Bỏ tính năng "Hỏi Gia sư AI tại sao sai" và lưu
- * draft (localStorage) của bản Web để giữ scope gọn — có thể bổ sung sau nếu cần. */
+ * client, không có "lượt làm bài" nào được lưu). (12/10/2026) Đã bổ sung "Hỏi Gia sư AI tại sao
+ * sai" (`ExplainWrongAnswer`) — vẫn bỏ lưu draft (localStorage) của bản Web để giữ scope gọn. */
 function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
   const [isStarted, setIsStarted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -258,6 +259,10 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
           );
         })}
       </View>
+
+      {isAnswered && !selectedIsCorrect ? (
+        <ExplainWrongAnswer questionId={question.id} selectedOptionId={selectedOptionId} />
+      ) : null}
 
       <Pressable
         disabled={!isAnswered}

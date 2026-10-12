@@ -1,13 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ExamResultView } from '@/components/ExamResultView';
 import { BackButton } from '@/components/BackButton';
+import { ProctoringCameraView } from '@/components/ProctoringCameraView';
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
-import type { QuizAttemptResult, QuizQuestion } from '@/types/quiz';
+import type { ProctorFrameRes, QuizAttemptResult, QuizQuestion, ViolationRes } from '@/types/quiz';
 
 function formatClock(totalSec: number): string {
   const m = Math.floor(totalSec / 60);
@@ -36,6 +37,39 @@ export default function ExamScreen() {
     mutationFn: () => quizzesApi.submitAttempt(attempt!.attemptId, answers),
     onSuccess: (res) => setResult(res),
   });
+
+  const uploadVideoMutation = useMutation({
+    mutationFn: ({ fileUri, durationSec }: { fileUri: string; durationSec: number }) => 
+      quizzesApi.uploadRecording(attempt!.attemptId, fileUri, durationSec),
+  });
+
+  // Vi phạm từ 2 nguồn: `onViolation` (hành vi phía client, vd TAB_SWITCH) và `onProctorResult`
+  // (hình ảnh, BE/Gemini Vision xác thực) — cùng chung format response `{violationCount,
+  // maxViolations, shouldAutoSubmit}` nên dùng 1 hàm xử lý chung (port từ `fe`'s `handleViolation`
+  // — trước đây mobile BỎ QUA response này hoàn toàn, khiến auto-submit khi vượt số lần vi phạm
+  // không bao giờ xảy ra dù BE đã đếm đúng).
+  const handleAutoSubmitCheck = (res: ViolationRes, reason: string) => {
+    if (autoSubmittedRef.current) return;
+    if (res.shouldAutoSubmit) {
+      autoSubmittedRef.current = true;
+      Alert.alert('Vi phạm quá số lần cho phép', `Bạn đã vi phạm quá ${res.maxViolations ?? 3} lần. Hệ thống tự động nộp bài!`);
+      submitMutation.mutate();
+    } else {
+      Alert.alert('Cảnh báo vi phạm', `(${res.violationCount}/${res.maxViolations ?? 3}): ${reason}`);
+    }
+  };
+
+  const handleViolation = (type: string, detail: string) => {
+    if (!attempt || result) return;
+    quizzesApi.recordViolation(attempt.attemptId, { type, detail })
+      .then((res) => handleAutoSubmitCheck(res, detail))
+      .catch(() => {});
+  };
+
+  const handleProctorResult = (res: ProctorFrameRes) => {
+    if (!attempt || result || !res.flagged) return;
+    handleAutoSubmitCheck(res, 'bất thường camera (AI Vision)');
+  };
 
   useEffect(() => {
     if (attempt?.durationMinutes && examEndsAt === null) {
@@ -95,32 +129,16 @@ export default function ExamScreen() {
     );
   }
 
-  // Giám sát camera/màn hình lúc thi (anti-cheat) chưa được xây cho mobile — KHÔNG cho làm bài
-  // giả vờ an toàn rồi nộp, dễ gây tranh chấp điểm. Chặn hẳn, hướng dẫn qua Web.
-  if (attempt.isProctored) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        {/* (08/10/2026) — an toàn để thêm back ở đây: chưa vào bài thi, chưa có gì để mất. Màn
-            đang làm bài (bên dưới) CỐ Ý không có back, tránh bấm nhầm mất lượt làm bài đang
-            tính giờ — giống UX phổ biến của app thi trắc nghiệm. */}
-        <Stack.Screen options={{ headerShown: true, title: 'Bài thi', headerLeft: () => <BackButton /> }} />
-        <Text style={{ fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
-          Bài thi này yêu cầu giám sát camera trong lúc làm bài.
-        </Text>
-        <Text style={{ color: '#64748B', textAlign: 'center' }}>
-          Tính năng giám sát chưa hỗ trợ trên mobile — vui lòng làm bài thi này trên phiên bản Web.
-        </Text>
-      </View>
-    );
-  }
+  // (Đã xóa block: Mobile giờ đã hỗ trợ giám sát camera)
 
   if (result) {
     return <ExamResultView result={result} />;
   }
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Bài thi' }} />
+    <View style={{ flex: 1 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 16 }}>
+        <Stack.Screen options={{ headerShown: true, title: 'Bài thi', headerLeft: () => null }} />
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Text style={{ color: '#475569' }}>
@@ -178,13 +196,26 @@ export default function ExamScreen() {
         </Text>
       ) : null}
 
-      <Pressable
-        onPress={() => submitMutation.mutate()}
-        disabled={submitMutation.isPending}
-        style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: submitMutation.isPending ? 0.6 : 1 }}
-      >
-        {submitMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Nộp bài</Text>}
-      </Pressable>
-    </ScrollView>
+        <Pressable
+          onPress={() => submitMutation.mutate()}
+          disabled={submitMutation.isPending}
+          style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: submitMutation.isPending ? 0.6 : 1 }}
+        >
+          {submitMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Nộp bài</Text>}
+        </Pressable>
+      </ScrollView>
+
+      {attempt.isProctored && (
+        <View style={{ display: result ? 'none' : 'flex', position: 'absolute' }}>
+          <ProctoringCameraView
+            attemptId={attempt.attemptId}
+            isStarted={!result}
+            onViolation={handleViolation}
+            onRecordingReady={(uri, duration) => uploadVideoMutation.mutate({ fileUri: uri, durationSec: duration })}
+            onProctorResult={handleProctorResult}
+          />
+        </View>
+      )}
+    </View>
   );
 }

@@ -5,9 +5,10 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'rea
 
 import { ApiError } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
-import { streakApi } from '@/lib/api/streak';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { useStreak } from '@/hooks/useStreak';
 import { BackButton } from '@/components/BackButton';
+import { StreakCard } from '@/components/streak/StreakCard';
 import type { PublicCourseSummary } from '@/types/user';
 
 type Tab = 'courses' | 'wishlist' | 'certificates';
@@ -20,7 +21,7 @@ function formatPrice(price: number): string {
  * `CertificatePreview` (render ảnh chứng chỉ phức tạp, mobile chưa có màn chi tiết/xác thực
  * chứng chỉ riêng) để giữ scope gọn — chứng chỉ chỉ hiện dạng thẻ thông tin đơn giản. */
 export default function PublicProfileScreen() {
-  const { userId: userIdParam } = useLocalSearchParams<{ userId: string }>();
+  const { userId: userIdParam, tab: tabParam } = useLocalSearchParams<{ userId: string; tab?: string }>();
   const userId = Number(userIdParam);
   const { isAuthenticated } = useAuth();
 
@@ -37,13 +38,11 @@ export default function PublicProfileScreen() {
   });
   const isOwnProfile = me?.id === userId;
 
-  const { data: streak } = useQuery({
-    queryKey: ['streak'],
-    queryFn: () => streakApi.getMine(),
-    enabled: isOwnProfile,
-  });
+  const { data: streak } = useStreak(isOwnProfile);
 
-  const [tab, setTab] = useState<Tab>('courses');
+  // Cho phép link từ RankingBanner/trang /community mở sẵn tab Chứng chỉ qua `?tab=certificates`
+  // (port từ `fe/app/(public)/u/[userId]/page.tsx`).
+  const [tab, setTab] = useState<Tab>(tabParam === 'certificates' ? 'certificates' : 'courses');
 
   if (isLoading) {
     return (
@@ -93,15 +92,7 @@ export default function PublicProfileScreen() {
         ) : null}
       </View>
 
-      {isOwnProfile && streak ? (
-        <View style={{ backgroundColor: '#FFF7ED', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Text style={{ fontSize: 22 }}>🔥</Text>
-          <View>
-            <Text style={{ fontWeight: '700', fontSize: 13, color: '#0F172A' }}>Chuỗi {streak.currentStreak} ngày</Text>
-            <Text style={{ fontSize: 11.5, color: '#92400E' }}>Kỷ lục: {streak.longestStreak} ngày</Text>
-          </View>
-        </View>
-      ) : null}
+      {isOwnProfile && streak ? <StreakCard streak={streak} /> : null}
 
       <View style={{ flexDirection: 'row', gap: 20, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
         <TabButton label="Đã học" active={tab === 'courses'} onPress={() => setTab('courses')} />

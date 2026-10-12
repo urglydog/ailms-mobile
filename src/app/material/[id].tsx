@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ListChecks } from 'lucide-react-native';
+import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ListChecks, Volume2 } from 'lucide-react-native';
+import * as Speech from 'expo-speech';
 import type { Href } from 'expo-router';
 
 import { ApiError } from '@/lib/api/client';
@@ -69,7 +70,7 @@ export default function MaterialDetailScreen() {
         <MindmapView mermaidCode={material.mermaidCode} />
       ) : null}
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
-        <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} />
+        <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} language={material.language} />
       ) : null}
       {material.materialType === 'QUIZ' ? (
         isRealOfficialExam(material) && material.quizId ? (
@@ -285,7 +286,7 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
 
 type WorkspaceMode = 'browse' | 'study';
 
-function FlashcardWorkspace({ materialId, initialCards }: { materialId: number; initialCards: FlashcardCard[] }) {
+function FlashcardWorkspace({ materialId, initialCards, language }: { materialId: number; initialCards: FlashcardCard[]; language: string }) {
   const [mode, setMode] = useState<WorkspaceMode>('study');
 
   return (
@@ -295,11 +296,48 @@ function FlashcardWorkspace({ materialId, initialCards }: { materialId: number; 
         <ModeTab label="Xem tất cả" active={mode === 'browse'} onPress={() => setMode('browse')} />
       </View>
       {mode === 'study' ? (
-        <FlashcardStudy materialId={materialId} initialCards={initialCards} />
+        <FlashcardStudy materialId={materialId} initialCards={initialCards} language={language} />
       ) : (
-        <FlashcardBrowse cards={initialCards} />
+        <FlashcardBrowse cards={initialCards} language={language} />
       )}
     </View>
+  );
+}
+
+/** Khớp `LANGUAGE_MAP` bên `fe/components/materials/FlashcardStudyMode.tsx` — map mã ngôn ngữ
+ * ngắn (`language` của học liệu) sang BCP-47 cho TTS. Web dùng Web Speech API (chỉ có trên
+ * browser); mobile dùng `expo-speech` (chạy được cả Expo Go, không cần native linking) — cùng
+ * bảng mã, chỉ khác API gọi phát âm bên dưới. */
+const SPEECH_LANGUAGE_MAP: Record<string, string> = {
+  vi: 'vi-VN', en: 'en-US', ja: 'ja-JP', ko: 'ko-KR',
+  zh: 'zh-CN', fr: 'fr-FR', de: 'de-DE', es: 'es-ES',
+  pt: 'pt-PT', ru: 'ru-RU', th: 'th-TH', id: 'id-ID',
+};
+
+function speakFlashcardText(text: string, language: string | undefined) {
+  const langCode = language?.toLowerCase().split('-')[0] ?? '';
+  const bcp47 = SPEECH_LANGUAGE_MAP[langCode];
+  if (!bcp47) return;
+  Speech.stop();
+  Speech.speak(text, { language: bcp47 });
+}
+
+/** Nút loa góc trên-phải của thẻ — đặt làm sibling SAU `Pressable` lật thẻ (không lồng bên
+ * trong) để nhận touch trước, tránh vừa phát âm vừa lật thẻ cùng lúc. */
+function SpeakButton({ text, language, dark }: { text: string; language: string | undefined; dark?: boolean }) {
+  const langCode = language?.toLowerCase().split('-')[0] ?? '';
+  if (!SPEECH_LANGUAGE_MAP[langCode]) return null;
+  return (
+    <Pressable
+      onPress={() => speakFlashcardText(text, language)}
+      hitSlop={8}
+      style={{
+        position: 'absolute', top: 12, right: 12, padding: 8, borderRadius: 999,
+        backgroundColor: dark ? 'rgba(255,255,255,0.15)' : '#F1F5F9',
+      }}
+    >
+      <Volume2 size={18} color={dark ? '#fff' : '#475569'} strokeWidth={1.75} />
+    </Pressable>
   );
 }
 
@@ -311,9 +349,10 @@ function ModeTab({ label, active, onPress }: { label: string; active: boolean; o
   );
 }
 
-/** Ôn tập kiểu Anki (SM-2) — cổng từ `fe/components/materials/FlashcardStudyMode.tsx`, bỏ phát
- * âm (Web Speech API không có trên RN) và điều chỉnh cỡ chữ để giữ màn đơn giản. */
-function FlashcardStudy({ materialId, initialCards }: { materialId: number; initialCards: FlashcardCard[] }) {
+/** Ôn tập kiểu Anki (SM-2) — cổng từ `fe/components/materials/FlashcardStudyMode.tsx`. (12/10/2026)
+ * đã bổ sung phát âm bằng `expo-speech` (trước đây bỏ vì Web Speech API không có trên RN) — vẫn
+ * bỏ điều chỉnh cỡ chữ để giữ màn đơn giản. */
+function FlashcardStudy({ materialId, initialCards, language }: { materialId: number; initialCards: FlashcardCard[]; language: string }) {
   const queryClient = useQueryClient();
   const { data: cards = initialCards, refetch } = useQuery({
     queryKey: ['offline-flashcards', materialId],
@@ -375,33 +414,39 @@ function FlashcardStudy({ materialId, initialCards }: { materialId: number; init
         <Text style={{ color: '#16A34A', fontWeight: '700' }}>{reviewCards.length}</Text>
       </View>
 
-      <Pressable
-        onPress={() => setIsFlipped((f) => !f)}
-        style={{
-          flex: 1,
-          borderRadius: 12,
-          padding: 24,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: isFlipped ? '#2563EB' : '#F8FAFC',
-          borderWidth: isFlipped ? 0 : 1,
-          borderColor: '#E2E8F0',
-        }}
-      >
-        <Text
+      <View style={{ flex: 1, position: 'relative' }}>
+        <Pressable
+          onPress={() => {
+            Speech.stop();
+            setIsFlipped((f) => !f);
+          }}
           style={{
-            fontSize: 22,
-            fontWeight: '600',
-            textAlign: 'center',
-            color: isFlipped ? '#fff' : '#0F172A',
+            flex: 1,
+            borderRadius: 12,
+            padding: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isFlipped ? '#2563EB' : '#F8FAFC',
+            borderWidth: isFlipped ? 0 : 1,
+            borderColor: '#E2E8F0',
           }}
         >
-          {isFlipped ? currentCard.backText : currentCard.frontText}
-        </Text>
-        {!isFlipped ? (
-          <Text style={{ marginTop: 16, color: '#94A3B8', fontSize: 12 }}>Chạm để xem đáp án</Text>
-        ) : null}
-      </Pressable>
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: '600',
+              textAlign: 'center',
+              color: isFlipped ? '#fff' : '#0F172A',
+            }}
+          >
+            {isFlipped ? currentCard.backText : currentCard.frontText}
+          </Text>
+          {!isFlipped ? (
+            <Text style={{ marginTop: 16, color: '#94A3B8', fontSize: 12 }}>Chạm để xem đáp án</Text>
+          ) : null}
+        </Pressable>
+        <SpeakButton text={isFlipped ? currentCard.backText : currentCard.frontText} language={language} dark={isFlipped} />
+      </View>
 
       {isFlipped ? (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
@@ -427,9 +472,10 @@ function FlashcardStudy({ materialId, initialCards }: { materialId: number; init
   );
 }
 
-/** Duyệt toàn bộ thẻ (không tính SRS) — cổng rút gọn từ `FlashcardViewer.tsx`, bỏ TTS/sửa/xoá
- * (chỉ xem, đúng quyền học viên trên app — sửa/xoá vẫn làm trên Web). */
-function FlashcardBrowse({ cards }: { cards: FlashcardCard[] }) {
+/** Duyệt toàn bộ thẻ (không tính SRS) — cổng rút gọn từ `FlashcardViewer.tsx`, bỏ sửa/xoá (chỉ
+ * xem, đúng quyền học viên trên app — sửa/xoá vẫn làm trên Web). (12/10/2026) đã bổ sung phát âm
+ * (trước đây bỏ cùng lúc với sửa/xoá, nhưng phát âm không liên quan quyền chỉnh sửa gì cả). */
+function FlashcardBrowse({ cards, language }: { cards: FlashcardCard[]; language: string }) {
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const card = cards[index];
@@ -443,6 +489,7 @@ function FlashcardBrowse({ cards }: { cards: FlashcardCard[] }) {
   }
 
   const goTo = (next: number) => {
+    Speech.stop();
     setIndex(Math.max(0, Math.min(cards.length - 1, next)));
     setIsFlipped(false);
   };
@@ -452,23 +499,29 @@ function FlashcardBrowse({ cards }: { cards: FlashcardCard[] }) {
       <Text style={{ textAlign: 'center', color: '#64748B' }}>
         {index + 1}/{cards.length}
       </Text>
-      <Pressable
-        onPress={() => setIsFlipped((f) => !f)}
-        style={{
-          flex: 1,
-          borderRadius: 12,
-          padding: 24,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: isFlipped ? '#2563EB' : '#F8FAFC',
-          borderWidth: isFlipped ? 0 : 1,
-          borderColor: '#E2E8F0',
-        }}
-      >
-        <Text style={{ fontSize: 22, fontWeight: '600', textAlign: 'center', color: isFlipped ? '#fff' : '#0F172A' }}>
-          {isFlipped ? card.backText : card.frontText}
-        </Text>
-      </Pressable>
+      <View style={{ flex: 1, position: 'relative' }}>
+        <Pressable
+          onPress={() => {
+            Speech.stop();
+            setIsFlipped((f) => !f);
+          }}
+          style={{
+            flex: 1,
+            borderRadius: 12,
+            padding: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isFlipped ? '#2563EB' : '#F8FAFC',
+            borderWidth: isFlipped ? 0 : 1,
+            borderColor: '#E2E8F0',
+          }}
+        >
+          <Text style={{ fontSize: 22, fontWeight: '600', textAlign: 'center', color: isFlipped ? '#fff' : '#0F172A' }}>
+            {isFlipped ? card.backText : card.frontText}
+          </Text>
+        </Pressable>
+        <SpeakButton text={isFlipped ? card.backText : card.frontText} language={language} dark={isFlipped} />
+      </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Pressable onPress={() => goTo(index - 1)} disabled={index === 0} style={{ opacity: index === 0 ? 0.3 : 1 }}>
           <ChevronLeft size={28} color="#2563EB" />

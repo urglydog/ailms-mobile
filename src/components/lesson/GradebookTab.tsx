@@ -1,20 +1,41 @@
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { router, type Href } from 'expo-router';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { Trophy } from 'lucide-react-native';
+import { AlertTriangle, ChevronLeft, ChevronRight, Trophy } from 'lucide-react-native';
 
 import { gradebookApi } from '@/lib/api/quizzes';
 import type { QuizGrade } from '@/types/quiz';
 
 import { KnowledgeGapsWidget } from '@/components/gradebook/KnowledgeGapsWidget';
 
-/** Port rút gọn từ `fe/components/course/CourseGradebookTab.tsx` — nay đã thêm lại `KnowledgeGapsWidget`
- * (AI phân tích điểm yếu, mục #4 trong bảng ưu tiên UpComming_Plan.md). Tái dùng nguyên `gradebookApi`/`QuizGrade` đã có sẵn cho màn `gradebook/[courseId]`. */
+const ITEMS_PER_PAGE = 10;
+
+/** Port từ `fe/components/course/CourseGradebookTab.tsx`. (12/10/2026) đã bổ sung phân trang
+ * (10/trang, khớp `ITEMS_PER_PAGE` bên web) và badge "đã bị lưu trữ" cho quiz bị giảng viên xoá
+ * (`isDeleted`) — trước đây bỏ cả 2 "để giữ scope gọn" dù field `isDeleted` đã có sẵn trong type,
+ * chỉ chưa render. */
 export function GradebookTab({ courseId }: { courseId: number }) {
+  const [page, setPage] = useState(1);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['gradebook', courseId],
     queryFn: () => gradebookApi.getForCourse(courseId),
   });
+
+  // Bài làm gần nhất lên đầu; quiz chưa làm lần nào (không có latestSubmittedAt) xuống cuối —
+  // khớp `fe`'s sort (trước đây mobile thiếu nhánh "chưa làm" nên bị xếp NaN lẫn lộn).
+  const sorted = useMemo(() => {
+    if (!data) return [];
+    return [...data.quizzes].sort((a, b) => {
+      if (!a.latestSubmittedAt) return 1;
+      if (!b.latestSubmittedAt) return -1;
+      return new Date(b.latestSubmittedAt).getTime() - new Date(a.latestSubmittedAt).getTime();
+    });
+  }, [data]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE));
+  const paged = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   if (isLoading) {
     return (
@@ -40,17 +61,25 @@ export function GradebookTab({ courseId }: { courseId: number }) {
     );
   }
 
-  const sorted = [...data.quizzes].sort((a, b) =>
-    new Date(b.latestSubmittedAt).getTime() - new Date(a.latestSubmittedAt).getTime(),
-  );
-
   return (
     <View style={{ gap: 10, paddingVertical: 16 }}>
       <KnowledgeGapsWidget courseId={courseId} />
       <View style={{ paddingHorizontal: 16, gap: 10 }}>
-      {sorted.map((quiz) => (
-        <QuizGradeRow key={quiz.quizId} quiz={quiz} />
-      ))}
+        {paged.map((quiz) => (
+          <QuizGradeRow key={quiz.quizId} quiz={quiz} />
+        ))}
+
+        {totalPages > 1 ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 4 }}>
+            <Pressable onPress={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ opacity: page === 1 ? 0.3 : 1 }}>
+              <ChevronLeft size={22} color="#2563EB" />
+            </Pressable>
+            <Text style={{ fontSize: 12.5, color: '#64748B' }}>Trang {page}/{totalPages}</Text>
+            <Pressable onPress={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ opacity: page === totalPages ? 0.3 : 1 }}>
+              <ChevronRight size={22} color="#2563EB" />
+            </Pressable>
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -64,6 +93,14 @@ function QuizGradeRow({ quiz }: { quiz: QuizGrade }) {
     >
       <Text style={{ fontWeight: '700', fontSize: 13.5, color: '#0F172A' }}>{quiz.quizTitle}</Text>
       <Text style={{ fontSize: 12, color: '#64748B' }}>{quiz.location}</Text>
+
+      {quiz.isDeleted ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 6, marginTop: 2, alignSelf: 'flex-start' }}>
+          <AlertTriangle size={13} color="#D97706" />
+          <Text style={{ fontSize: 11, color: '#D97706' }}>Bài tập/bài thi này đã được giảng viên lưu trữ.</Text>
+        </View>
+      ) : null}
+
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
         <Text style={{ fontWeight: '800', fontSize: 16, color: quiz.highestScore >= 5 ? '#16A34A' : '#DC2626' }}>
           {quiz.highestScore.toFixed(1)}/10

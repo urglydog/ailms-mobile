@@ -4,12 +4,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View, Platform } from 'react-native';
-import { Layers } from 'lucide-react-native';
 import * as crypto from 'expo-crypto';
 import { Audio } from 'expo-av';
 
 import { ApiError } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
+import { materialsApi } from '@/lib/api/materials';
+import { courseResourcesApi } from '@/lib/api/courseResources';
 import { BackButton } from '@/components/BackButton';
 import { OverviewTab } from '@/components/lesson/OverviewTab';
 import { StudyPlanTab } from '@/components/lesson/StudyPlanTab';
@@ -18,6 +19,7 @@ import { GradebookTab } from '@/components/lesson/GradebookTab';
 import { ResourcesTab } from '@/components/lesson/ResourcesTab';
 import { ReviewsTab } from '@/components/lesson/ReviewsTab';
 import { TutorChat } from '@/components/lesson/TutorChat';
+import { MaterialsWorkspace } from '@/components/materials/MaterialsWorkspace';
 import { LanguageDropdown } from '@/components/player/LanguageDropdown';
 import { DubbingActivatePanel } from '@/components/player/DubbingActivatePanel';
 import { PipelineProgress } from '@/components/player/PipelineProgress';
@@ -62,16 +64,18 @@ function buildChunkSteps(totalChunks: number): PipelineStep[] {
   ];
 }
 
-// (08/10/2026, theo phản hồi) — bỏ tab "Bài tập" riêng: trên web, bài tập GV giao
-// (LessonAssignmentsList) và học liệu AI (MaterialManager) nằm CHUNG 1 tab "Học liệu" (không
-// có tab bài tập tách riêng nào cả — khảo sát lại đúng `fe/app/(learn)/learn/[lessonId]/
-// page.tsx`). Dời AssignmentsTab sang đầu màn `/materials/[courseId]` (xem file đó).
-type MainTab = 'overview' | 'study-plan' | 'qna' | 'gradebook' | 'resources' | 'reviews' | 'tutor' | 'transcript';
+// (12/10/2026, sửa theo phản hồi) — "Học liệu" giờ là tab NGANG HÀNG với Tổng quan/Hỏi đáp/...,
+// khớp đúng vị trí trong `fe`'s MAIN_TABS (overview, study-plan, qna, materials, gradebook,
+// resources, reviews). Trước đây (08/10/2026) chỉ là 1 nút điều hướng sang màn `/materials/
+// [courseId]` riêng — không phải tab thật, cũng không có badge số lượng như web. Nội dung tab
+// (bài tập GV giao + học liệu) dùng chung `MaterialsWorkspace` với màn `/materials/[courseId]`.
+type MainTab = 'overview' | 'study-plan' | 'qna' | 'materials' | 'gradebook' | 'resources' | 'reviews' | 'tutor' | 'transcript';
 
 const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: 'overview', label: 'Tổng quan' },
   { key: 'study-plan', label: 'Lộ trình AI' },
   { key: 'qna', label: 'Hỏi đáp' },
+  { key: 'materials', label: 'Học liệu' },
   { key: 'tutor', label: 'AI Gia sư' },
   { key: 'gradebook', label: 'Bảng điểm' },
   { key: 'resources', label: 'Tài nguyên' },
@@ -94,6 +98,28 @@ export default function LessonPlayerScreen() {
   });
 
   const [mainTab, setMainTab] = useState<MainTab>('overview');
+
+  // Badge đỏ trên tab "Học liệu" — khớp `fe`'s `currentLessonMaterialCount` (official materials +
+  // tài nguyên khoá học gắn với bài/chương hiện tại). `SharedMaterialListItem` ở mobile CHƯA có
+  // field `assignments` (chỉ web mới lọc được theo bài/chương cho official materials), nên đếm
+  // official materials TOÀN KHOÁ (không lọc theo bài) — gần đúng hơn là không có badge nào, chưa
+  // phải parity tuyệt đối với web.
+  const { data: sharedMaterialsForBadge } = useQuery({
+    queryKey: ['materials', lesson?.courseId, 'shared'],
+    queryFn: () => materialsApi.listSharedForCourse(lesson!.courseId),
+    enabled: !!lesson?.courseId && lesson.enrolled,
+  });
+  const { data: courseResourcesForBadge } = useQuery({
+    queryKey: ['course-resources', lesson?.courseId],
+    queryFn: () => courseResourcesApi.listForCourse(lesson!.courseId),
+    enabled: !!lesson?.courseId && lesson.enrolled,
+  });
+  const currentChapter = lesson?.chapters.find((c) => c.lessons.some((l) => l.lessonId === lessonId));
+  const lessonMaterialCount =
+    (sharedMaterialsForBadge?.filter((m) => m.status === 'COMPLETED').length ?? 0) +
+    (courseResourcesForBadge?.filter(
+      (r) => r.lessonId === lessonId || (currentChapter && r.chapterId === currentChapter.chapterId),
+    ).length ?? 0);
 
   const [activeLang, setActiveLang] = useState<string | null>(null);
   const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
@@ -414,17 +440,6 @@ export default function LessonPlayerScreen() {
         {!lesson.enrolled && lesson.isPreview ? (
           <Text style={{ color: '#D97706' }}>Bạn đang xem thử — ghi danh để xem toàn bộ khoá học.</Text>
         ) : null}
-        {lesson.enrolled ? (
-          <Pressable
-            onPress={() => router.push(`/materials/${lesson.courseId}?lessonId=${lesson.lessonId}` as Href)}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}
-          >
-            <Layers size={18} color="#2563EB" strokeWidth={1.75} />
-            {/* (08/10/2026, theo phản hồi) — đổi tên khớp đúng web: web gọi tab này "Học liệu",
-                không có khái niệm "Học liệu AI" nào. */}
-            <Text style={{ color: '#2563EB', fontWeight: '600' }}>Học liệu</Text>
-          </Pressable>
-        ) : null}
       </View>
 
       <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 16 }}>
@@ -485,9 +500,16 @@ export default function LessonPlayerScreen() {
                 borderBottomColor: mainTab === tab.key ? '#2563EB' : 'transparent',
               }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: mainTab === tab.key ? '#2563EB' : '#64748B' }}>
-                {tab.label}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: mainTab === tab.key ? '#2563EB' : '#64748B' }}>
+                  {tab.label}
+                </Text>
+                {tab.key === 'materials' && lessonMaterialCount > 0 ? (
+                  <View style={{ marginLeft: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>{lessonMaterialCount}</Text>
+                  </View>
+                ) : null}
+              </View>
             </Pressable>
           ))}
         </ScrollView>
@@ -495,6 +517,16 @@ export default function LessonPlayerScreen() {
         {mainTab === 'overview' && <OverviewTab courseSlug={lesson.courseSlug} courseId={lesson.courseId} enrolled={lesson.enrolled} />}
         {mainTab === 'study-plan' && <StudyPlanTab courseId={lesson.courseId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
         {mainTab === 'qna' && <QnaTab lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
+        {mainTab === 'materials' && (
+          <View style={{ padding: 16 }}>
+            <MaterialsWorkspace
+              courseId={lesson.courseId}
+              lessonId={lesson.lessonId}
+              enrolled={lesson.enrolled}
+              courseSlug={lesson.courseSlug}
+            />
+          </View>
+        )}
         {mainTab === 'tutor' && <TutorChat courseId={lesson.courseId} lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
         {mainTab === 'gradebook' && <GradebookTab courseId={lesson.courseId} />}
         {mainTab === 'resources' && <ResourcesTab courseId={lesson.courseId} />}

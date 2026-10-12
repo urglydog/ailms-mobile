@@ -15,6 +15,7 @@ import {
 import { MessageCircle, Send, X } from 'lucide-react-native';
 
 import { api } from '@/lib/api/client';
+import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
 
 interface DiscoveryCourseCard {
   id: number;
@@ -45,8 +46,9 @@ const MAX_MESSAGE_LENGTH = 1000;
 const EXAM_TAKING_PATH = /^\/exam\/[^/]+\/?$/;
 
 /** Port từ `fe/components/chat/DiscoveryChat.tsx` (12/10/2026) — nút chat nổi "AI Course
- * Discovery", trước đây mobile hoàn toàn chưa có. Không dùng markdown renderer (mobile chưa có
- * lib nào cho việc này, `TutorChat` cũng đang hiện text thuần) — hiện thẳng text AI trả về. */
+ * Discovery", trước đây mobile hoàn toàn chưa có. Tin nhắn AI dùng `MarkdownRenderer` (tin nhắn
+ * của user giữ `Text` thuần, không parse markdown — khớp `fe`'s cách phân nhánh `msg.role ===
+ * 'user' ? msg.text : <MarkdownRenderer .../>`). */
 export function DiscoveryChat() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -131,7 +133,11 @@ export function DiscoveryChat() {
                       backgroundColor: item.role === 'user' ? '#2563EB' : '#F1F5F9',
                     }}
                   >
-                    <Text style={{ color: item.role === 'user' ? '#fff' : '#0F172A', fontSize: 13.5, lineHeight: 19 }}>{item.text}</Text>
+                    {item.role === 'user' ? (
+                      <Text style={{ color: '#fff', fontSize: 13.5, lineHeight: 19 }}>{item.text}</Text>
+                    ) : (
+                      <MarkdownRenderer content={item.text} />
+                    )}
                   </View>
 
                   {item.courses && item.courses.length > 0 ? (

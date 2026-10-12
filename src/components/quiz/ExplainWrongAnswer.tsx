@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { router, type Href } from 'expo-router';
 
 import { quizzesApi } from '@/lib/api/quizzes';
+import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
 
 interface Props {
   questionId: number;
@@ -16,8 +17,8 @@ interface Props {
 /** "Hỏi Gia sư AI tại sao sai?" — dùng chung cho `ExamResultView` (thi chính thức) và
  * `LectureQuiz` (ôn tập cá nhân), port từ `fe/components/materials/QuizViewer.tsx` +
  * `fe/app/(student)/exam/[quizId]/page.tsx` (cùng 1 pattern `handleExplain`/`explanations`, chỉ
- * khác chỗ gọi). Không dùng markdown renderer (mobile chưa có lib nào cho việc này, TutorChat
- * cũng đang hiện text thuần) — hiện thẳng text trả về. */
+ * khác chỗ gọi). (12/10/2026) đã bổ sung `MarkdownRenderer` — trước đây hiện text thô, user báo
+ * thấy nguyên `**text**` chưa parse. */
 export function ExplainWrongAnswer({ questionId, selectedOptionId, referenceLessonId, videoTimestamp }: Props) {
   const [state, setState] = useState<{ loading: boolean; text?: string } | null>(null);
 
@@ -54,7 +55,7 @@ export function ExplainWrongAnswer({ questionId, selectedOptionId, referenceLess
             <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1D4ED8' }}>Gia sư AI giải thích:</Text>
             {state.loading ? <Text style={{ fontSize: 11.5, color: '#3B82F6' }}>Đang suy nghĩ...</Text> : null}
           </View>
-          {state.text ? <Text style={{ fontSize: 12.5, color: '#1E293B', lineHeight: 18 }}>{state.text}</Text> : null}
+          {state.text ? <MarkdownRenderer content={state.text} /> : null}
         </View>
       ) : null}
     </View>

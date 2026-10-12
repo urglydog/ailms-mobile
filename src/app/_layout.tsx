@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 
 import { AuthProvider } from '@/lib/auth/AuthContext';
+import { DiscoveryChat } from '@/components/chat/DiscoveryChat';
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
           </Stack>
+          <DiscoveryChat />
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>

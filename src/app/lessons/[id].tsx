@@ -4,10 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View, Platform } from 'react-native';
-import * as crypto from 'expo-crypto';
 import { Audio } from 'expo-av';
 
-import { ApiError } from '@/lib/api/client';
+import { ApiError, getOrCreateStreamSessionId } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
 import { materialsApi } from '@/lib/api/materials';
 import { courseResourcesApi } from '@/lib/api/courseResources';
@@ -311,14 +310,23 @@ export default function LessonPlayerScreen() {
   const [streamConflict, setStreamConflict] = useState(false);
 
   useEffect(() => {
-    if (!sessionIdRef.current) {
-      sessionIdRef.current = crypto.randomUUID();
-    }
-  }, [lessonId]);
+    // BUG THẬT (12/10/2026, user báo cáo) — trước đây tạo sessionId MỚI mỗi lần mount màn này
+    // (`crypto.randomUUID()` ngay tại đây), rồi gửi heartbeat đầu tiên với `force=true`. Hệ quả:
+    // chỉ cần MỞ màn bài học (chưa hề bấm play) là đã cưỡng chế giành khoá "đang phát" từ bất kỳ
+    // thiết bị nào khác đang thật sự xem — khiến web bị tạm dừng + hiện "Đã phát hiện thiết bị
+    // khác" dù mobile chưa phát gì cả (xem `PlayerHeartbeatService.processHeartbeat`, BE:
+    // `force=true` LUÔN ghi đè session, không throw). Giờ dùng `getOrCreateStreamSessionId()` —
+    // ID bền theo THIẾT BỊ (lưu SecureStore/localStorage), không đổi mỗi lần vào bài học — và đổi
+    // heartbeat đầu tiên sang `force=false` (xem effect dưới) để BE tự phát hiện xung đột thật
+    // thay vì mobile luôn thắng vô điều kiện.
+    getOrCreateStreamSessionId().then((id) => {
+      sessionIdRef.current = id;
+    });
+  }, []);
 
   useEffect(() => {
     if (!lessonId || streamConflict) return;
-    
+
     const sendPing = async (force: boolean) => {
       if (!sessionIdRef.current) return;
       try {
@@ -331,7 +339,10 @@ export default function LessonPlayerScreen() {
       }
     };
 
-    void sendPing(true);
+    // `force=false` — chỉ CLAIM khoá nếu chưa ai giữ, hoặc chính thiết bị này (cùng sessionId bền
+    // ở trên) đang giữ; nếu thiết bị KHÁC thật sự đang giữ thì BE trả 409, hiện đúng modal xung
+    // đột cho người VỪA MỞ màn này thay vì âm thầm cướp quyền của người đang xem thật.
+    void sendPing(false);
 
     const intervalId = setInterval(() => {
       void sendPing(false);

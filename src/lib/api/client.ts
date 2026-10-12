@@ -14,6 +14,7 @@
  */
 
 import * as SecureStore from 'expo-secure-store';
+import * as Crypto from 'expo-crypto';
 import { Platform } from 'react-native';
 import type { ProblemDetail } from '@/types/domain';
 
@@ -95,6 +96,21 @@ export async function getRefreshToken(): Promise<string | null> {
 export async function setTokens(accessToken: string, refreshToken: string): Promise<void> {
   await tokenStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   await tokenStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+}
+
+const STREAM_SESSION_ID_KEY = 'streamSessionId';
+
+/** ID định danh THIẾT BỊ (không phải mỗi lần mount màn bài học) cho cơ chế giới hạn 1 phiên xem
+ * đồng thời (`PlayerHeartbeatService` ở BE, key Redis theo user). Lưu bền (SecureStore/
+ * localStorage) thay vì tạo mới mỗi lần vào bài học — nếu tạo mới mỗi lần mount, chuyển sang bài
+ * học khác trên CHÍNH thiết bị đang xem trong vòng 30s (TTL Redis) sẽ bị chính BE coi là "thiết bị
+ * khác" phát hiện, dù chỉ là 1 người dùng điều hướng bình thường. */
+export async function getOrCreateStreamSessionId(): Promise<string> {
+  const existing = await tokenStorage.getItem(STREAM_SESSION_ID_KEY);
+  if (existing) return existing;
+  const id = Crypto.randomUUID();
+  await tokenStorage.setItem(STREAM_SESSION_ID_KEY, id);
+  return id;
 }
 
 export async function clearTokens(): Promise<void> {

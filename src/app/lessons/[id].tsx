@@ -527,7 +527,15 @@ export default function LessonPlayerScreen() {
         </ScrollView>
 
         {mainTab === 'overview' && <OverviewTab courseSlug={lesson.courseSlug} courseId={lesson.courseId} enrolled={lesson.enrolled} />}
-        {mainTab === 'study-plan' && <StudyPlanTab courseId={lesson.courseId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
+        {mainTab === 'study-plan' && (
+          <StudyPlanTab
+            courseId={lesson.courseId}
+            enrolled={lesson.enrolled}
+            courseSlug={lesson.courseSlug}
+            completedLessonIds={lesson.chapters.flatMap((c) => c.lessons).filter((l) => l.isCompleted).map((l) => l.lessonId)}
+            allLessons={lesson.chapters.flatMap((c) => c.lessons).map((l) => ({ lessonId: l.lessonId, durationSec: l.durationSec }))}
+          />
+        )}
         {mainTab === 'qna' && <QnaTab lessonId={lesson.lessonId} enrolled={lesson.enrolled} courseSlug={lesson.courseSlug} />}
         {mainTab === 'materials' && (
           <View style={{ padding: 16 }}>

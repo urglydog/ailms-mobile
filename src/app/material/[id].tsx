@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
-import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ListChecks, Volume2 } from 'lucide-react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ListChecks, Pencil, Trash2, Volume2, X } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import * as Clipboard from 'expo-clipboard';
 import type { Href } from 'expo-router';
@@ -71,7 +71,7 @@ export default function MaterialDetailScreen() {
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerShown: true, title: material.title || 'Học liệu', headerLeft: () => <BackButton /> }} />
       {material.materialType === 'MINDMAP' && material.mermaidCode ? (
-        <MindmapSection mermaidCode={material.mermaidCode} />
+        <MindmapSection materialId={materialId} initialMermaidCode={material.mermaidCode} onSaved={() => refetch()} />
       ) : null}
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
         <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} language={material.language} />
@@ -95,9 +95,11 @@ export default function MaterialDetailScreen() {
 /** Bọc toolbar (xoay hướng/copy code/tải SVG) quanh `MindmapView` — port từ
  * `fe/components/materials/MermaidViewer.tsx`. `direction`/`ready` sống ở đây (không trong
  * `MindmapView`) vì `mermaidCode` cần sẵn cho nút Copy Code. */
-function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
+function MindmapSection({ materialId, initialMermaidCode, onSaved }: { materialId: number; initialMermaidCode: string; onSaved: () => void }) {
+  const [mermaidCode, setMermaidCode] = useState(initialMermaidCode);
   const [direction, setDirection] = useState<MermaidDirection | null>(null);
   const [ready, setReady] = useState(false);
+  const [editing, setEditing] = useState(false);
   const mindmapRef = useRef<MindmapViewHandle>(null);
 
   const handleCopyCode = async () => {
@@ -132,6 +134,7 @@ function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
         }}
         onCopyCode={handleCopyCode}
         onDownload={() => mindmapRef.current?.requestImage()}
+        onEdit={() => setEditing(true)}
         downloadDisabled={!ready}
       />
       <MindmapView
@@ -141,7 +144,76 @@ function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
         onImageExtracted={handleImageExtracted}
         onReady={() => setReady(true)}
       />
+
+      {editing ? (
+        <EditMermaidCodeModal
+          materialId={materialId}
+          code={mermaidCode}
+          onClose={() => setEditing(false)}
+          onSaved={(newCode) => {
+            setMermaidCode(newCode);
+            setReady(false);
+            setEditing(false);
+            onSaved();
+          }}
+        />
+      ) : null}
     </View>
+  );
+}
+
+/** Port rút gọn (chỉ sửa text) từ `fe/components/materials/MermaidCodeEditor.tsx` — web có thêm
+ * preview trực tiếp trong lúc gõ, mobile bỏ qua phần đó (ngoài phạm vi MVP), chỉ sửa xong bấm Lưu
+ * mới thấy kết quả (dùng lại `MindmapView` có sẵn). */
+function EditMermaidCodeModal({ materialId, code, onClose, onSaved }: { materialId: number; code: string; onClose: () => void; onSaved: (code: string) => void }) {
+  const [value, setValue] = useState(code);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!value.trim()) {
+      Alert.alert('Lỗi', 'Code Mermaid không được để trống.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await materialsApi.updateMaterial(materialId, { mermaidCode: value });
+      onSaved(value);
+    } catch (err) {
+      Alert.alert('Lỗi', err instanceof ApiError ? err.message : 'Không lưu được code.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={{ height: '80%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 12 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Sửa code Mermaid</Text>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <X size={20} color="#64748B" />
+            </Pressable>
+          </View>
+          <TextInput
+            value={value}
+            onChangeText={setValue}
+            multiline
+            autoCapitalize="none"
+            autoCorrect={false}
+            style={{ flex: 1, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10, fontSize: 12.5, fontFamily: 'monospace', textAlignVertical: 'top' }}
+          />
+          <Pressable
+            onPress={handleSave}
+            disabled={saving}
+            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: '#2563EB', opacity: saving ? 0.6 : 1 }}
+          >
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Lưu</Text>}
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -532,10 +604,32 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
 /** Duyệt toàn bộ thẻ (không tính SRS) — cổng rút gọn từ `FlashcardViewer.tsx`, bỏ sửa/xoá (chỉ
  * xem, đúng quyền học viên trên app — sửa/xoá vẫn làm trên Web). (12/10/2026) đã bổ sung phát âm
  * (trước đây bỏ cùng lúc với sửa/xoá, nhưng phát âm không liên quan quyền chỉnh sửa gì cả). */
-function FlashcardBrowse({ cards, language }: { cards: FlashcardCard[]; language: string }) {
+function FlashcardBrowse({ cards: initialCards, language }: { cards: FlashcardCard[]; language: string }) {
+  const [cards, setCards] = useState(initialCards);
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [editing, setEditing] = useState(false);
   const card = cards[index];
+
+  const handleDelete = () => {
+    if (!card) return;
+    Alert.alert('Xoá thẻ này?', 'Không thể hoàn tác.', [
+      { text: 'Huỷ', style: 'cancel' },
+      {
+        text: 'Xoá',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await flashcardsApi.delete(card.id);
+            setCards((prev) => prev.filter((c) => c.id !== card.id));
+            setIndex((i) => Math.max(0, Math.min(i, cards.length - 2)));
+          } catch (err) {
+            Alert.alert('Lỗi', err instanceof ApiError ? err.message : 'Không xoá được thẻ.');
+          }
+        },
+      },
+    ]);
+  };
 
   if (!card) {
     return (
@@ -587,6 +681,97 @@ function FlashcardBrowse({ cards, language }: { cards: FlashcardCard[]; language
           <ChevronRight size={28} color="#2563EB" />
         </Pressable>
       </View>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}>
+        <Pressable
+          onPress={() => setEditing(true)}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' }}
+        >
+          <Pencil size={14} color="#64748B" strokeWidth={2} />
+          <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#334155' }}>Sửa</Text>
+        </Pressable>
+        <Pressable
+          onPress={handleDelete}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' }}
+        >
+          <Trash2 size={14} color="#DC2626" strokeWidth={2} />
+          <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#DC2626' }}>Xoá</Text>
+        </Pressable>
+      </View>
+
+      {editing ? (
+        <EditFlashcardModal
+          card={card}
+          onClose={() => setEditing(false)}
+          onSaved={(updated) => {
+            setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+            setEditing(false);
+          }}
+        />
+      ) : null}
     </View>
+  );
+}
+
+function EditFlashcardModal({ card, onClose, onSaved }: { card: FlashcardCard; onClose: () => void; onSaved: (card: FlashcardCard) => void }) {
+  const [frontText, setFrontText] = useState(card.frontText);
+  const [backText, setBackText] = useState(card.backText);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!frontText.trim() || !backText.trim()) {
+      Alert.alert('Lỗi', 'Không được để trống mặt trước/sau.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await flashcardsApi.update(card.id, { frontText, backText });
+      onSaved({ ...card, frontText, backText });
+    } catch (err) {
+      Alert.alert('Lỗi', err instanceof ApiError ? err.message : 'Không lưu được thẻ.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 14 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Sửa thẻ</Text>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <X size={20} color="#64748B" />
+            </Pressable>
+          </View>
+          <View style={{ gap: 6 }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Mặt trước</Text>
+            <TextInput
+              value={frontText}
+              onChangeText={setFrontText}
+              multiline
+              style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+            />
+          </View>
+          <View style={{ gap: 6 }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Mặt sau</Text>
+            <TextInput
+              value={backText}
+              onChangeText={setBackText}
+              multiline
+              style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+            />
+          </View>
+          <Pressable
+            onPress={handleSave}
+            disabled={saving}
+            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: '#2563EB', opacity: saving ? 0.6 : 1 }}
+          >
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Lưu</Text>}
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }

@@ -6,4 +6,14 @@ export const flashcardsApi = {
   review(flashcardId: number, quality: number): Promise<FlashcardReviewResult> {
     return api.post<FlashcardReviewResult>(`/api/v1/flashcards/${flashcardId}/review`, { quality });
   },
+
+  /** Port từ `fe/lib/api/flashcards.ts` — mobile trước đây chỉ xem được flashcard, chưa sửa/xoá
+   * được (web `FlashcardViewer.tsx` đã có từ lâu). */
+  update(flashcardId: number, data: { frontText?: string; backText?: string }): Promise<void> {
+    return api.patch(`/api/v1/flashcards/${flashcardId}`, data);
+  },
+
+  delete(flashcardId: number): Promise<void> {
+    return api.delete(`/api/v1/flashcards/${flashcardId}`);
+  },
 };

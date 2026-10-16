@@ -304,12 +304,20 @@ export default function LessonPlayerScreen() {
   useFocusEffect(
     useCallback(() => {
       return () => {
+        // Cả 2 player (video + audio lồng tiếng) đều có thể đã bị giải phóng (native shared
+        // object) trước khi cleanup này chạy — pause lúc đó ném NotFoundException, crash cả app
+        // nếu không try/catch riêng từng cái (bug thật 16/10/2026: ban đầu chỉ bọc `player`, bỏ
+        // sót `dubPlayer` nên vẫn crash y hệt).
         try {
           player.pause();
         } catch {
-          // Player có thể đã bị giải phóng (native shared object) — bỏ qua, không có gì để pause.
+          // Không có gì để pause — bỏ qua.
         }
-        dubPlayer.pause();
+        try {
+          dubPlayer.pause();
+        } catch {
+          // Không có gì để pause — bỏ qua.
+        }
       };
     }, [player, dubPlayer]),
   );

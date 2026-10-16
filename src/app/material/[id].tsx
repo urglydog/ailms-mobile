@@ -12,7 +12,7 @@ import { flashcardsApi } from '@/lib/api/flashcards';
 import { materialsApi } from '@/lib/api/materials';
 import { flashcardDb } from '@/lib/db/flashcardDb';
 import { syncService } from '@/lib/db/syncService';
-import { saveAndShareBlob } from '@/lib/files';
+import { saveAndShareText } from '@/lib/files';
 import { MindmapView, type MindmapViewHandle } from '@/components/material/MindmapView';
 import { MindmapToolbar } from '@/components/material/MindmapToolbar';
 import type { MermaidDirection } from '@/components/material/mermaidHtml';
@@ -115,9 +115,9 @@ function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
       return;
     }
     try {
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      await saveAndShareBlob(blob, 'mindmap.svg', 'image/svg+xml');
-    } catch {
+      await saveAndShareText(svg, 'mindmap.svg', 'image/svg+xml');
+    } catch (err) {
+      console.error('Lưu sơ đồ thất bại:', err);
       Alert.alert('Lỗi', 'Không thể lưu sơ đồ.');
     }
   };

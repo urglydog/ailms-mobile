@@ -31,3 +31,35 @@ export async function saveAndShareBlob(blob: Blob, filename: string, mimeType: s
     await Sharing.shareAsync(file.uri, { mimeType });
   }
 }
+
+/**
+ * Lưu + chia sẻ 1 chuỗi text (SVG, JSON...) — KHÔNG đi qua `Blob`/`arrayBuffer()` như
+ * `saveAndShareBlob`. `Blob` polyfill của React Native (tạo tay bằng `new Blob([...])`, không
+ * đến từ network response) không implement đầy đủ `.arrayBuffer()`, ném lỗi runtime (bug thật:
+ * nút "Tải ảnh" của mindmap luôn báo "Không thể lưu sơ đồ"). `File.write()` nhận thẳng string
+ * nên không cần Blob ở bước này.
+ */
+export async function saveAndShareText(content: string, filename: string, mimeType: string): Promise<void> {
+  if (Platform.OS === 'web') {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
+
+  const dir = new Directory(Paths.cache, 'downloads');
+  if (!dir.exists) dir.create({ intermediates: true });
+
+  const file = new File(dir, filename);
+  if (file.exists) file.delete();
+  file.create();
+  file.write(content);
+
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(file.uri, { mimeType });
+  }
+}

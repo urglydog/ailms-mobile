@@ -84,6 +84,10 @@ export function TutorChat({ courseId, lessonId, enrolled, courseSlug }: { course
         ref={listRef}
         data={messages}
         keyExtractor={(item) => item.id}
+        // Danh sách chat có chiều cao cố định (420) nằm bên trong ScrollView lớn của cả màn hình
+        // bài học — `nestedScrollEnabled` là cách chính thức RN khuyến nghị để 2 lớp cuộn cùng
+        // hướng không giành gesture của nhau (chủ yếu ảnh hưởng Android, iOS vốn đã mượt).
+        nestedScrollEnabled
         contentContainerStyle={{ padding: 12, gap: 10 }}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         renderItem={({ item }) => <TutorBubble item={item} />}

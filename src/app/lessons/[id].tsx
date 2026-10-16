@@ -1,8 +1,8 @@
 import { useEventListener } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View, Platform } from 'react-native';
 import { useAudioPlayer } from 'expo-audio';
 
@@ -298,6 +298,21 @@ export default function LessonPlayerScreen() {
     if (audioSrc && player.playing) dubPlayer.play();
   }, [audioSrc, dubPlayer, player]);
 
+  // expo-router giữ màn hình sống trong stack khi chuyển tab (không unmount) — video/audio tự
+  // phát (xem `p.play()` ở trên) sẽ tiếp tục chạy NỀN nếu không chủ động pause lúc rời màn hình.
+  // Tự resume lại khi quay lại màn hình nếu video đang phát dở trước đó.
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        try {
+          player.pause();
+        } catch {
+          // Player có thể đã bị giải phóng (native shared object) — bỏ qua, không có gì để pause.
+        }
+        dubPlayer.pause();
+      };
+    }, [player, dubPlayer]),
+  );
 
   const sessionIdRef = useRef<string | null>(null);
   const [streamConflict, setStreamConflict] = useState(false);
@@ -372,7 +387,15 @@ export default function LessonPlayerScreen() {
   useEffect(() => {
     return () => {
       if (!lesson || !isDirectVideo) return;
-      const finalTime = Math.round(player.currentTime);
+      // `expo-video` có thể đã giải phóng native player trước khi cleanup này chạy (race giữa
+      // thứ tự cleanup của các effect lúc unmount) — đọc `player.currentTime` lúc đó ném
+      // `NotFoundException` (native shared object không còn), crash cả app nếu không try/catch.
+      let finalTime: number;
+      try {
+        finalTime = Math.round(player.currentTime);
+      } catch {
+        return;
+      }
       if (finalTime > lastReportedAtRef.current) {
         lessonsApi.recordProgress(lessonId, finalTime, finalTime).finally(() => {
           queryClient.invalidateQueries({ queryKey: ['enrollments'] });

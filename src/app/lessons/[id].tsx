@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View, Platform } from 'react-native';
-import { Audio } from 'expo-av';
+import { useAudioPlayer } from 'expo-audio';
 
 import { ApiError, getOrCreateStreamSessionId } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
@@ -283,27 +283,20 @@ export default function LessonPlayerScreen() {
     p.play();
   });
 
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  // expo-av đã bị gỡ khỏi Expo Go từ SDK 55 (lỗi "Cannot find native module 'ExponentAV'") —
+  // dùng expo-audio. Hook tự release player khi unmount và tự nạp lại khi `audioSrc` đổi.
+  const dubPlayer = useAudioPlayer(audioSrc);
+
+  // Audio lồng tiếng đi theo trạng thái phát/dừng của video (video bị mute khi có audioSrc).
+  useEventListener(player, 'playingChange', ({ isPlaying }) => {
+    if (!audioSrc) return;
+    if (isPlaying) dubPlayer.play();
+    else dubPlayer.pause();
+  });
 
   useEffect(() => {
-    let currentSound: Audio.Sound | null = null;
-    if (audioSrc) {
-      Audio.Sound.createAsync({ uri: audioSrc }).then(({ sound: s }) => {
-        setSound(s);
-        currentSound = s;
-        // if video is playing, play sound
-        if (player.playing) {
-          s.playAsync();
-        }
-      });
-    } else {
-      setSound(null);
-    }
-    return () => {
-      if (currentSound) currentSound.unloadAsync();
-    };
-  }, [audioSrc, player.playing]);
-
+    if (audioSrc && player.playing) dubPlayer.play();
+  }, [audioSrc, dubPlayer, player]);
 
 
   const sessionIdRef = useRef<string | null>(null);

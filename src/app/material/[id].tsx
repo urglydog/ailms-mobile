@@ -12,7 +12,7 @@ import { flashcardsApi } from '@/lib/api/flashcards';
 import { materialsApi } from '@/lib/api/materials';
 import { flashcardDb } from '@/lib/db/flashcardDb';
 import { syncService } from '@/lib/db/syncService';
-import { saveAndShareText } from '@/lib/files';
+import { saveAndShareDataUrl } from '@/lib/files';
 import { MindmapView, type MindmapViewHandle } from '@/components/material/MindmapView';
 import { MindmapToolbar } from '@/components/material/MindmapToolbar';
 import type { MermaidDirection } from '@/components/material/mermaidHtml';
@@ -109,13 +109,13 @@ function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
     }
   };
 
-  const handleSvgExtracted = async (svg: string | null) => {
-    if (!svg) {
+  const handleImageExtracted = async (dataUrl: string | null) => {
+    if (!dataUrl) {
       Alert.alert('Lỗi', 'Không thể xuất sơ đồ.');
       return;
     }
     try {
-      await saveAndShareText(svg, 'mindmap.svg', 'image/svg+xml');
+      await saveAndShareDataUrl(dataUrl, 'mindmap.png', 'image/png');
     } catch (err) {
       console.error('Lưu sơ đồ thất bại:', err);
       Alert.alert('Lỗi', 'Không thể lưu sơ đồ.');
@@ -131,14 +131,14 @@ function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
           setDirection(d);
         }}
         onCopyCode={handleCopyCode}
-        onDownload={() => mindmapRef.current?.requestSvg()}
+        onDownload={() => mindmapRef.current?.requestImage()}
         downloadDisabled={!ready}
       />
       <MindmapView
         ref={mindmapRef}
         mermaidCode={mermaidCode}
         direction={direction}
-        onSvgExtracted={handleSvgExtracted}
+        onImageExtracted={handleImageExtracted}
         onReady={() => setReady(true)}
       />
     </View>

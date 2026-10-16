@@ -42,25 +42,46 @@ export function buildMermaidHtml(mermaidCode: string, direction?: MermaidDirecti
         <script>
           mermaid.initialize({ startOnLoad: true, theme: 'default' });
 
-          /* Lấy SVG đã vẽ xong, chèn style inline tối giản (bản rút gọn của web's
-             handleDownloadSVG) để xuất ra file xem độc lập vẫn đúng màu/nét, không bị mất style
-             khi mở ngoài WebView/trình duyệt. */
-          window.__getMindmapSvg = function () {
-            var svg = document.querySelector('#graph svg');
-            if (!svg) return null;
-            var clone = svg.cloneNode(true);
-            clone.removeAttribute('style');
-            var styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-            styleEl.textContent = '* { font-family: sans-serif; } text { fill: #000000; } ' +
-              '.node rect, .node circle, .node ellipse, .node polygon, .node path { fill: #ffffff; stroke: #52525b; stroke-width: 1px; } ' +
-              '.edgePath .path { stroke: #a1a1aa; stroke-width: 1.5px; } marker path { fill: #a1a1aa; stroke: none; }';
-            clone.insertBefore(styleEl, clone.firstChild);
-            var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('width', '100%');
-            rect.setAttribute('height', '100%');
-            rect.setAttribute('fill', '#ffffff');
-            clone.insertBefore(rect, clone.firstChild);
-            return new XMLSerializer().serializeToString(clone);
+          /* Vẽ SVG đã render ra <canvas> rồi xuất PNG (data URL) — KHÔNG xuất .svg thẳng nữa: hầu
+             hết app chat (Zalo, Messenger...) mặc định cảnh báo "nội dung không an toàn" với mọi
+             file .svg vì định dạng này về lý thuyết có thể nhúng script, dù sơ đồ của mình không
+             hề có. PNG mở/xem trực tiếp được ở mọi nơi, không bị cảnh báo. Trả về Promise vì
+             Image.onload là bất đồng bộ. */
+          window.__getMindmapPng = function () {
+            return new Promise(function (resolve) {
+              var svg = document.querySelector('#graph svg');
+              if (!svg) { resolve(null); return; }
+              var clone = svg.cloneNode(true);
+              clone.removeAttribute('style');
+              var styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+              styleEl.textContent = '* { font-family: sans-serif; } text { fill: #000000; } ' +
+                '.node rect, .node circle, .node ellipse, .node polygon, .node path { fill: #ffffff; stroke: #52525b; stroke-width: 1px; } ' +
+                '.edgePath .path { stroke: #a1a1aa; stroke-width: 1.5px; } marker path { fill: #a1a1aa; stroke: none; }';
+              clone.insertBefore(styleEl, clone.firstChild);
+
+              var box = svg.getBBox ? svg.getBBox() : null;
+              var width = (box && box.width) || clone.clientWidth || 800;
+              var height = (box && box.height) || clone.clientHeight || 600;
+              clone.setAttribute('width', String(width));
+              clone.setAttribute('height', String(height));
+
+              var svgString = new XMLSerializer().serializeToString(clone);
+              var img = new Image();
+              img.onload = function () {
+                var scale = 2; // nét hơn khi mở trên màn hình lớn/zoom
+                var canvas = document.createElement('canvas');
+                canvas.width = width * scale;
+                canvas.height = height * scale;
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.scale(scale, scale);
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/png'));
+              };
+              img.onerror = function () { resolve(null); };
+              img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+            });
           };
 
           function notifyReady() {
@@ -83,12 +104,13 @@ export function buildMermaidHtml(mermaidCode: string, direction?: MermaidDirecti
           });
           observer.observe(document.getElementById('graph'), { childList: true, subtree: true });
 
-          // Chỉ dùng cho bản web (iframe) — native (WebView) gọi window.__getMindmapSvg() trực
+          // Chỉ dùng cho bản web (iframe) — native (WebView) gọi window.__getMindmapPng() trực
           // tiếp qua injectJavaScript, không cần roundtrip qua 'message'.
           window.addEventListener('message', function (e) {
-            if (e.data === 'mm-get-svg') {
-              var svg = window.__getMindmapSvg();
-              if (window.parent) window.parent.postMessage({ type: 'mm-svg', svg: svg }, '*');
+            if (e.data === 'mm-get-image') {
+              window.__getMindmapPng().then(function (dataUrl) {
+                if (window.parent) window.parent.postMessage({ type: 'mm-image', dataUrl: dataUrl }, '*');
+              });
             }
           });
         </script>

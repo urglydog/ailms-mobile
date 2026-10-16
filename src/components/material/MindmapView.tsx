@@ -4,44 +4,51 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { buildMermaidHtml, type MermaidDirection } from './mermaidHtml';
 
 export interface MindmapViewHandle {
-  requestSvg: () => void;
+  /** Yêu cầu WebView xuất sơ đồ thành ảnh PNG (data URL) — kết quả trả qua `onImageExtracted`. */
+  requestImage: () => void;
 }
 
 interface MindmapViewProps {
   mermaidCode: string;
   direction?: MermaidDirection | null;
-  onSvgExtracted?: (svg: string | null) => void;
+  onImageExtracted?: (dataUrl: string | null) => void;
   onReady?: () => void;
 }
 
 /** Bản native (iOS/Android thật, Expo Go) — web dùng `MindmapView.web.tsx` thay thế. */
 export const MindmapView = forwardRef<MindmapViewHandle, MindmapViewProps>(function MindmapView(
-  { mermaidCode, direction, onSvgExtracted, onReady },
+  { mermaidCode, direction, onImageExtracted, onReady },
   ref,
 ) {
   const webviewRef = useRef<WebView>(null);
   const html = useMemo(() => buildMermaidHtml(mermaidCode, direction ?? undefined), [mermaidCode, direction]);
 
   useImperativeHandle(ref, () => ({
-    requestSvg: () => {
-      webviewRef.current?.injectJavaScript(
-        "window.ReactNativeWebView.postMessage(window.__getMindmapSvg ? (window.__getMindmapSvg()||'') : ''); true;",
-      );
+    requestImage: () => {
+      webviewRef.current?.injectJavaScript(`
+        (window.__getMindmapPng ? window.__getMindmapPng() : Promise.resolve(null))
+          .then(function (dataUrl) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mm-image', dataUrl: dataUrl }));
+          })
+          .catch(function () {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mm-image', dataUrl: null }));
+          });
+        true;
+      `);
     },
   }));
 
   const handleMessage = (event: WebViewMessageEvent) => {
-    const data = event.nativeEvent.data;
     try {
-      const parsed = JSON.parse(data);
+      const parsed = JSON.parse(event.nativeEvent.data);
       if (parsed?.type === 'mm-ready') {
         onReady?.();
-        return;
+      } else if (parsed?.type === 'mm-image') {
+        onImageExtracted?.(parsed.dataUrl ?? null);
       }
     } catch {
-      // Không phải JSON -> là chuỗi SVG thô trả về từ requestSvg().
+      // Message không phải JSON hợp lệ — bỏ qua.
     }
-    onSvgExtracted?.(data || null);
   };
 
   return (

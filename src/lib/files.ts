@@ -33,23 +33,22 @@ export async function saveAndShareBlob(blob: Blob, filename: string, mimeType: s
 }
 
 /**
- * Lưu + chia sẻ 1 chuỗi text (SVG, JSON...) — KHÔNG đi qua `Blob`/`arrayBuffer()` như
- * `saveAndShareBlob`. `Blob` polyfill của React Native (tạo tay bằng `new Blob([...])`, không
- * đến từ network response) không implement đầy đủ `.arrayBuffer()`, ném lỗi runtime (bug thật:
- * nút "Tải ảnh" của mindmap luôn báo "Không thể lưu sơ đồ"). `File.write()` nhận thẳng string
- * nên không cần Blob ở bước này.
+ * Lưu + chia sẻ 1 `data:` URL (vd `canvas.toDataURL('image/png')`) — KHÔNG đi qua
+ * `Blob`/`arrayBuffer()` như `saveAndShareBlob`. `Blob` polyfill của React Native (tạo tay bằng
+ * `new Blob([...])`, không đến từ network response) không implement đầy đủ `.arrayBuffer()`, ném
+ * lỗi runtime (bug thật: nút "Tải ảnh" của mindmap luôn báo "Không thể lưu sơ đồ"). Tách phần
+ * base64 ra khỏi data URL rồi ghi thẳng bằng `File.write(..., {encoding:'base64'})`.
  */
-export async function saveAndShareText(content: string, filename: string, mimeType: string): Promise<void> {
+export async function saveAndShareDataUrl(dataUrl: string, filename: string, mimeType: string): Promise<void> {
   if (Platform.OS === 'web') {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = dataUrl;
     a.download = filename;
     a.click();
-    URL.revokeObjectURL(url);
     return;
   }
+
+  const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
 
   const dir = new Directory(Paths.cache, 'downloads');
   if (!dir.exists) dir.create({ intermediates: true });
@@ -57,7 +56,7 @@ export async function saveAndShareText(content: string, filename: string, mimeTy
   const file = new File(dir, filename);
   if (file.exists) file.delete();
   file.create();
-  file.write(content);
+  file.write(base64, { encoding: 'base64' });
 
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(file.uri, { mimeType });

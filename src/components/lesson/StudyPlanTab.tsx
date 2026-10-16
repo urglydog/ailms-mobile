@@ -290,7 +290,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
         </View>
       )}
 
-      <Modal visible={showGenerateModal} animationType="slide" transparent onRequestClose={() => setShowGenerateModal(false)}>
+      <Modal visible={showGenerateModal} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setShowGenerateModal(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, gap: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -338,7 +338,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
         </View>
       </Modal>
 
-      <Modal visible={showRescheduleModal} animationType="slide" transparent onRequestClose={() => setShowRescheduleModal(false)}>
+      <Modal visible={showRescheduleModal} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setShowRescheduleModal(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
           <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, gap: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

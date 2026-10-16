@@ -97,7 +97,11 @@ export function DiscoveryChat() {
         <MessageCircle size={20} color="#fff" />
       </Pressable>
 
-      <Modal visible={isOpen} animationType="slide" transparent onRequestClose={() => setIsOpen(false)}>
+      {/* `presentationStyle="overFullScreen"` — bug thật (16/10/2026, user báo): mặc định
+          `transparent` Modal trên iOS không phủ hết status bar/vùng trên cùng, để lộ `TopNav`
+          thật sáng rõ phía dưới dù đã thêm backdrop mờ. `overFullScreen` ép modal che TRỌN màn
+          hình kể cả status bar, đúng cách RN khuyến nghị khắc phục trường hợp này. */}
+      <Modal visible={isOpen} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setIsOpen(false)}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1, justifyContent: 'flex-end' }}

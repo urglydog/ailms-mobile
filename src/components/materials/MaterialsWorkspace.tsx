@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Modal, Pressable, Text, View } from 'react-native';
-import { Brain, FileText, Layers, ListChecks, Plus, Timer, X } from 'lucide-react-native';
+import { ActivityIndicator, Alert, Linking, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Brain, Check, FileText, Layers, ListChecks, Plus, Timer, X } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { materialsApi, type LanguageAvailability } from '@/lib/api/materials';
@@ -276,10 +276,14 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
   });
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible transparent presentationStyle="overFullScreen" animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 16 }}>
+        {/* (16/10/2026, sửa theo phản hồi) — trước đây không giới hạn chiều cao: list ngôn ngữ dài
+            (nhiều ngôn ngữ) đẩy cả sheet cao quá màn hình, đẩy luôn nút X/tiêu đề ra NGOÀI màn
+            hình phía trên, không bấm đóng được nữa. Giới hạn `maxHeight` + list ngôn ngữ cuộn
+            riêng trong khung cố định thay vì để tự giãn theo nội dung. */}
+        <View style={{ maxHeight: '85%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Tạo học liệu AI mới</Text>
             <Pressable onPress={onClose} hitSlop={8}>
@@ -313,20 +317,21 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
             ) : languages.length === 0 ? (
               <Text style={{ color: '#94A3B8', fontSize: 12.5 }}>Khoá học chưa có ngôn ngữ nào khả dụng.</Text>
             ) : (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              <ScrollView style={{ maxHeight: 180 }} contentContainerStyle={{ gap: 6 }}>
                 {languages.map((lang) => {
                   const active = selectedLanguage === lang.code;
                   return (
                     <Pressable
                       key={lang.code}
                       onPress={() => setLanguage(lang.code)}
-                      style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: active ? '#2563EB' : '#E2E8F0', backgroundColor: active ? '#2563EB' : '#fff' }}
+                      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: active ? '#2563EB' : '#E2E8F0', backgroundColor: active ? '#EFF6FF' : '#fff' }}
                     >
-                      <Text style={{ fontSize: 12.5, fontWeight: '600', color: active ? '#fff' : '#334155' }}>{lang.label}</Text>
+                      <Text style={{ fontSize: 13.5, fontWeight: '600', color: active ? '#2563EB' : '#334155' }}>{lang.label}</Text>
+                      {active ? <Check size={16} color="#2563EB" strokeWidth={2.5} /> : null}
                     </Pressable>
                   );
                 })}
-              </View>
+              </ScrollView>
             )}
           </View>
 

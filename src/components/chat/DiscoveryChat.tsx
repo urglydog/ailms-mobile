@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { MessageCircle, Send, X } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/lib/api/client';
 import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
@@ -56,6 +57,7 @@ export function DiscoveryChat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  const insets = useSafeAreaInsets();
 
   if (EXAM_TAKING_PATH.test(pathname)) return null;
 
@@ -100,8 +102,11 @@ export function DiscoveryChat() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1, justifyContent: 'flex-end' }}
         >
-          <Pressable style={{ flex: 1 }} onPress={() => setIsOpen(false)} />
-          <View style={{ height: '75%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
+          {/* (16/10/2026, sửa theo phản hồi) — trước đây không có màu nền mờ phía sau sheet, nhìn
+              như panel chiếm toàn màn hình vì không có ranh giới trực quan giữa vùng dismiss và
+              vùng nội dung thật (dù `height: '70%'` đã đúng). */}
+          <Pressable style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)' }} onPress={() => setIsOpen(false)} />
+          <View style={{ height: '70%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
             <View style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>
                 <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>AI Course Discovery</Text>
@@ -172,7 +177,7 @@ export function DiscoveryChat() {
               )}
             />
 
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderTopWidth: 1, borderTopColor: '#E2E8F0', padding: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderTopWidth: 1, borderTopColor: '#E2E8F0', padding: 10, paddingBottom: Math.max(insets.bottom, 10) }}>
               <TextInput
                 value={input}
                 onChangeText={setInput}

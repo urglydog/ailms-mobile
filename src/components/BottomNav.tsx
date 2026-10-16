@@ -1,6 +1,7 @@
 import { router, usePathname, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { BookOpen, User, LibraryBig } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TABS = [
   { href: '/courses', label: 'Khám phá', Icon: BookOpen },
@@ -10,9 +11,10 @@ const TABS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#E2E8F0', backgroundColor: '#FFFFFF', paddingBottom: 24, paddingTop: 8 }}>
+    <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#E2E8F0', backgroundColor: '#FFFFFF', paddingBottom: Math.max(insets.bottom, 8), paddingTop: 8 }}>
       {TABS.map((tab) => {
         const active = pathname === tab.href;
         const { Icon } = tab;

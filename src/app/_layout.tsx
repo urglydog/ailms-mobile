@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { DiscoveryChat } from '@/components/chat/DiscoveryChat';
@@ -13,15 +14,17 @@ export default function RootLayout() {
   // khiến nền chuyển đen còn chữ/placeholder vẫn đen -> toàn bộ text biến mất (bug thật đã gặp
   // trên máy tối màu). Khi nào các màn hình được thiết kế màu theo theme thì mới bật lại tự động.
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider value={DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
-          </Stack>
-          <DiscoveryChat />
-        </ThemeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider value={DefaultTheme}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
+            </Stack>
+            <DiscoveryChat />
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

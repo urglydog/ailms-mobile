@@ -2,12 +2,14 @@ import { router, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { ShoppingCart, Bell } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cartApi } from '@/lib/api/cart';
 import { notificationsApi } from '@/lib/api/notifications';
 import { useAuth } from '@/lib/auth/AuthContext';
 
 export function TopNav() {
   const { isAuthenticated } = useAuth();
+  const insets = useSafeAreaInsets();
   
   const { data: cart } = useQuery({
     queryKey: ['cart'],
@@ -23,7 +25,7 @@ export function TopNav() {
   const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#FFFFFF' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#FFFFFF' }}>
       <Text style={{ fontSize: 20, fontWeight: '900', color: '#2563EB', letterSpacing: -0.5 }}>ai<Text style={{ color: '#0F172A' }}>lms.</Text></Text>
       
       {isAuthenticated && (

@@ -1,11 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native';
-import { Brain, FileText, Layers, ListChecks, Timer } from 'lucide-react-native';
+import { ActivityIndicator, Alert, Linking, Modal, Pressable, Text, View } from 'react-native';
+import { Brain, FileText, Layers, ListChecks, Plus, Timer, X } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
-import { materialsApi } from '@/lib/api/materials';
+import { materialsApi, type LanguageAvailability } from '@/lib/api/materials';
 import { courseResourcesApi } from '@/lib/api/courseResources';
 import { AssignmentsTab } from '@/components/lesson/AssignmentsTab';
 import { LockedFeatureNotice } from '@/components/lesson/LockedFeatureNotice';
@@ -98,11 +98,19 @@ export function MaterialsWorkspace({
   courseSlug: string;
 }) {
   const [activeTab, setActiveTab] = useState<'official' | 'personal'>('official');
+  const [createOpen, setCreateOpen] = useState(false);
 
   const personalQuery = useQuery({
     queryKey: ['materials', courseId, 'personal'],
     queryFn: () => materialsApi.listForCourse(courseId),
     enabled: !!courseId && enrolled,
+    // Port từ `fe`'s `useCourseMaterials` — tự poll lại khi còn item đang xử lý AI, để học liệu
+    // vừa yêu cầu tạo tự xuất hiện trong list mà không cần người dùng tự kéo-làm-mới.
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data?.some((m) => m.status === 'PENDING' || m.status === 'PROCESSING')) return 3000;
+      return false;
+    },
   });
 
   const sharedQuery = useQuery({
@@ -180,6 +188,20 @@ export function MaterialsWorkspace({
         <TabPill label="Kho Học Liệu Cá Nhân" active={activeTab === 'personal'} onPress={() => setActiveTab('personal')} />
       </View>
 
+      {activeTab === 'personal' ? (
+        <Pressable
+          onPress={() => setCreateOpen(true)}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: '#2563EB', borderRadius: 10, paddingVertical: 10, backgroundColor: '#EFF6FF' }}
+        >
+          <Plus size={16} color="#2563EB" strokeWidth={2.5} />
+          <Text style={{ color: '#2563EB', fontWeight: '700', fontSize: 13 }}>Tạo học liệu AI mới</Text>
+        </Pressable>
+      ) : null}
+
+      {createOpen ? (
+        <CreateMaterialModal courseId={courseId} onClose={() => setCreateOpen(false)} />
+      ) : null}
+
       {currentData.length === 0 ? (
         <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 24 }}>Không có dữ liệu trong mục này.</Text>
       ) : (
@@ -212,6 +234,116 @@ export function MaterialsWorkspace({
         </View>
       )}
     </View>
+  );
+}
+
+const CREATE_TYPES: { id: MaterialType; label: string; Icon: typeof Brain }[] = [
+  { id: 'MINDMAP', label: 'Sơ đồ tư duy', Icon: Brain },
+  { id: 'FLASHCARD', label: 'Flashcard', Icon: Layers },
+  { id: 'QUIZ', label: 'Câu hỏi ôn tập', Icon: ListChecks },
+];
+
+/** Port MVP từ `fe/components/materials/MaterialManager.tsx` (phần "Tạo học liệu AI mới") — chỉ
+ * hỗ trợ scope "Toàn bộ khoá học" (web có thêm chọn theo chương/bài lẻ — ngoài phạm vi lần này).
+ * Dùng chung logic polling trạng thái PENDING/PROCESSING đã có sẵn trong `MaterialsWorkspace`
+ * (list tự ẩn item chưa COMPLETED), không cần thêm UI trạng thái riêng ở đây. */
+function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [materialType, setMaterialType] = useState<MaterialType>('MINDMAP');
+  const [language, setLanguage] = useState<string | null>(null);
+
+  const languagesQuery = useQuery({
+    queryKey: ['materials', courseId, 'available-languages'],
+    queryFn: () => materialsApi.getAvailableLanguages(courseId),
+  });
+
+  const languages: LanguageAvailability[] = languagesQuery.data ?? [];
+  const selectedLanguage = language ?? languages[0]?.code ?? null;
+
+  const createMutation = useMutation({
+    mutationFn: () => {
+      if (!selectedLanguage) throw new Error('Chưa chọn ngôn ngữ.');
+      return materialsApi.requestGeneration({ courseId, materialType, language: selectedLanguage, scopeType: 'WHOLE_COURSE' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['materials', courseId, 'personal'] });
+      Alert.alert('Đã gửi yêu cầu', 'AI đang tạo học liệu — chờ vài phút rồi quay lại tab "Kho Học Liệu Cá Nhân" để xem.');
+      onClose();
+    },
+    onError: (err) => {
+      Alert.alert('Lỗi', err instanceof ApiError ? err.message : 'Không gửi được yêu cầu tạo học liệu.');
+    },
+  });
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Tạo học liệu AI mới</Text>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <X size={20} color="#64748B" />
+            </Pressable>
+          </View>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Loại học liệu</Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {CREATE_TYPES.map(({ id, label, Icon }) => {
+                const active = materialType === id;
+                return (
+                  <Pressable
+                    key={id}
+                    onPress={() => setMaterialType(id)}
+                    style={{ flex: 1, alignItems: 'center', gap: 4, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: active ? '#2563EB' : '#E2E8F0', backgroundColor: active ? '#EFF6FF' : '#fff' }}
+                  >
+                    <Icon size={18} color={active ? '#2563EB' : '#64748B'} strokeWidth={1.75} />
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: active ? '#2563EB' : '#475569' }}>{label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={{ gap: 8 }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Ngôn ngữ</Text>
+            {languagesQuery.isLoading ? (
+              <ActivityIndicator />
+            ) : languages.length === 0 ? (
+              <Text style={{ color: '#94A3B8', fontSize: 12.5 }}>Khoá học chưa có ngôn ngữ nào khả dụng.</Text>
+            ) : (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {languages.map((lang) => {
+                  const active = selectedLanguage === lang.code;
+                  return (
+                    <Pressable
+                      key={lang.code}
+                      onPress={() => setLanguage(lang.code)}
+                      style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: active ? '#2563EB' : '#E2E8F0', backgroundColor: active ? '#2563EB' : '#fff' }}
+                    >
+                      <Text style={{ fontSize: 12.5, fontWeight: '600', color: active ? '#fff' : '#334155' }}>{lang.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+
+          <Pressable
+            onPress={() => createMutation.mutate()}
+            disabled={!selectedLanguage || createMutation.isPending}
+            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: '#2563EB', opacity: !selectedLanguage || createMutation.isPending ? 0.6 : 1 }}
+          >
+            {createMutation.isPending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Tạo ngay</Text>
+            )}
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 

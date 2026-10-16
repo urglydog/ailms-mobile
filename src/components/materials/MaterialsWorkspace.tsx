@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Modal, Pressable, ScrollView, Text, View } from 'react-native';
-import { Brain, Check, FileText, Layers, ListChecks, Plus, Timer, X } from 'lucide-react-native';
+import { ActivityIndicator, Alert, Linking, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Brain, Check, ChevronDown, ChevronUp, FileText, Layers, ListChecks, Plus, Timer, X } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { materialsApi, type LanguageAvailability } from '@/lib/api/materials';
@@ -251,6 +251,8 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
   const queryClient = useQueryClient();
   const [materialType, setMaterialType] = useState<MaterialType>('MINDMAP');
   const [language, setLanguage] = useState<string | null>(null);
+  const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
+  const [languageSearch, setLanguageSearch] = useState('');
 
   const languagesQuery = useQuery({
     queryKey: ['materials', courseId, 'available-languages'],
@@ -259,6 +261,13 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
 
   const languages: LanguageAvailability[] = languagesQuery.data ?? [];
   const selectedLanguage = language ?? languages[0]?.code ?? null;
+  const selectedLanguageLabel = languages.find((l) => l.code === selectedLanguage)?.label ?? null;
+
+  // Gõ tìm tương đối — bỏ dấu tiếng Việt để "tieng" vẫn khớp được "Tiếng Việt".
+  const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const filteredLanguages = languageSearch.trim()
+    ? languages.filter((lang) => normalize(lang.label).includes(normalize(languageSearch)))
+    : languages;
 
   const createMutation = useMutation({
     mutationFn: () => {
@@ -317,21 +326,50 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
             ) : languages.length === 0 ? (
               <Text style={{ color: '#94A3B8', fontSize: 12.5 }}>Khoá học chưa có ngôn ngữ nào khả dụng.</Text>
             ) : (
-              <ScrollView style={{ maxHeight: 180 }} contentContainerStyle={{ gap: 6 }}>
-                {languages.map((lang) => {
-                  const active = selectedLanguage === lang.code;
-                  return (
-                    <Pressable
-                      key={lang.code}
-                      onPress={() => setLanguage(lang.code)}
-                      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: active ? '#2563EB' : '#E2E8F0', backgroundColor: active ? '#EFF6FF' : '#fff' }}
-                    >
-                      <Text style={{ fontSize: 13.5, fontWeight: '600', color: active ? '#2563EB' : '#334155' }}>{lang.label}</Text>
-                      {active ? <Check size={16} color="#2563EB" strokeWidth={2.5} /> : null}
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
+              <View>
+                <Pressable
+                  onPress={() => setLanguagePickerOpen((o) => !o)}
+                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: languagePickerOpen ? '#2563EB' : '#E2E8F0', backgroundColor: '#fff' }}
+                >
+                  <Text style={{ fontSize: 13.5, fontWeight: '600', color: '#334155' }}>{selectedLanguageLabel ?? 'Chọn ngôn ngữ'}</Text>
+                  {languagePickerOpen ? <ChevronUp size={16} color="#64748B" /> : <ChevronDown size={16} color="#64748B" />}
+                </Pressable>
+
+                {languagePickerOpen ? (
+                  <View style={{ marginTop: 6, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 8, gap: 8 }}>
+                    <TextInput
+                      value={languageSearch}
+                      onChangeText={setLanguageSearch}
+                      placeholder="Gõ để tìm ngôn ngữ..."
+                      autoCapitalize="none"
+                      style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13 }}
+                    />
+                    <ScrollView style={{ maxHeight: 160 }} contentContainerStyle={{ gap: 4 }} keyboardShouldPersistTaps="handled">
+                      {filteredLanguages.length === 0 ? (
+                        <Text style={{ color: '#94A3B8', fontSize: 12.5, textAlign: 'center', paddingVertical: 8 }}>Không tìm thấy ngôn ngữ phù hợp.</Text>
+                      ) : (
+                        filteredLanguages.map((lang) => {
+                          const active = selectedLanguage === lang.code;
+                          return (
+                            <Pressable
+                              key={lang.code}
+                              onPress={() => {
+                                setLanguage(lang.code);
+                                setLanguagePickerOpen(false);
+                                setLanguageSearch('');
+                              }}
+                              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 9, borderRadius: 6, backgroundColor: active ? '#EFF6FF' : 'transparent' }}
+                            >
+                              <Text style={{ fontSize: 13.5, fontWeight: '600', color: active ? '#2563EB' : '#334155' }}>{lang.label}</Text>
+                              {active ? <Check size={16} color="#2563EB" strokeWidth={2.5} /> : null}
+                            </Pressable>
+                          );
+                        })
+                      )}
+                    </ScrollView>
+                  </View>
+                ) : null}
+              </View>
             )}
           </View>
 

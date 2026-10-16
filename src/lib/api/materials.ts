@@ -40,10 +40,4 @@ export const materialsApi = {
   getAvailableLanguages(courseId: number): Promise<LanguageAvailability[]> {
     return api.get<LanguageAvailability[]>(`/api/v1/materials/available-languages?courseId=${courseId}`);
   },
-
-  /** Port từ `fe/lib/api/materials.ts` `updateMaterial` — dùng để sửa code Mermaid thô (mobile
-   * trước đây mindmap chỉ xem được, không sửa được như web `MermaidCodeEditor.tsx`). */
-  updateMaterial(id: number, data: { title?: string; mermaidCode?: string }): Promise<void> {
-    return api.patch(`/api/v1/materials/${id}`, data);
-  },
 };

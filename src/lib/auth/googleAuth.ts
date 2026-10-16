@@ -46,8 +46,11 @@ export async function signInWithGoogle(): Promise<TokenResponse> {
     throw new Error('Đăng nhập Google đã bị huỷ.');
   }
 
-  const queryIndex = result.url.indexOf('?');
-  const query = new URLSearchParams(queryIndex >= 0 ? result.url.slice(queryIndex + 1) : '');
+  // Expo Go có thể trả về deep link kèm '#' rỗng ở cuối (vd `...&code=<uuid>#`) — cắt bỏ phần
+  // fragment trước khi tách query, nếu không `URLSearchParams` sẽ đọc luôn '#' vào giá trị `code`.
+  const urlWithoutFragment = result.url.split('#')[0];
+  const queryIndex = urlWithoutFragment.indexOf('?');
+  const query = new URLSearchParams(queryIndex >= 0 ? urlWithoutFragment.slice(queryIndex + 1) : '');
   const exchangeCode = query.get('code');
   if (!exchangeCode) {
     throw new Error('Không nhận được mã xác thực từ máy chủ sau khi đăng nhập Google.');

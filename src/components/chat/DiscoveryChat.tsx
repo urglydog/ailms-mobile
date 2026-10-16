@@ -104,12 +104,17 @@ export function DiscoveryChat() {
       <Modal visible={isOpen} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setIsOpen(false)}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1, justifyContent: 'flex-end' }}
+          // (16/10/2026, sửa theo phản hồi) — trước đây không có màu nền mờ phía sau sheet, nhìn
+          // như panel chiếm toàn màn hình vì không có ranh giới trực quan giữa vùng dismiss và
+          // vùng nội dung thật. Đặt màu mờ ở ĐÂY (container cha) thay vì chỉ ở `Pressable` bên
+          // dưới — sheet có `borderTopLeftRadius/borderTopRightRadius` nên 2 góc trên bị "khuyết"
+          // một tam giác nhỏ ngoài phần bo tròn; nếu Pressable (dừng đúng mép trên sheet) là nơi
+          // DUY NHẤT tô màu mờ thì đúng 2 tam giác khuyết đó sẽ hở ra nền thật phía sau (bug thật
+          // 16/10/2026, user báo "sót 2 góc"). Đặt màu mờ ở container cha thì sheet (vẽ đè lên
+          // sau) vẫn che đúng phần bo tròn, còn 2 góc khuyết lộ ra màu mờ của cha thay vì nền thật.
+          style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15,23,42,0.5)' }}
         >
-          {/* (16/10/2026, sửa theo phản hồi) — trước đây không có màu nền mờ phía sau sheet, nhìn
-              như panel chiếm toàn màn hình vì không có ranh giới trực quan giữa vùng dismiss và
-              vùng nội dung thật (dù `height: '70%'` đã đúng). */}
-          <Pressable style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)' }} onPress={() => setIsOpen(false)} />
+          <Pressable style={{ flex: 1 }} onPress={() => setIsOpen(false)} />
           <View style={{ height: '70%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
             <View style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>

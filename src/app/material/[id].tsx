@@ -71,7 +71,7 @@ export default function MaterialDetailScreen() {
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerShown: true, title: material.title || 'Học liệu', headerLeft: () => <BackButton /> }} />
       {material.materialType === 'MINDMAP' && material.mermaidCode ? (
-        <MindmapSection mermaidCode={material.mermaidCode} isOfficial={!!material.isOfficial} />
+        <MindmapSection mermaidCode={material.mermaidCode} />
       ) : null}
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
         <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} language={material.language} isOfficial={!!material.isOfficial} />
@@ -95,7 +95,7 @@ export default function MaterialDetailScreen() {
 /** Bọc toolbar (xoay hướng/copy code/tải SVG) quanh `MindmapView` — port từ
  * `fe/components/materials/MermaidViewer.tsx`. `direction`/`ready` sống ở đây (không trong
  * `MindmapView`) vì `mermaidCode` cần sẵn cho nút Copy Code. */
-function MindmapSection({ mermaidCode, isOfficial }: { mermaidCode: string; isOfficial: boolean }) {
+function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
   const [direction, setDirection] = useState<MermaidDirection | null>(null);
   const [ready, setReady] = useState(false);
   const mindmapRef = useRef<MindmapViewHandle>(null);
@@ -133,7 +133,6 @@ function MindmapSection({ mermaidCode, isOfficial }: { mermaidCode: string; isOf
         onCopyCode={handleCopyCode}
         onDownload={() => mindmapRef.current?.requestImage()}
         downloadDisabled={!ready}
-        readOnly={isOfficial}
       />
       <MindmapView
         ref={mindmapRef}

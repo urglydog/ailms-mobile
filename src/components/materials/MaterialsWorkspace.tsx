@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Brain, Check, ChevronDown, ChevronUp, FileText, Layers, ListChecks, Plus, Timer, X } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
@@ -286,7 +286,14 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
 
   return (
     <Modal visible transparent presentationStyle="overFullScreen" animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
+      {/* (16/10/2026, sửa theo phản hồi) — thiếu `KeyboardAvoidingView` nên bàn phím (khi gõ tìm
+          ngôn ngữ) đè thẳng lên ô nhập, không đẩy sheet lên được. Bọc ở ĐÂY (ngoài cùng, không
+          phải riêng ô input) để cả sheet trượt lên theo bàn phím, giữ `justifyContent:'flex-end'`
+          nên sheet vẫn áp sát đáy phần còn lại phía trên bàn phím. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}
+      >
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         {/* (16/10/2026, sửa theo phản hồi) — trước đây không giới hạn chiều cao: list ngôn ngữ dài
             (nhiều ngôn ngữ) đẩy cả sheet cao quá màn hình, đẩy luôn nút X/tiêu đề ra NGOÀI màn
@@ -342,6 +349,8 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
                       onChangeText={setLanguageSearch}
                       placeholder="Gõ để tìm ngôn ngữ..."
                       autoCapitalize="none"
+                      returnKeyType="done"
+                      onSubmitEditing={() => Keyboard.dismiss()}
                       style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13 }}
                     />
                     <ScrollView style={{ maxHeight: 160 }} contentContainerStyle={{ gap: 4 }} keyboardShouldPersistTaps="handled">
@@ -385,7 +394,7 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
             )}
           </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

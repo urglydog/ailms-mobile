@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ListChecks, Volume2 } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
+import * as Clipboard from 'expo-clipboard';
 import type { Href } from 'expo-router';
 
 import { ApiError } from '@/lib/api/client';
@@ -11,7 +12,10 @@ import { flashcardsApi } from '@/lib/api/flashcards';
 import { materialsApi } from '@/lib/api/materials';
 import { flashcardDb } from '@/lib/db/flashcardDb';
 import { syncService } from '@/lib/db/syncService';
-import { MindmapView } from '@/components/material/MindmapView';
+import { saveAndShareBlob } from '@/lib/files';
+import { MindmapView, type MindmapViewHandle } from '@/components/material/MindmapView';
+import { MindmapToolbar } from '@/components/material/MindmapToolbar';
+import type { MermaidDirection } from '@/components/material/mermaidHtml';
 import { QuizPersonalEditor } from '@/components/material/QuizPersonalEditor';
 import { ExplainWrongAnswer } from '@/components/quiz/ExplainWrongAnswer';
 import { BackButton } from '@/components/BackButton';
@@ -67,7 +71,7 @@ export default function MaterialDetailScreen() {
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerShown: true, title: material.title || 'Học liệu', headerLeft: () => <BackButton /> }} />
       {material.materialType === 'MINDMAP' && material.mermaidCode ? (
-        <MindmapView mermaidCode={material.mermaidCode} />
+        <MindmapSection mermaidCode={material.mermaidCode} />
       ) : null}
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
         <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} language={material.language} />
@@ -84,6 +88,59 @@ export default function MaterialDetailScreen() {
           />
         ) : null
       ) : null}
+    </View>
+  );
+}
+
+/** Bọc toolbar (xoay hướng/copy code/tải SVG) quanh `MindmapView` — port từ
+ * `fe/components/materials/MermaidViewer.tsx`. `direction`/`ready` sống ở đây (không trong
+ * `MindmapView`) vì `mermaidCode` cần sẵn cho nút Copy Code. */
+function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
+  const [direction, setDirection] = useState<MermaidDirection | null>(null);
+  const [ready, setReady] = useState(false);
+  const mindmapRef = useRef<MindmapViewHandle>(null);
+
+  const handleCopyCode = async () => {
+    try {
+      await Clipboard.setStringAsync(mermaidCode);
+      Alert.alert('Đã sao chép', 'Mã Mermaid đã được sao chép.');
+    } catch {
+      Alert.alert('Lỗi', 'Không sao chép được mã.');
+    }
+  };
+
+  const handleSvgExtracted = async (svg: string | null) => {
+    if (!svg) {
+      Alert.alert('Lỗi', 'Không thể xuất sơ đồ.');
+      return;
+    }
+    try {
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      await saveAndShareBlob(blob, 'mindmap.svg', 'image/svg+xml');
+    } catch {
+      Alert.alert('Lỗi', 'Không thể lưu sơ đồ.');
+    }
+  };
+
+  return (
+    <View style={{ flex: 1 }}>
+      <MindmapToolbar
+        direction={direction}
+        onDirectionChange={(d) => {
+          setReady(false);
+          setDirection(d);
+        }}
+        onCopyCode={handleCopyCode}
+        onDownload={() => mindmapRef.current?.requestSvg()}
+        downloadDisabled={!ready}
+      />
+      <MindmapView
+        ref={mindmapRef}
+        mermaidCode={mermaidCode}
+        direction={direction}
+        onSvgExtracted={handleSvgExtracted}
+        onReady={() => setReady(true)}
+      />
     </View>
   );
 }

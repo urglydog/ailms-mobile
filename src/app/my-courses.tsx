@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, View, Dimensions } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
@@ -60,10 +60,10 @@ export default function MyCoursesScreen() {
   );
 }
 
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 32 - 12) / 2;
-
 function EnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
+  const { width } = useWindowDimensions();
+  const cardWidth = (width - 32 - 12) / 2;
+
   return (
     <Pressable
       onPress={() => {

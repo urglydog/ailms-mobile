@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, Dimensions, ScrollView } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, useWindowDimensions, ScrollView } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
@@ -99,10 +99,10 @@ export default function CoursesScreen() {
   );
 }
 
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 32 - 12) / 2;
-
 function CourseCard({ course }: { course: CourseSummary }) {
+  const { width } = useWindowDimensions();
+  const cardWidth = (width - 32 - 12) / 2;
+
   return (
     <Pressable
       onPress={() => router.push(`/courses/${course.slug}` as Href)}

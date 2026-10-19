@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { Radio, Calendar } from 'lucide-react-native';
 
 import { liveViewApi } from '@/lib/api/liveView';
+import { COLORS } from '@/lib/theme/colors';
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -38,14 +39,14 @@ export function LiveBanner({ courseId }: { courseId: number }) {
         padding: 14,
       }}
     >
-      {liveNow ? <Radio size={18} color="#DC2626" /> : <Calendar size={18} color="#64748B" />}
+      {liveNow ? <Radio size={18} color={COLORS.danger} /> : <Calendar size={18} color={COLORS.inkFaint} />}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontWeight: '700', fontSize: 13, color: '#0F172A' }}>
+        <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }}>
           {liveNow ? 'Đang live: ' : 'Sắp live: '}
           {session.title}
         </Text>
         {!liveNow && session.scheduledAt ? (
-          <Text style={{ fontSize: 11.5, color: '#64748B' }}>Dự kiến {formatDateTime(session.scheduledAt)} — xem trên web</Text>
+          <Text style={{ fontSize: 11.5, color: COLORS.inkFaint }}>Dự kiến {formatDateTime(session.scheduledAt)} — xem trên web</Text>
         ) : null}
       </View>
     </View>

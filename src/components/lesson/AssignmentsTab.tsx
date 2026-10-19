@@ -9,6 +9,7 @@ import { ApiError } from '@/lib/api/client';
 import { assignmentApi } from '@/lib/api/communication';
 import { LockedFeatureNotice } from '@/components/lesson/LockedFeatureNotice';
 import type { StudentAssignmentItem } from '@/types/lessonPlayer';
+import { COLORS } from '@/lib/theme/colors';
 
 /** Port từ `fe/components/course/LessonAssignmentsList.tsx` — web đặt khối này NGAY TRONG tab
  * "Học liệu" (cùng `MaterialManager`), không có tab riêng nào (08/10/2026, sửa lại sau khi
@@ -38,7 +39,7 @@ export function AssignmentsTab({ lessonId, enrolled, courseSlug }: { lessonId: n
   if (!assignments || assignments.length === 0) {
     return (
       <View style={{ padding: 24, alignItems: 'center' }}>
-        <Text style={{ color: '#64748B', fontSize: 13, textAlign: 'center' }}>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 13, textAlign: 'center' }}>
           Bài học này không có bài tập tự luận/nộp file nào.
         </Text>
       </View>
@@ -81,41 +82,41 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
   const isGraded = mySubmission?.score != null;
 
   return (
-    <View style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, padding: 14, gap: 8 }}>
+    <View style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 14, gap: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
-        <Text style={{ fontWeight: '700', fontSize: 13.5, color: '#0F172A', flex: 1 }}>{assignment.title}</Text>
+        <Text style={{ fontWeight: '700', fontSize: 13.5, color: COLORS.ink, flex: 1 }}>{assignment.title}</Text>
         {assignment.maxScore != null ? (
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB', backgroundColor: '#EFF6FF', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.accent, backgroundColor: COLORS.tint, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
             Tối đa {assignment.maxScore} điểm
           </Text>
         ) : null}
       </View>
 
       {assignment.dueDate ? (
-        <Text style={{ fontSize: 11.5, color: '#64748B' }}>Hạn nộp: {new Date(assignment.dueDate).toLocaleDateString('vi-VN')}</Text>
+        <Text style={{ fontSize: 11.5, color: COLORS.inkFaint }}>Hạn nộp: {new Date(assignment.dueDate).toLocaleDateString('vi-VN')}</Text>
       ) : null}
-      {assignment.instructions ? <Text style={{ fontSize: 12.5, color: '#64748B' }}>{assignment.instructions}</Text> : null}
+      {assignment.instructions ? <Text style={{ fontSize: 12.5, color: COLORS.inkFaint }}>{assignment.instructions}</Text> : null}
 
       {mySubmission ? (
-        <View style={{ backgroundColor: '#F8FAFC', borderRadius: 8, padding: 10, gap: 4 }}>
-          <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>
+        <View style={{ backgroundColor: COLORS.surface, borderRadius: 8, padding: 10, gap: 4 }}>
+          <Text style={{ fontSize: 10.5, fontWeight: '700', color: COLORS.lineDot, textTransform: 'uppercase' }}>
             Bài đã nộp · {new Date(mySubmission.submittedAt).toLocaleString('vi-VN')}
           </Text>
-          {mySubmission.textContent ? <Text style={{ fontSize: 12.5, color: '#0F172A' }}>{mySubmission.textContent}</Text> : null}
+          {mySubmission.textContent ? <Text style={{ fontSize: 12.5, color: COLORS.ink }}>{mySubmission.textContent}</Text> : null}
           {mySubmission.fileUrl ? (
             <Pressable onPress={() => Linking.openURL(mySubmission.fileUrl!)}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#2563EB' }}>📎 {mySubmission.fileName ?? 'Tệp đã nộp'}</Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.accent }}>📎 {mySubmission.fileName ?? 'Tệp đã nộp'}</Text>
             </Pressable>
           ) : null}
           {isGraded ? (
-            <View style={{ borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 6, marginTop: 2 }}>
-              <Text style={{ fontWeight: '700', fontSize: 13, color: '#16A34A' }}>
+            <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 6, marginTop: 2 }}>
+              <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.success }}>
                 Điểm: {mySubmission.score}{assignment.maxScore != null ? `/${assignment.maxScore}` : ''}
               </Text>
-              {mySubmission.feedback ? <Text style={{ fontSize: 12, color: '#64748B' }}>{mySubmission.feedback}</Text> : null}
+              {mySubmission.feedback ? <Text style={{ fontSize: 12, color: COLORS.inkFaint }}>{mySubmission.feedback}</Text> : null}
             </View>
           ) : (
-            <Text style={{ fontSize: 11.5, color: '#64748B' }}>Đang chờ giảng viên chấm điểm.</Text>
+            <Text style={{ fontSize: 11.5, color: COLORS.inkFaint }}>Đang chờ giảng viên chấm điểm.</Text>
           )}
         </View>
       ) : (
@@ -126,14 +127,14 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
             multiline
             numberOfLines={3}
             placeholder="Nhập nội dung bài làm..."
-            style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10, fontSize: 13, minHeight: 60, textAlignVertical: 'top' }}
+            style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 60, textAlignVertical: 'top' }}
           />
           <Pressable onPress={handlePickFile} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
-            <Paperclip size={14} color="#64748B" />
-            <Text style={{ fontSize: 12, color: '#64748B' }}>{file ? file.name : 'Đính kèm tệp (tuỳ chọn)'}</Text>
+            <Paperclip size={14} color={COLORS.inkFaint} />
+            <Text style={{ fontSize: 12, color: COLORS.inkFaint }}>{file ? file.name : 'Đính kèm tệp (tuỳ chọn)'}</Text>
           </Pressable>
           {submit.error ? (
-            <Text style={{ color: '#DC2626', fontSize: 12 }}>
+            <Text style={{ color: COLORS.danger, fontSize: 12 }}>
               {submit.error instanceof ApiError ? submit.error.message : 'Nộp bài thất bại, vui lòng thử lại.'}
             </Text>
           ) : null}
@@ -142,7 +143,7 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
             onPress={() => submit.mutate()}
             style={{
               alignSelf: 'flex-start',
-              backgroundColor: '#2563EB',
+              backgroundColor: COLORS.accent,
               borderRadius: 8,
               paddingVertical: 9,
               paddingHorizontal: 18,

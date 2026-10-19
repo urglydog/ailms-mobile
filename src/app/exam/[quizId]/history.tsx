@@ -6,6 +6,7 @@ import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
 import { BackButton } from '@/components/BackButton';
 import type { QuizAttemptHistoryItem } from '@/types/quiz';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function ExamHistoryScreen() {
   const { quizId } = useLocalSearchParams<{ quizId: string }>();
@@ -28,12 +29,12 @@ export default function ExamHistoryScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text>{error instanceof ApiError ? error.message : 'Không tải được lịch sử.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Text style={{ color: '#64748B' }}>Chưa có lượt làm bài nào.</Text>
+          <Text style={{ color: COLORS.inkFaint }}>Chưa có lượt làm bài nào.</Text>
         </View>
       ) : (
         <FlatList
@@ -51,16 +52,16 @@ function HistoryRow({ item }: { item: QuizAttemptHistoryItem }) {
   return (
     <Pressable
       onPress={() => item.allowReview && router.push(`/exam/attempt/${item.id}` as Href)}
-      style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+      style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
     >
       <View>
         <Text style={{ fontWeight: '600' }}>{new Date(item.submittedAt).toLocaleString('vi-VN')}</Text>
-        <Text style={{ color: '#94A3B8', fontSize: 12 }}>
+        <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>
           {item.correctCount}/{item.totalQuestions} câu đúng
           {item.isArchived ? ' · Đã lưu trữ' : ''}
         </Text>
       </View>
-      <Text style={{ fontSize: 18, fontWeight: '700', color: '#2563EB' }}>{item.score.toFixed(1)}</Text>
+      <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.accent }}>{item.score.toFixed(1)}</Text>
     </Pressable>
   );
 }

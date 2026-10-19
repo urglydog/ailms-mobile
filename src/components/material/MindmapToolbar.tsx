@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Copy, Download } from 'lucide-react-native';
 
 import type { MermaidDirection } from './mermaidHtml';
+import { COLORS } from '@/lib/theme/colors';
 
 const DIRECTIONS = [
   { id: 'TB' as const, label: 'Trên-Dưới', Icon: ArrowDown },
@@ -25,8 +26,8 @@ interface MindmapToolbarProps {
  * trước đó: `MermaidCodeEditor.tsx` chỉ dùng ở `CourseMaterialsManager.tsx` phía giảng viên). */
 export function MindmapToolbar({ direction, onDirectionChange, onCopyCode, onDownload, downloadDisabled }: MindmapToolbarProps) {
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 8, backgroundColor: '#F8FAFC', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
-      <View style={{ flexDirection: 'row', gap: 4, backgroundColor: '#fff', padding: 4, borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0' }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 8, backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+      <View style={{ flexDirection: 'row', gap: 4, backgroundColor: '#fff', padding: 4, borderRadius: 10, borderWidth: 1, borderColor: COLORS.lineSoft }}>
         {DIRECTIONS.map(({ id, label, Icon }) => {
           const active = direction === id;
           return (
@@ -34,10 +35,10 @@ export function MindmapToolbar({ direction, onDirectionChange, onCopyCode, onDow
               key={id}
               onPress={() => onDirectionChange(id)}
               hitSlop={6}
-              style={{ padding: 8, borderRadius: 8, backgroundColor: active ? '#2563EB' : 'transparent' }}
+              style={{ padding: 8, borderRadius: 8, backgroundColor: active ? COLORS.accent : 'transparent' }}
               accessibilityLabel={`Xoay sơ đồ hướng ${label}`}
             >
-              <Icon size={16} color={active ? '#fff' : '#64748B'} strokeWidth={2} />
+              <Icon size={16} color={active ? '#fff' : COLORS.inkFaint} strokeWidth={2} />
             </Pressable>
           );
         })}
@@ -46,18 +47,18 @@ export function MindmapToolbar({ direction, onDirectionChange, onCopyCode, onDow
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <Pressable
           onPress={onCopyCode}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.lineSoft }}
         >
-          <Copy size={14} color="#64748B" strokeWidth={2} />
-          <Text style={{ fontSize: 12, fontWeight: '600', color: '#334155' }}>Copy</Text>
+          <Copy size={14} color={COLORS.inkFaint} strokeWidth={2} />
+          <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.ink }}>Copy</Text>
         </Pressable>
         <Pressable
           onPress={onDownload}
           disabled={downloadDisabled}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0', opacity: downloadDisabled ? 0.5 : 1 }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.lineSoft, opacity: downloadDisabled ? 0.5 : 1 }}
         >
-          <Download size={14} color="#64748B" strokeWidth={2} />
-          <Text style={{ fontSize: 12, fontWeight: '600', color: '#334155' }}>Tải về</Text>
+          <Download size={14} color={COLORS.inkFaint} strokeWidth={2} />
+          <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.ink }}>Tải về</Text>
         </Pressable>
       </View>
     </View>

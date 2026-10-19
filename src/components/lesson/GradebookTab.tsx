@@ -8,6 +8,7 @@ import { gradebookApi } from '@/lib/api/quizzes';
 import type { QuizGrade } from '@/types/quiz';
 
 import { KnowledgeGapsWidget } from '@/components/gradebook/KnowledgeGapsWidget';
+import { COLORS } from '@/lib/theme/colors';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -46,15 +47,15 @@ export function GradebookTab({ courseId }: { courseId: number }) {
   }
 
   if (error || !data) {
-    return <Text style={{ padding: 16, color: '#DC2626' }}>Không tải được bảng điểm.</Text>;
+    return <Text style={{ padding: 16, color: COLORS.danger }}>Không tải được bảng điểm.</Text>;
   }
 
   if (data.quizzes.length === 0) {
     return (
       <View style={{ padding: 24, alignItems: 'center', gap: 8 }}>
-        <Trophy size={36} color="#94A3B8" strokeWidth={1.5} />
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Chưa có dữ liệu bảng điểm</Text>
-        <Text style={{ color: '#64748B', fontSize: 12.5, textAlign: 'center' }}>
+        <Trophy size={36} color={COLORS.lineDot} strokeWidth={1.5} />
+        <Text style={{ fontWeight: '700', color: COLORS.ink }}>Chưa có dữ liệu bảng điểm</Text>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 12.5, textAlign: 'center' }}>
           Hãy học và làm bài để xem kết quả tại đây nhé!
         </Text>
       </View>
@@ -72,11 +73,11 @@ export function GradebookTab({ courseId }: { courseId: number }) {
         {totalPages > 1 ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 4 }}>
             <Pressable onPress={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ opacity: page === 1 ? 0.3 : 1 }}>
-              <ChevronLeft size={22} color="#2563EB" />
+              <ChevronLeft size={22} color={COLORS.accent} />
             </Pressable>
-            <Text style={{ fontSize: 12.5, color: '#64748B' }}>Trang {page}/{totalPages}</Text>
+            <Text style={{ fontSize: 12.5, color: COLORS.inkFaint }}>Trang {page}/{totalPages}</Text>
             <Pressable onPress={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ opacity: page === totalPages ? 0.3 : 1 }}>
-              <ChevronRight size={22} color="#2563EB" />
+              <ChevronRight size={22} color={COLORS.accent} />
             </Pressable>
           </View>
         ) : null}
@@ -89,23 +90,23 @@ function QuizGradeRow({ quiz }: { quiz: QuizGrade }) {
   return (
     <Pressable
       onPress={() => router.push(`/exam/${quiz.quizId}/history` as Href)}
-      style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, padding: 12, gap: 4 }}
+      style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 12, gap: 4 }}
     >
-      <Text style={{ fontWeight: '700', fontSize: 13.5, color: '#0F172A' }}>{quiz.quizTitle}</Text>
-      <Text style={{ fontSize: 12, color: '#64748B' }}>{quiz.location}</Text>
+      <Text style={{ fontWeight: '700', fontSize: 13.5, color: COLORS.ink }}>{quiz.quizTitle}</Text>
+      <Text style={{ fontSize: 12, color: COLORS.inkFaint }}>{quiz.location}</Text>
 
       {quiz.isDeleted ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 6, marginTop: 2, alignSelf: 'flex-start' }}>
-          <AlertTriangle size={13} color="#D97706" />
-          <Text style={{ fontSize: 11, color: '#D97706' }}>Bài tập/bài thi này đã được giảng viên lưu trữ.</Text>
+          <AlertTriangle size={13} color={COLORS.warning} />
+          <Text style={{ fontSize: 11, color: COLORS.warning }}>Bài tập/bài thi này đã được giảng viên lưu trữ.</Text>
         </View>
       ) : null}
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
-        <Text style={{ fontWeight: '800', fontSize: 16, color: quiz.highestScore >= 5 ? '#16A34A' : '#DC2626' }}>
+        <Text style={{ fontWeight: '800', fontSize: 16, color: quiz.highestScore >= 5 ? COLORS.success : COLORS.danger }}>
           {quiz.highestScore.toFixed(1)}/10
         </Text>
-        <Text style={{ fontSize: 11.5, color: '#94A3B8' }}>
+        <Text style={{ fontSize: 11.5, color: COLORS.lineDot }}>
           {quiz.isOfficial ? 'Thi chính thức' : 'Ôn tập (AI)'} · {quiz.attemptCount}/{quiz.maxAttempts ?? '∞'} lượt
         </Text>
       </View>

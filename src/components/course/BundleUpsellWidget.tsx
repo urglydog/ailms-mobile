@@ -4,6 +4,7 @@ import { Gift } from 'lucide-react-native';
 
 import { bundlesApi } from '@/lib/api/bundles';
 import type { CourseBundle } from '@/types/courseDetailExtras';
+import { COLORS } from '@/lib/theme/colors';
 
 function fmt(amount: number) {
   return amount.toLocaleString('vi-VN') + '₫';
@@ -21,8 +22,8 @@ export function BundleUpsellWidget({ courseId }: { courseId: number }) {
   if (isLoading || !bundles || bundles.length === 0) return null;
 
   return (
-    <View style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#E2E8F0', borderStyle: 'dashed', paddingTop: 14 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>
+    <View style={{ gap: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, borderStyle: 'dashed', paddingTop: 14 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.lineDot, textTransform: 'uppercase' }}>
         💡 Tiết kiệm hơn với gói combo
       </Text>
       {bundles.map((bundle) => (
@@ -44,14 +45,14 @@ function BundleCard({ bundle, currentCourseId }: { bundle: CourseBundle; current
             <Gift size={11} color="#fff" />
             <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>-{bundle.discountPercent}%</Text>
           </View>
-          <Text style={{ flex: 1, fontWeight: '700', fontSize: 13, color: '#0F172A' }}>{bundle.title}</Text>
+          <Text style={{ flex: 1, fontWeight: '700', fontSize: 13, color: COLORS.ink }}>{bundle.title}</Text>
         </View>
 
         {otherCourses.length > 0 ? (
           <View style={{ gap: 2 }}>
-            <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>Đi kèm trong gói:</Text>
+            <Text style={{ fontSize: 10.5, fontWeight: '700', color: COLORS.inkFaint, textTransform: 'uppercase' }}>Đi kèm trong gói:</Text>
             {otherCourses.map((c) => (
-              <Text key={c.id} numberOfLines={1} style={{ fontSize: 12, color: '#334155' }}>
+              <Text key={c.id} numberOfLines={1} style={{ fontSize: 12, color: COLORS.ink }}>
                 ✓ {c.title}
               </Text>
             ))}
@@ -59,11 +60,11 @@ function BundleCard({ bundle, currentCourseId }: { bundle: CourseBundle; current
         ) : null}
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, padding: 10 }}>
-          <Text style={{ fontSize: 11.5, color: '#94A3B8', textDecorationLine: 'line-through' }}>{fmt(bundle.originalPrice)}</Text>
+          <Text style={{ fontSize: 11.5, color: COLORS.lineDot, textDecorationLine: 'line-through' }}>{fmt(bundle.originalPrice)}</Text>
           <Text style={{ fontSize: 15, fontWeight: '800', color: '#0E7490' }}>{fmt(bundle.finalPrice)}</Text>
         </View>
 
-        <Text style={{ fontSize: 11, color: '#64748B', textAlign: 'center' }}>Mua gói combo này trên phiên bản web</Text>
+        <Text style={{ fontSize: 11, color: COLORS.inkFaint, textAlign: 'center' }}>Mua gói combo này trên phiên bản web</Text>
       </View>
     </View>
   );

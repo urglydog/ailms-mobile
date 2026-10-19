@@ -10,6 +10,7 @@ import { useStreak } from '@/hooks/useStreak';
 import { usersApi } from '@/lib/api/users';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { LeaderboardEntry } from '@/types/ranking';
+import { COLORS } from '@/lib/theme/colors';
 
 const LEADERBOARD_LIMIT = 30;
 
@@ -43,18 +44,18 @@ export default function CommunityScreen() {
         ListHeaderComponent={
           <View style={{ alignItems: 'center', gap: 8, paddingVertical: 24, paddingHorizontal: 16 }}>
             <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center' }}>
-              <Trophy size={28} color="#F59E0B" />
+              <Trophy size={28} color={COLORS.star} />
             </View>
-            <Text style={{ fontSize: 20, fontWeight: '700', color: '#0F172A' }}>Bảng xếp hạng cộng đồng</Text>
-            <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center' }}>
+            <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.ink }}>Bảng xếp hạng cộng đồng</Text>
+            <Text style={{ fontSize: 13, color: COLORS.inkFaint, textAlign: 'center' }}>
               Tích luỹ XP mỗi ngày học bài, làm quiz, giữ streak — thi đua cùng cả cộng đồng.
             </Text>
 
             {showMyRankCard && myRanking ? (
               <View style={{ width: '100%', borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: '#93C5FD', padding: 14, marginTop: 8, gap: 2 }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#64748B' }}>Vị trí của bạn</Text>
-                <Text style={{ fontSize: 20, fontWeight: '700', color: '#2563EB' }}>#{myRanking.rank}</Text>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: '#0F172A' }}>{myRanking.totalXp} XP</Text>
+                <Text style={{ fontSize: 11.5, fontWeight: '600', color: COLORS.inkFaint }}>Vị trí của bạn</Text>
+                <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.accent }}>#{myRanking.rank}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.ink }}>{myRanking.totalXp} XP</Text>
               </View>
             ) : null}
 
@@ -65,14 +66,14 @@ export default function CommunityScreen() {
             ) : null}
 
             {!isAuthenticated ? (
-              <View style={{ width: '100%', borderRadius: 12, backgroundColor: '#F8FAFC', padding: 16, marginTop: 8, alignItems: 'center', gap: 8 }}>
-                <Flame size={22} color="#F59E0B" />
-                <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center' }}>
+              <View style={{ width: '100%', borderRadius: 12, backgroundColor: COLORS.surface, padding: 16, marginTop: 8, alignItems: 'center', gap: 8 }}>
+                <Flame size={22} color={COLORS.star} />
+                <Text style={{ fontSize: 13, color: COLORS.inkFaint, textAlign: 'center' }}>
                   Đăng nhập để theo dõi streak và vị trí của bạn.
                 </Text>
                 <Pressable
                   onPress={() => router.push('/login' as Href)}
-                  style={{ borderRadius: 999, backgroundColor: '#2563EB', paddingHorizontal: 18, paddingVertical: 10 }}
+                  style={{ borderRadius: 999, backgroundColor: COLORS.accent, paddingHorizontal: 18, paddingVertical: 10 }}
                 >
                   <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 13 }}>Đăng nhập</Text>
                 </Pressable>
@@ -87,7 +88,7 @@ export default function CommunityScreen() {
             </View>
           ) : (
             <View style={{ padding: 40, alignItems: 'center' }}>
-              <Text style={{ color: '#64748B' }}>Chưa có ai trên bảng xếp hạng.</Text>
+              <Text style={{ color: COLORS.inkFaint }}>Chưa có ai trên bảng xếp hạng.</Text>
             </View>
           )
         }
@@ -98,10 +99,10 @@ export default function CommunityScreen() {
 }
 
 function rankStyle(rank: number): string {
-  if (rank === 1) return '#F59E0B';
-  if (rank === 2) return '#64748B';
+  if (rank === 1) return COLORS.star;
+  if (rank === 2) return COLORS.inkFaint;
   if (rank === 3) return '#EA580C';
-  return '#94A3B8';
+  return COLORS.lineDot;
 }
 
 function RankRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
@@ -115,8 +116,8 @@ function RankRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
-        backgroundColor: isMe ? '#EFF6FF' : '#FFF',
+        borderTopColor: COLORS.surface,
+        backgroundColor: isMe ? COLORS.tint : '#FFF',
       }}
     >
       <Text style={{ width: 32, textAlign: 'center', fontSize: 15, fontWeight: '700', color: rankStyle(entry.rank) }}>
@@ -125,12 +126,12 @@ function RankRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
       {entry.avatarUrl ? (
         <Image source={{ uri: entry.avatarUrl }} style={{ width: 36, height: 36, borderRadius: 18 }} />
       ) : (
-        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#CBD5E1' }} />
+        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.line }} />
       )}
-      <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: '#0F172A' }} numberOfLines={1}>
+      <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: COLORS.ink }} numberOfLines={1}>
         {entry.fullName}
       </Text>
-      <Text style={{ fontSize: 13, fontWeight: '700', color: '#F59E0B' }}>{entry.totalXp} XP</Text>
+      <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.star }}>{entry.totalXp} XP</Text>
     </Pressable>
   );
 }

@@ -1,5 +1,6 @@
 import { View, Text, Pressable } from 'react-native';
 import type { VoiceOption } from '@/types/voiceOptions';
+import { COLORS } from '@/lib/theme/colors';
 
 interface VoicePickerProps {
   voices: VoiceOption[];
@@ -22,7 +23,7 @@ export function VoicePicker({ voices, selected, onSelect }: VoicePickerProps) {
     if (group.length === 0) return null;
     return (
       <View style={{ gap: 6, marginBottom: 8 }}>
-        <Text style={{ fontSize: 11, fontWeight: '700', textTransform: 'uppercase', color: '#94A3B8' }}>{label}</Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', textTransform: 'uppercase', color: COLORS.lineDot }}>{label}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {group.map((voice) => {
             const isSelected = voice.voiceName === selected;
@@ -38,16 +39,16 @@ export function VoicePicker({ voices, selected, onSelect }: VoicePickerProps) {
                   paddingVertical: 6,
                   borderRadius: 20,
                   borderWidth: 1,
-                  borderColor: isSelected ? '#2563EB' : '#CBD5E1',
-                  backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
+                  borderColor: isSelected ? COLORS.accent : COLORS.line,
+                  backgroundColor: isSelected ? COLORS.tint : COLORS.white,
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '500', color: isSelected ? '#2563EB' : '#475569' }}>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: isSelected ? COLORS.accent : COLORS.inkMuted }}>
                   {prettyVoiceName(voice.voiceName)}
                 </Text>
                 {voice.isDefault && (
-                  <View style={{ backgroundColor: '#F1F5F9', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
-                    <Text style={{ fontSize: 10, color: '#94A3B8' }}>mặc định</Text>
+                  <View style={{ backgroundColor: COLORS.surface, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
+                    <Text style={{ fontSize: 10, color: COLORS.lineDot }}>mặc định</Text>
                   </View>
                 )}
               </Pressable>
@@ -60,7 +61,7 @@ export function VoicePicker({ voices, selected, onSelect }: VoicePickerProps) {
 
   return (
     <View style={{ gap: 12 }}>
-      <Text style={{ fontSize: 13, fontWeight: '500', color: '#0F172A' }}>Chọn giọng đọc</Text>
+      <Text style={{ fontSize: 13, fontWeight: '500', color: COLORS.ink }}>Chọn giọng đọc</Text>
       <View style={{ gap: 12 }}>
         {renderGroup('Nữ', female)}
         {renderGroup('Nam', male)}

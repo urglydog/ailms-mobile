@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/lib/api/client';
 import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
+import { COLORS } from '@/lib/theme/colors';
 
 interface DiscoveryCourseCard {
   id: number;
@@ -90,7 +91,7 @@ export function DiscoveryChat() {
           // không bị che — vẫn không có cách nào loại trừ HOÀN TOÀN đè UI trên mọi màn hình với 1
           // nút nổi cố định vị trí toàn cục, đây là đánh đổi hợp lý thay vì làm riêng từng màn.
           position: 'absolute', bottom: 90, right: 16, width: 44, height: 44, borderRadius: 22,
-          backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', opacity: 0.92,
+          backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', opacity: 0.92,
           shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 5,
         }}
       >
@@ -116,7 +117,7 @@ export function DiscoveryChat() {
         >
           <Pressable style={{ flex: 1 }} onPress={() => setIsOpen(false)} />
           <View style={{ height: '70%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
-            <View style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ backgroundColor: COLORS.accent, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>
                 <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>AI Course Discovery</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11.5, marginTop: 2 }}>Tìm kiếm khóa học bằng ngôn ngữ tự nhiên</Text>
@@ -133,14 +134,14 @@ export function DiscoveryChat() {
               contentContainerStyle={{ padding: 14, gap: 12, flexGrow: 1 }}
               onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
               ListEmptyComponent={
-                <Text style={{ textAlign: 'center', color: '#64748B', fontSize: 13, marginTop: 16 }}>
+                <Text style={{ textAlign: 'center', color: COLORS.inkFaint, fontSize: 13, marginTop: 16 }}>
                   Xin chào! Tôi là trợ lý AI. Bạn muốn tìm khóa học gì hôm nay?
                 </Text>
               }
               ListFooterComponent={
                 loading ? (
-                  <View style={{ alignSelf: 'flex-start', backgroundColor: '#F1F5F9', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 }}>
-                    <ActivityIndicator size="small" color="#2563EB" />
+                  <View style={{ alignSelf: 'flex-start', backgroundColor: COLORS.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 }}>
+                    <ActivityIndicator size="small" color={COLORS.accent} />
                   </View>
                 ) : null
               }
@@ -149,7 +150,7 @@ export function DiscoveryChat() {
                   <View
                     style={{
                       maxWidth: '85%', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 9,
-                      backgroundColor: item.role === 'user' ? '#2563EB' : '#F1F5F9',
+                      backgroundColor: item.role === 'user' ? COLORS.accent : COLORS.surface,
                     }}
                   >
                     {item.role === 'user' ? (
@@ -168,13 +169,13 @@ export function DiscoveryChat() {
                             setIsOpen(false);
                             router.push(`/courses/${c.slug}` as Href);
                           }}
-                          style={{ width: 190, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, padding: 12, gap: 6 }}
+                          style={{ width: 190, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 12, padding: 12, gap: 6 }}
                         >
-                          <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0F172A' }} numberOfLines={2}>{c.title}</Text>
-                          <Text style={{ fontSize: 11, color: '#64748B' }} numberOfLines={1}>GV. {c.instructor_name}</Text>
-                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 6, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
-                            <Text style={{ fontSize: 12.5, fontWeight: '700', color: c.is_free ? '#16A34A' : '#0F172A' }}>{c.price_label}</Text>
-                            <Text style={{ fontSize: 9.5, fontWeight: '700', color: '#64748B', backgroundColor: '#F8FAFC', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2 }}>
+                          <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.ink }} numberOfLines={2}>{c.title}</Text>
+                          <Text style={{ fontSize: 11, color: COLORS.inkFaint }} numberOfLines={1}>GV. {c.instructor_name}</Text>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 6, borderTopWidth: 1, borderTopColor: COLORS.surface }}>
+                            <Text style={{ fontSize: 12.5, fontWeight: '700', color: c.is_free ? COLORS.success : COLORS.ink }}>{c.price_label}</Text>
+                            <Text style={{ fontSize: 9.5, fontWeight: '700', color: COLORS.inkFaint, backgroundColor: COLORS.surface, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2 }}>
                               {c.level_label === 'ALL' ? 'Mọi cấp độ' : c.level_label}
                             </Text>
                           </View>
@@ -186,21 +187,21 @@ export function DiscoveryChat() {
               )}
             />
 
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderTopWidth: 1, borderTopColor: '#E2E8F0', padding: 10, paddingBottom: Math.max(insets.bottom, 10) }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, padding: 10, paddingBottom: Math.max(insets.bottom, 10) }}>
               <TextInput
                 value={input}
                 onChangeText={setInput}
                 placeholder="Ví dụ: Khoá học IT cho người mới..."
                 maxLength={MAX_MESSAGE_LENGTH}
                 multiline
-                style={{ flex: 1, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9, fontSize: 13.5, maxHeight: 100, backgroundColor: '#F8FAFC' }}
+                style={{ flex: 1, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9, fontSize: 13.5, maxHeight: 100, backgroundColor: COLORS.surface }}
               />
               <Pressable
                 onPress={sendMessage}
                 disabled={loading || !input.trim()}
                 style={{
                   width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: '#2563EB', opacity: loading || !input.trim() ? 0.5 : 1,
+                  backgroundColor: COLORS.accent, opacity: loading || !input.trim() ? 0.5 : 1,
                 }}
               >
                 <Send size={17} color="#fff" />

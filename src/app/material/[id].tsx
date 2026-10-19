@@ -20,6 +20,7 @@ import { QuizPersonalEditor } from '@/components/material/QuizPersonalEditor';
 import { ExplainWrongAnswer } from '@/components/quiz/ExplainWrongAnswer';
 import { BackButton } from '@/components/BackButton';
 import type { FlashcardCard, MaterialDetail, QuizQuestion } from '@/types/material';
+import { COLORS } from '@/lib/theme/colors';
 
 /** BE có bug data (12/10/2026, rà soát bởi user): quiz cá nhân tạo ở scope KHÓA HỌC/CHƯƠNG (không
  * phải CUSTOM_LESSONS) bị mặc định `quizType='OFFICIAL_EXAM'` dù chưa từng được publish chính
@@ -61,7 +62,7 @@ export default function MaterialDetailScreen() {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Text>{error instanceof ApiError ? error.message : 'Không tải được học liệu.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -151,13 +152,13 @@ function MindmapSection({ mermaidCode }: { mermaidCode: string }) {
 function ExamEntry({ quizId }: { quizId: number }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 }}>
-      <ListChecks size={48} color="#2563EB" strokeWidth={1.5} />
-      <Text style={{ fontSize: 16, color: '#475569', textAlign: 'center' }}>
+      <ListChecks size={48} color={COLORS.accent} strokeWidth={1.5} />
+      <Text style={{ fontSize: 16, color: COLORS.inkMuted, textAlign: 'center' }}>
         Đây là bài thi chính thức — có tính giờ, chỉ làm được số lần giới hạn.
       </Text>
       <Pressable
         onPress={() => router.push(`/exam/${quizId}` as Href)}
-        style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24 }}
+        style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24 }}
       >
         <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
       </Pressable>
@@ -183,12 +184,12 @@ function LectureQuizWorkspace({
   return (
     <View style={{ flex: 1 }}>
       {canEdit ? (
-        <View style={{ flexDirection: 'row', gap: 20, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', paddingHorizontal: 16, paddingTop: 12 }}>
-          <Pressable onPress={() => setMode('study')} style={{ paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: mode === 'study' ? '#2563EB' : 'transparent' }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: mode === 'study' ? '#2563EB' : '#64748B' }}>📖 Làm bài</Text>
+        <View style={{ flexDirection: 'row', gap: 20, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, paddingHorizontal: 16, paddingTop: 12 }}>
+          <Pressable onPress={() => setMode('study')} style={{ paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: mode === 'study' ? COLORS.accent : 'transparent' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: mode === 'study' ? COLORS.accent : COLORS.inkFaint }}>📖 Làm bài</Text>
           </Pressable>
-          <Pressable onPress={() => setMode('edit')} style={{ paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: mode === 'edit' ? '#2563EB' : 'transparent' }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: mode === 'edit' ? '#2563EB' : '#64748B' }}>📋 Soạn câu hỏi</Text>
+          <Pressable onPress={() => setMode('edit')} style={{ paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: mode === 'edit' ? COLORS.accent : 'transparent' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: mode === 'edit' ? COLORS.accent : COLORS.inkFaint }}>📋 Soạn câu hỏi</Text>
           </Pressable>
         </View>
       ) : null}
@@ -218,7 +219,7 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
   if (!questions.length) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <Text style={{ color: '#64748B' }}>Chưa có câu hỏi ôn tập nào.</Text>
+        <Text style={{ color: COLORS.inkFaint }}>Chưa có câu hỏi ôn tập nào.</Text>
       </View>
     );
   }
@@ -226,14 +227,14 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
   if (!isStarted) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <ListChecks size={48} color="#2563EB" strokeWidth={1.5} />
+        <ListChecks size={48} color={COLORS.accent} strokeWidth={1.5} />
         <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Ôn tập nhanh</Text>
-        <Text style={{ color: '#64748B', textAlign: 'center' }}>
+        <Text style={{ color: COLORS.inkFaint, textAlign: 'center' }}>
           Bài tập có {questions.length} câu hỏi giúp củng cố kiến thức vừa học — không tính giờ, làm lại bao nhiêu lần tuỳ ý.
         </Text>
         <Pressable
           onPress={() => setIsStarted(true)}
-          style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24, marginTop: 8 }}
+          style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24, marginTop: 8 }}
         >
           <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
         </Pressable>
@@ -244,13 +245,13 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
   if (isFinished) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <CheckCircle2 size={48} color="#16A34A" strokeWidth={1.5} />
+        <CheckCircle2 size={48} color={COLORS.success} strokeWidth={1.5} />
         <Text style={{ fontSize: 18, fontWeight: '700' }}>Hoàn thành bài trắc nghiệm!</Text>
-        <Text style={{ fontSize: 32, fontWeight: '800', color: '#2563EB' }}>
+        <Text style={{ fontSize: 32, fontWeight: '800', color: COLORS.accent }}>
           {score}/{questions.length}
         </Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 8 }}>
-          <Text style={{ color: '#2563EB', fontWeight: '600' }}>Hoàn tất & quay lại</Text>
+          <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Hoàn tất & quay lại</Text>
         </Pressable>
       </View>
     );
@@ -273,37 +274,37 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
   return (
     <View style={{ flex: 1, padding: 16, gap: 16 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontWeight: '600', color: '#334155' }}>
+        <Text style={{ fontWeight: '600', color: COLORS.ink }}>
           Câu {currentIdx + 1}/{questions.length}
         </Text>
-        <View style={{ width: '40%', height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
-          <View style={{ width: `${((currentIdx + 1) / questions.length) * 100}%`, height: '100%', backgroundColor: '#2563EB' }} />
+        <View style={{ width: '40%', height: 6, backgroundColor: COLORS.lineSoft, borderRadius: 3, overflow: 'hidden' }}>
+          <View style={{ width: `${((currentIdx + 1) / questions.length) * 100}%`, height: '100%', backgroundColor: COLORS.accent }} />
         </View>
       </View>
 
-      <Text style={{ fontSize: 18, fontWeight: '600', color: '#0F172A' }}>{question.content}</Text>
+      <Text style={{ fontSize: 18, fontWeight: '600', color: COLORS.ink }}>{question.content}</Text>
 
       <View style={{ gap: 10 }}>
         {question.options.map((option) => {
           const isSelected = selectedOptionId === option.id;
-          let borderColor = '#E2E8F0';
-          let backgroundColor = '#fff';
-          let textColor = '#0F172A';
+          let borderColor: string = COLORS.lineSoft;
+          let backgroundColor: string = '#fff';
+          let textColor: string = COLORS.ink;
           if (isAnswered) {
             if (option.isCorrect) {
-              borderColor = '#16A34A';
+              borderColor = COLORS.success;
               backgroundColor = '#F0FDF4';
               textColor = '#166534';
             } else if (isSelected) {
-              borderColor = '#DC2626';
+              borderColor = COLORS.danger;
               backgroundColor = '#FEF2F2';
               textColor = '#991B1B';
             } else {
-              backgroundColor = '#F8FAFC';
+              backgroundColor = COLORS.surface;
             }
           } else if (isSelected) {
-            borderColor = '#2563EB';
-            backgroundColor = '#EFF6FF';
+            borderColor = COLORS.accent;
+            backgroundColor = COLORS.tint;
           }
           return (
             <Pressable
@@ -326,14 +327,14 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
         disabled={!isAnswered}
         onPress={handleNext}
         style={{
-          backgroundColor: isAnswered ? '#2563EB' : '#E2E8F0',
+          backgroundColor: isAnswered ? COLORS.accent : COLORS.lineSoft,
           borderRadius: 8,
           paddingVertical: 14,
           alignItems: 'center',
           marginTop: 'auto',
         }}
       >
-        <Text style={{ color: isAnswered ? '#fff' : '#94A3B8', fontWeight: '600' }}>
+        <Text style={{ color: isAnswered ? '#fff' : COLORS.lineDot, fontWeight: '600' }}>
           {currentIdx === questions.length - 1 ? 'Hoàn thành' : 'Câu tiếp theo'}
         </Text>
       </Pressable>
@@ -348,7 +349,7 @@ function FlashcardWorkspace({ materialId, initialCards, language, isOfficial }: 
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
+      <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
         <ModeTab label="Ôn tập" active={mode === 'study'} onPress={() => setMode('study')} />
         <ModeTab label="Xem tất cả" active={mode === 'browse'} onPress={() => setMode('browse')} />
       </View>
@@ -390,10 +391,10 @@ function SpeakButton({ text, language, dark }: { text: string; language: string 
       hitSlop={8}
       style={{
         position: 'absolute', top: 12, right: 12, padding: 8, borderRadius: 999,
-        backgroundColor: dark ? 'rgba(255,255,255,0.15)' : '#F1F5F9',
+        backgroundColor: dark ? 'rgba(255,255,255,0.15)' : COLORS.surface,
       }}
     >
-      <Volume2 size={18} color={dark ? '#fff' : '#475569'} strokeWidth={1.75} />
+      <Volume2 size={18} color={dark ? '#fff' : COLORS.inkMuted} strokeWidth={1.75} />
     </Pressable>
   );
 }
@@ -401,7 +402,7 @@ function SpeakButton({ text, language, dark }: { text: string; language: string 
 function ModeTab({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={{ flex: 1, alignItems: 'center', paddingVertical: 12 }}>
-      <Text style={{ color: active ? '#2563EB' : '#64748B', fontWeight: active ? '700' : '500' }}>{label}</Text>
+      <Text style={{ color: active ? COLORS.accent : COLORS.inkFaint, fontWeight: active ? '700' : '500' }}>{label}</Text>
     </Pressable>
   );
 }
@@ -439,11 +440,11 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
   if (!currentCard) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <CheckCircle2 size={48} color="#16A34A" strokeWidth={1.5} />
+        <CheckCircle2 size={48} color={COLORS.success} strokeWidth={1.5} />
         <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Đã ôn hết thẻ cần ôn hôm nay!</Text>
-        <Text style={{ color: '#64748B', textAlign: 'center' }}>Quay lại sau khi có thẻ mới cần ôn.</Text>
+        <Text style={{ color: COLORS.inkFaint, textAlign: 'center' }}>Quay lại sau khi có thẻ mới cần ôn.</Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 8 }}>
-          <Text style={{ color: '#2563EB', fontWeight: '600' }}>Quay lại</Text>
+          <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Quay lại</Text>
         </Pressable>
       </View>
     );
@@ -455,20 +456,20 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
     return `${Math.round(deltaMs / 86_400_000)} ngày`;
   };
   const ratingButtons = [
-    { label: 'Khó quá', quality: 0, delta: 1 * 60_000, color: '#DC2626' },
-    { label: 'Khó', quality: 2, delta: 6 * 60_000, color: '#D97706' },
-    { label: 'Tốt', quality: 3, delta: 10 * 60_000, color: '#16A34A' },
-    { label: 'Dễ', quality: 5, delta: 3 * 86_400_000, color: '#2563EB' },
+    { label: 'Khó quá', quality: 0, delta: 1 * 60_000, color: COLORS.danger },
+    { label: 'Khó', quality: 2, delta: 6 * 60_000, color: COLORS.warning },
+    { label: 'Tốt', quality: 3, delta: 10 * 60_000, color: COLORS.success },
+    { label: 'Dễ', quality: 5, delta: 3 * 86_400_000, color: COLORS.accent },
   ];
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: 'center' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
-        <Text style={{ color: '#2563EB', fontWeight: '700' }}>{newCards.length}</Text>
-        <Text style={{ color: '#94A3B8' }}>+</Text>
-        <Text style={{ color: '#D97706', fontWeight: '700' }}>{learningCards.length}</Text>
-        <Text style={{ color: '#94A3B8' }}>+</Text>
-        <Text style={{ color: '#16A34A', fontWeight: '700' }}>{reviewCards.length}</Text>
+        <Text style={{ color: COLORS.accent, fontWeight: '700' }}>{newCards.length}</Text>
+        <Text style={{ color: COLORS.lineDot }}>+</Text>
+        <Text style={{ color: COLORS.warning, fontWeight: '700' }}>{learningCards.length}</Text>
+        <Text style={{ color: COLORS.lineDot }}>+</Text>
+        <Text style={{ color: COLORS.success, fontWeight: '700' }}>{reviewCards.length}</Text>
       </View>
 
       <View style={{ height: 280, position: 'relative' }}>
@@ -483,9 +484,9 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
             padding: 24,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: isFlipped ? '#2563EB' : '#F8FAFC',
+            backgroundColor: isFlipped ? COLORS.accent : COLORS.surface,
             borderWidth: isFlipped ? 0 : 1,
-            borderColor: '#E2E8F0',
+            borderColor: COLORS.lineSoft,
           }}
         >
           <Text
@@ -493,13 +494,13 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
               fontSize: 22,
               fontWeight: '600',
               textAlign: 'center',
-              color: isFlipped ? '#fff' : '#0F172A',
+              color: isFlipped ? '#fff' : COLORS.ink,
             }}
           >
             {isFlipped ? currentCard.backText : currentCard.frontText}
           </Text>
           {!isFlipped ? (
-            <Text style={{ marginTop: 16, color: '#94A3B8', fontSize: 12 }}>Chạm để xem đáp án</Text>
+            <Text style={{ marginTop: 16, color: COLORS.lineDot, fontSize: 12 }}>Chạm để xem đáp án</Text>
           ) : null}
         </Pressable>
         <SpeakButton text={isFlipped ? currentCard.backText : currentCard.frontText} language={language} dark={isFlipped} />
@@ -515,8 +516,8 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
               style={{ flex: 1, alignItems: 'center', gap: 4 }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-                <CalendarClock size={10} color="#94A3B8" />
-                <Text style={{ fontSize: 10, color: '#94A3B8' }}>{fmt(btn.delta)}</Text>
+                <CalendarClock size={10} color={COLORS.lineDot} />
+                <Text style={{ fontSize: 10, color: COLORS.lineDot }}>{fmt(btn.delta)}</Text>
               </View>
               <View style={{ backgroundColor: btn.color, borderRadius: 8, paddingVertical: 10, width: '100%', alignItems: 'center' }}>
                 <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>{btn.label}</Text>
@@ -562,7 +563,7 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
   if (!card) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#64748B' }}>Bộ thẻ này chưa có thẻ nào.</Text>
+        <Text style={{ color: COLORS.inkFaint }}>Bộ thẻ này chưa có thẻ nào.</Text>
       </View>
     );
   }
@@ -575,7 +576,7 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: 'center' }}>
-      <Text style={{ textAlign: 'center', color: '#64748B' }}>
+      <Text style={{ textAlign: 'center', color: COLORS.inkFaint }}>
         {index + 1}/{cards.length}
       </Text>
       <View style={{ height: 280, position: 'relative' }}>
@@ -590,12 +591,12 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
             padding: 24,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: isFlipped ? '#2563EB' : '#F8FAFC',
+            backgroundColor: isFlipped ? COLORS.accent : COLORS.surface,
             borderWidth: isFlipped ? 0 : 1,
-            borderColor: '#E2E8F0',
+            borderColor: COLORS.lineSoft,
           }}
         >
-          <Text style={{ fontSize: 22, fontWeight: '600', textAlign: 'center', color: isFlipped ? '#fff' : '#0F172A' }}>
+          <Text style={{ fontSize: 22, fontWeight: '600', textAlign: 'center', color: isFlipped ? '#fff' : COLORS.ink }}>
             {isFlipped ? card.backText : card.frontText}
           </Text>
         </Pressable>
@@ -603,10 +604,10 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Pressable onPress={() => goTo(index - 1)} disabled={index === 0} style={{ opacity: index === 0 ? 0.3 : 1 }}>
-          <ChevronLeft size={28} color="#2563EB" />
+          <ChevronLeft size={28} color={COLORS.accent} />
         </Pressable>
         <Pressable onPress={() => goTo(index + 1)} disabled={index === cards.length - 1} style={{ opacity: index === cards.length - 1 ? 0.3 : 1 }}>
-          <ChevronRight size={28} color="#2563EB" />
+          <ChevronRight size={28} color={COLORS.accent} />
         </Pressable>
       </View>
 
@@ -617,17 +618,17 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}>
           <Pressable
             onPress={() => setEditing(true)}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.lineSoft }}
           >
-            <Pencil size={14} color="#64748B" strokeWidth={2} />
-            <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#334155' }}>Sửa</Text>
+            <Pencil size={14} color={COLORS.inkFaint} strokeWidth={2} />
+            <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>Sửa</Text>
           </Pressable>
           <Pressable
             onPress={handleDelete}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' }}
           >
-            <Trash2 size={14} color="#DC2626" strokeWidth={2} />
-            <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#DC2626' }}>Xoá</Text>
+            <Trash2 size={14} color={COLORS.danger} strokeWidth={2} />
+            <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.danger }}>Xoá</Text>
           </Pressable>
         </View>
       ) : null}
@@ -673,33 +674,33 @@ function EditFlashcardModal({ card, onClose, onSaved }: { card: FlashcardCard; o
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View style={{ maxHeight: '85%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 14 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Sửa thẻ</Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Sửa thẻ</Text>
             <Pressable onPress={onClose} hitSlop={8}>
-              <X size={20} color="#64748B" />
+              <X size={20} color={COLORS.inkFaint} />
             </Pressable>
           </View>
           <View style={{ gap: 6 }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Mặt trước</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Mặt trước</Text>
             <TextInput
               value={frontText}
               onChangeText={setFrontText}
               multiline
-              style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+              style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
             />
           </View>
           <View style={{ gap: 6 }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Mặt sau</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Mặt sau</Text>
             <TextInput
               value={backText}
               onChangeText={setBackText}
               multiline
-              style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+              style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
             />
           </View>
           <Pressable
             onPress={handleSave}
             disabled={saving}
-            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: '#2563EB', opacity: saving ? 0.6 : 1 }}
+            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: COLORS.accent, opacity: saving ? 0.6 : 1 }}
           >
             {saving ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Lưu</Text>}
           </Pressable>

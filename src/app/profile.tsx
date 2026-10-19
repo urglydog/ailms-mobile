@@ -11,6 +11,7 @@ import { streakApi } from '@/lib/api/streak';
 import { usersApi } from '@/lib/api/users';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { UserProfile } from '@/types/user';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function ProfileScreen() {
   const { isAuthenticated, logout } = useAuth();
@@ -47,7 +48,7 @@ export default function ProfileScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text>{error instanceof ApiError ? error.message : 'Không tải được hồ sơ.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : (
@@ -55,26 +56,26 @@ export default function ProfileScreen() {
           {me.avatarUrl ? (
             <Image source={{ uri: me.avatarUrl }} style={{ width: 96, height: 96, borderRadius: 48 }} />
           ) : (
-            <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontSize: 32, color: '#475569' }}>{me.fullName.charAt(0).toUpperCase()}</Text>
+            <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: COLORS.lineSoft, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 32, color: COLORS.inkMuted }}>{me.fullName.charAt(0).toUpperCase()}</Text>
             </View>
           )}
           <Text style={{ fontSize: 18, fontWeight: '700' }}>{me.fullName}</Text>
-          <Text style={{ color: '#475569' }}>{me.email}</Text>
-          {me.headline ? <Text style={{ color: '#475569' }}>{me.headline}</Text> : null}
-          <Text style={{ color: '#94A3B8', fontSize: 12 }}>Vai trò: {me.role}</Text>
+          <Text style={{ color: COLORS.inkMuted }}>{me.email}</Text>
+          {me.headline ? <Text style={{ color: COLORS.inkMuted }}>{me.headline}</Text> : null}
+          <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>Vai trò: {me.role}</Text>
 
           <View style={{ flexDirection: 'row', gap: 16 }}>
             <Pressable onPress={() => router.push('/edit-profile' as Href)}>
-              <Text style={{ color: '#2563EB', fontWeight: '600' }}>Chỉnh sửa hồ sơ</Text>
+              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Chỉnh sửa hồ sơ</Text>
             </Pressable>
             {me.authProvider !== 'GOOGLE' ? (
               <Pressable onPress={() => router.push('/profile/change-password' as Href)}>
-                <Text style={{ color: '#2563EB', fontWeight: '600' }}>Đổi mật khẩu</Text>
+                <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Đổi mật khẩu</Text>
               </Pressable>
             ) : null}
             <Pressable onPress={() => router.push(`/u/${me.id}` as Href)}>
-              <Text style={{ color: '#2563EB', fontWeight: '600' }}>Hồ sơ công khai</Text>
+              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Hồ sơ công khai</Text>
             </Pressable>
           </View>
 
@@ -105,7 +106,7 @@ export default function ProfileScreen() {
             </View>
           ) : null}
 
-          <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0' }}>
+          <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
             <MenuRow label="Khoá học của tôi" href={'/my-courses' as Href} />
             <MenuRow label="Yêu thích" href={'/wishlist' as Href} />
             <MenuRow label="Chứng chỉ của tôi" href={'/certificates' as Href} />
@@ -118,9 +119,9 @@ export default function ProfileScreen() {
 
           <Pressable
             onPress={() => logout()}
-            style={{ marginTop: 16, borderWidth: 1, borderColor: '#DC2626', borderRadius: 8, padding: 12, alignItems: 'center', width: '100%' }}
+            style={{ marginTop: 16, borderWidth: 1, borderColor: COLORS.danger, borderRadius: 8, padding: 12, alignItems: 'center', width: '100%' }}
           >
-            <Text style={{ color: '#DC2626', fontWeight: '600' }}>Đăng xuất</Text>
+            <Text style={{ color: COLORS.danger, fontWeight: '600' }}>Đăng xuất</Text>
           </Pressable>
         </View>
       )}
@@ -139,10 +140,10 @@ function PrivacySection({ me }: { me: UserProfile }) {
   });
 
   return (
-    <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 16, gap: 10 }}>
-      <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Quyền riêng tư hồ sơ công khai</Text>
+    <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 16, gap: 10 }}>
+      <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.ink }}>Quyền riêng tư hồ sơ công khai</Text>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: 13, color: '#334155' }}>Hiện khóa học đã học</Text>
+        <Text style={{ fontSize: 13, color: COLORS.ink }}>Hiện khóa học đã học</Text>
         <Switch
           value={!!me.coursesPublic}
           disabled={updatePrivacy.isPending}
@@ -150,7 +151,7 @@ function PrivacySection({ me }: { me: UserProfile }) {
         />
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: 13, color: '#334155' }}>Hiện danh sách yêu thích</Text>
+        <Text style={{ fontSize: 13, color: COLORS.ink }}>Hiện danh sách yêu thích</Text>
         <Switch
           value={!!me.wishlistPublic}
           disabled={updatePrivacy.isPending}
@@ -176,17 +177,17 @@ function SecuritySection() {
   });
 
   return (
-    <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 16, gap: 10 }}>
-      <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Bảo mật & Thiết bị</Text>
+    <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 16, gap: 10 }}>
+      <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.ink }}>Bảo mật & Thiết bị</Text>
 
       {sessions && sessions.length > 0 ? (
         <View style={{ gap: 6 }}>
           {(expanded ? sessions : sessions.slice(0, 3)).map((s, idx) => (
-            <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10 }}>
-              <Monitor size={16} color="#64748B" />
+            <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10 }}>
+              <Monitor size={16} color={COLORS.inkFaint} />
               <View style={{ flex: 1 }}>
-                <Text numberOfLines={1} style={{ fontSize: 12.5, fontWeight: '600', color: '#0F172A' }}>{s.deviceName}</Text>
-                <Text style={{ fontSize: 10.5, color: '#94A3B8' }}>
+                <Text numberOfLines={1} style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>{s.deviceName}</Text>
+                <Text style={{ fontSize: 10.5, color: COLORS.lineDot }}>
                   {s.ip ? `IP: ${s.ip} · ` : ''}Hoạt động: {new Date(s.lastActiveAt).toLocaleString('vi-VN')}
                 </Text>
               </View>
@@ -194,7 +195,7 @@ function SecuritySection() {
           ))}
           {sessions.length > 3 && (
             <Pressable onPress={() => setExpanded(!expanded)} style={{ paddingVertical: 8, alignItems: 'center' }}>
-              <Text style={{ color: '#2563EB', fontWeight: '600', fontSize: 13 }}>
+              <Text style={{ color: COLORS.accent, fontWeight: '600', fontSize: 13 }}>
                 {expanded ? 'Thu gọn' : `Xem thêm ${sessions.length - 3} thiết bị`}
               </Text>
             </Pressable>
@@ -205,9 +206,9 @@ function SecuritySection() {
       <Pressable
         onPress={() => logoutAll.mutate()}
         disabled={logoutAll.isPending}
-        style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 12, alignItems: 'center', opacity: logoutAll.isPending ? 0.6 : 1 }}
+        style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 12, alignItems: 'center', opacity: logoutAll.isPending ? 0.6 : 1 }}
       >
-        <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A' }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.ink }}>
           {logoutAll.isSuccess ? 'Đã đăng xuất khỏi các thiết bị khác' : 'Đăng xuất khỏi tất cả các thiết bị khác'}
         </Text>
       </Pressable>
@@ -219,10 +220,10 @@ function MenuRow({ label, href }: { label: string; href: Href }) {
   return (
     <Pressable
       onPress={() => router.push(href)}
-      style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}
+      style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}
     >
       <Text style={{ fontSize: 15 }}>{label}</Text>
-      <Text style={{ color: '#94A3B8' }}>›</Text>
+      <Text style={{ color: COLORS.lineDot }}>›</Text>
     </Pressable>
   );
 }

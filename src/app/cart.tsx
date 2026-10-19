@@ -7,6 +7,7 @@ import { cartApi } from '@/lib/api/cart';
 import { ApiError } from '@/lib/api/client';
 import { BackButton } from '@/components/BackButton';
 import type { CartItem } from '@/types/cart';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function CartScreen() {
   const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export default function CartScreen() {
   const isDiscounted = totalFinalPrice < totalOriginalPrice;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
       <Stack.Screen options={{ headerShown: true, title: 'Giỏ hàng', headerLeft: () => <BackButton /> }} />
 
       {isLoading ? (
@@ -39,8 +40,8 @@ export default function CartScreen() {
         </View>
       ) : !cartItems || cartItems.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Text style={{ color: '#64748B', fontSize: 16 }}>Giỏ hàng của bạn đang trống.</Text>
-          <Pressable onPress={() => router.push('/courses' as Href)} style={{ marginTop: 16, backgroundColor: '#2563EB', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 }}>
+          <Text style={{ color: COLORS.inkFaint, fontSize: 16 }}>Giỏ hàng của bạn đang trống.</Text>
+          <Pressable onPress={() => router.push('/courses' as Href)} style={{ marginTop: 16, backgroundColor: COLORS.accent, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 }}>
             <Text style={{ color: 'white', fontWeight: '600' }}>Khám phá khoá học</Text>
           </Pressable>
         </View>
@@ -48,24 +49,24 @@ export default function CartScreen() {
         <>
           <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
             {cartItems.map((item) => (
-              <View key={item.courseId} style={{ flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', gap: 12 }}>
+              <View key={item.courseId} style={{ flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 12 }}>
                 {item.thumbnailUrl ? (
                   <Image source={{ uri: item.thumbnailUrl }} style={{ width: 80, height: 80, borderRadius: 8 }} />
                 ) : (
-                  <View style={{ width: 80, height: 80, borderRadius: 8, backgroundColor: '#E2E8F0' }} />
+                  <View style={{ width: 80, height: 80, borderRadius: 8, backgroundColor: COLORS.lineSoft }} />
                 )}
                 <View style={{ flex: 1, justifyContent: 'space-between' }}>
                   <View>
-                    <Text numberOfLines={2} style={{ fontWeight: '700', fontSize: 14, color: '#0F172A' }}>{item.courseTitle}</Text>
-                    <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>{item.instructorName}</Text>
+                    <Text numberOfLines={2} style={{ fontWeight: '700', fontSize: 14, color: COLORS.ink }}>{item.courseTitle}</Text>
+                    <Text style={{ fontSize: 12, color: COLORS.inkFaint, marginTop: 4 }}>{item.instructorName}</Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
                     <View>
-                      <Text style={{ fontWeight: '800', fontSize: 16, color: '#2563EB' }}>
+                      <Text style={{ fontWeight: '800', fontSize: 16, color: COLORS.accent }}>
                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.finalPrice)}
                       </Text>
                       {item.discountPercent ? (
-                        <Text style={{ fontSize: 12, color: '#94A3B8', textDecorationLine: 'line-through' }}>
+                        <Text style={{ fontSize: 12, color: COLORS.lineDot, textDecorationLine: 'line-through' }}>
                           {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}
                         </Text>
                       ) : null}
@@ -75,7 +76,7 @@ export default function CartScreen() {
                       disabled={removeMutation.isPending}
                       style={{ padding: 8 }}
                     >
-                      <Trash2 size={18} color={removeMutation.isPending ? '#94A3B8' : '#EF4444'} />
+                      <Trash2 size={18} color={removeMutation.isPending ? COLORS.lineDot : '#EF4444'} />
                     </Pressable>
                   </View>
                 </View>
@@ -83,15 +84,15 @@ export default function CartScreen() {
             ))}
           </ScrollView>
 
-          <View style={{ padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#E2E8F0', gap: 12 }}>
+          <View style={{ padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: COLORS.lineSoft, gap: 12 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 15, color: '#475569', fontWeight: '600' }}>Tổng cộng:</Text>
+              <Text style={{ fontSize: 15, color: COLORS.inkMuted, fontWeight: '600' }}>Tổng cộng:</Text>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#2563EB' }}>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: COLORS.accent }}>
                   {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalFinalPrice)}
                 </Text>
                 {isDiscounted ? (
-                  <Text style={{ fontSize: 13, color: '#94A3B8', textDecorationLine: 'line-through' }}>
+                  <Text style={{ fontSize: 13, color: COLORS.lineDot, textDecorationLine: 'line-through' }}>
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalOriginalPrice)}
                   </Text>
                 ) : null}
@@ -99,7 +100,7 @@ export default function CartScreen() {
             </View>
             <Pressable 
               onPress={() => router.push('/checkout/cart' as Href)}
-              style={{ backgroundColor: '#2563EB', paddingVertical: 14, borderRadius: 8, alignItems: 'center' }}
+              style={{ backgroundColor: COLORS.accent, paddingVertical: 14, borderRadius: 8, alignItems: 'center' }}
             >
               <Text style={{ color: 'white', fontWeight: '700', fontSize: 15 }}>Tiến hành thanh toán</Text>
             </Pressable>

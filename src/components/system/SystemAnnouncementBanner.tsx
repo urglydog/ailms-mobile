@@ -4,6 +4,7 @@ import { AlertTriangle, Info, ShieldAlert } from 'lucide-react-native';
 
 import { systemAnnouncementsApi } from '@/lib/api/systemAnnouncements';
 import type { AnnouncementSeverity } from '@/types/systemAnnouncement';
+import { COLORS } from '@/lib/theme/colors';
 
 export function SystemAnnouncementBanner() {
   const { data: banner } = useQuery({
@@ -30,12 +31,12 @@ export function SystemAnnouncementBanner() {
 function getSeverityStyle(severity: AnnouncementSeverity) {
   switch (severity) {
     case 'HIGH':
-      return { bg: '#FEF2F2', text: '#991B1B', icon: '#DC2626' };
+      return { bg: '#FEF2F2', text: '#991B1B', icon: COLORS.danger };
     case 'MEDIUM':
-      return { bg: '#FFFBEB', text: '#92400E', icon: '#D97706' };
+      return { bg: '#FFFBEB', text: '#92400E', icon: COLORS.warning };
     case 'LOW':
     default:
-      return { bg: '#EFF6FF', text: '#1E40AF', icon: '#2563EB' };
+      return { bg: COLORS.tint, text: '#1E40AF', icon: COLORS.accent };
   }
 }
 

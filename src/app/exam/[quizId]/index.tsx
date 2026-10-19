@@ -9,6 +9,7 @@ import { ProctoringCameraView } from '@/components/ProctoringCameraView';
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
 import type { ProctorFrameRes, QuizAttemptResult, QuizQuestion, ViolationRes } from '@/types/quiz';
+import { COLORS } from '@/lib/theme/colors';
 
 function formatClock(totalSec: number): string {
   const m = Math.floor(totalSec / 60);
@@ -123,7 +124,7 @@ export default function ExamScreen() {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Text>{error instanceof ApiError ? error.message : 'Không tải được bài thi.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -141,11 +142,11 @@ export default function ExamScreen() {
         <Stack.Screen options={{ headerShown: true, title: 'Bài thi', headerLeft: () => null }} />
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ color: '#475569' }}>
+        <Text style={{ color: COLORS.inkMuted }}>
           Đã trả lời {answeredCount}/{attempt.questions.length} câu
         </Text>
         {remainingSec !== null ? (
-          <Text style={{ fontWeight: '700', color: remainingSec < 60 ? '#DC2626' : '#0F172A' }}>
+          <Text style={{ fontWeight: '700', color: remainingSec < 60 ? COLORS.danger : COLORS.ink }}>
             {formatClock(Math.max(0, remainingSec))}
           </Text>
         ) : null}
@@ -167,8 +168,8 @@ export default function ExamScreen() {
                   alignItems: 'center',
                   gap: 10,
                   borderWidth: 1,
-                  borderColor: selected ? '#2563EB' : '#CBD5E1',
-                  backgroundColor: selected ? '#EFF6FF' : '#fff',
+                  borderColor: selected ? COLORS.accent : COLORS.line,
+                  backgroundColor: selected ? COLORS.tint : '#fff',
                   borderRadius: 8,
                   padding: 12,
                 }}
@@ -179,8 +180,8 @@ export default function ExamScreen() {
                     height: 18,
                     borderRadius: q.isMultipleChoice ? 4 : 9,
                     borderWidth: 2,
-                    borderColor: selected ? '#2563EB' : '#94A3B8',
-                    backgroundColor: selected ? '#2563EB' : 'transparent',
+                    borderColor: selected ? COLORS.accent : COLORS.lineDot,
+                    backgroundColor: selected ? COLORS.accent : 'transparent',
                   }}
                 />
                 <Text style={{ flex: 1 }}>{opt.content}</Text>
@@ -191,7 +192,7 @@ export default function ExamScreen() {
       ))}
 
       {submitMutation.isError ? (
-        <Text style={{ color: '#DC2626' }}>
+        <Text style={{ color: COLORS.danger }}>
           {submitMutation.error instanceof ApiError ? submitMutation.error.message : 'Nộp bài thất bại, vui lòng thử lại.'}
         </Text>
       ) : null}
@@ -199,7 +200,7 @@ export default function ExamScreen() {
         <Pressable
           onPress={() => submitMutation.mutate()}
           disabled={submitMutation.isPending}
-          style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: submitMutation.isPending ? 0.6 : 1 }}
+          style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: submitMutation.isPending ? 0.6 : 1 }}
         >
           {submitMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Nộp bài</Text>}
         </Pressable>

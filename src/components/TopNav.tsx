@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cartApi } from '@/lib/api/cart';
 import { notificationsApi } from '@/lib/api/notifications';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { COLORS } from '@/lib/theme/colors';
 
 export function TopNav() {
   const { isAuthenticated } = useAuth();
@@ -25,8 +26,8 @@ export function TopNav() {
   const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#FFFFFF' }}>
-      <Text style={{ fontSize: 20, fontWeight: '900', color: '#2563EB', letterSpacing: -0.5 }}>ai<Text style={{ color: '#0F172A' }}>lms.</Text></Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.white }}>
+      <Text style={{ fontSize: 20, fontWeight: '900', color: COLORS.accent, letterSpacing: -0.5 }}>ai<Text style={{ color: COLORS.ink }}>lms.</Text></Text>
       
       {isAuthenticated && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -35,7 +36,7 @@ export function TopNav() {
             style={{ padding: 8, justifyContent: 'center', alignItems: 'center' }}
           >
             <View>
-              <Bell size={24} color="#475569" />
+              <Bell size={24} color={COLORS.inkMuted} />
               {unreadCount > 0 && (
                 <View style={{ position: 'absolute', top: -4, right: -6, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -48,7 +49,7 @@ export function TopNav() {
             style={{ padding: 8, justifyContent: 'center', alignItems: 'center' }}
           >
             <View>
-              <ShoppingCart size={24} color="#475569" />
+              <ShoppingCart size={24} color={COLORS.inkMuted} />
               {cart && cart.length > 0 && (
                 <View style={{ position: 'absolute', top: -6, right: -8, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: 'white', fontSize: 11, fontWeight: 'bold' }}>{cart.length}</Text>

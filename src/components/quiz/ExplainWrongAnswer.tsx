@@ -4,6 +4,7 @@ import { router, type Href } from 'expo-router';
 
 import { quizzesApi } from '@/lib/api/quizzes';
 import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
+import { COLORS } from '@/lib/theme/colors';
 
 interface Props {
   questionId: number;
@@ -33,24 +34,24 @@ export function ExplainWrongAnswer({ questionId, selectedOptionId, referenceLess
   };
 
   return (
-    <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#E2E8F0', gap: 8 }}>
+    <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, gap: 8 }}>
       <View style={{ flexDirection: 'row', gap: 16 }}>
         {!state ? (
           <Pressable onPress={handleExplain}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#2563EB' }}>Hỏi Gia sư AI tại sao sai?</Text>
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accent }}>Hỏi Gia sư AI tại sao sai?</Text>
           </Pressable>
         ) : null}
         {referenceLessonId != null ? (
           <Pressable
             onPress={() => router.push(`/lessons/${referenceLessonId}${videoTimestamp ? `?seek=${videoTimestamp}` : ''}` as Href)}
           >
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#2563EB' }}>Ôn tập lại lý thuyết ↗</Text>
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accent }}>Ôn tập lại lý thuyết ↗</Text>
           </Pressable>
         ) : null}
       </View>
 
       {state ? (
-        <View style={{ backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#DBEAFE', borderRadius: 8, padding: 10 }}>
+        <View style={{ backgroundColor: COLORS.tint, borderWidth: 1, borderColor: '#DBEAFE', borderRadius: 8, padding: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1D4ED8' }}>Gia sư AI giải thích:</Text>
             {state.loading ? <Text style={{ fontSize: 11.5, color: '#3B82F6' }}>Đang suy nghĩ...</Text> : null}

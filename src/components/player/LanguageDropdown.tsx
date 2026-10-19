@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
 import { ChevronDown, Search } from 'lucide-react-native';
 import type { LessonLanguage } from '@/types/lesson';
+import { COLORS } from '@/lib/theme/colors';
 
 interface LanguageDropdownProps {
   languages: LessonLanguage[];
@@ -40,49 +41,49 @@ export function LanguageDropdown({ languages, activeCode, sourceLanguage, onSele
           gap: 8,
           paddingHorizontal: 16,
           paddingVertical: 10,
-          backgroundColor: '#F8FAFC',
+          backgroundColor: COLORS.surface,
           borderRadius: 24,
           borderWidth: 1,
-          borderColor: open ? '#2563EB' : '#E2E8F0',
+          borderColor: open ? COLORS.accent : COLORS.lineSoft,
         }}
       >
         {active ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text>{active.flag}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: '#0F172A' }}>{active.label}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: COLORS.ink }}>{active.label}</Text>
             {active.available ? (
-              <Text style={{ color: '#16A34A', fontSize: 12, fontWeight: '700' }}>✓</Text>
+              <Text style={{ color: COLORS.success, fontSize: 12, fontWeight: '700' }}>✓</Text>
             ) : (
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#F59E0B' }} />
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.star }} />
             )}
           </View>
         ) : (
-          <Text style={{ fontSize: 14, color: '#64748B' }}>Âm thanh gốc</Text>
+          <Text style={{ fontSize: 14, color: COLORS.inkFaint }}>Âm thanh gốc</Text>
         )}
-        <ChevronDown size={16} color="#64748B" style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }} />
+        <ChevronDown size={16} color={COLORS.inkFaint} style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }} />
       </Pressable>
 
       {open && (
         <View style={{
           marginTop: 8,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: COLORS.white,
           borderRadius: 12,
           borderWidth: 1,
-          borderColor: '#E2E8F0',
+          borderColor: COLORS.lineSoft,
           maxHeight: 280,
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-            <Search size={16} color="#94A3B8" />
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.surface }}>
+            <Search size={16} color={COLORS.lineDot} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Tìm ngôn ngữ…"
-              style={{ flex: 1, marginLeft: 8, fontSize: 14, color: '#0F172A', padding: 0 }}
+              style={{ flex: 1, marginLeft: 8, fontSize: 14, color: COLORS.ink, padding: 0 }}
             />
           </View>
           <ScrollView style={{ maxHeight: 220 }}>
             {filteredLanguages.length === 0 && (
-              <Text style={{ padding: 16, textAlign: 'center', color: '#94A3B8', fontSize: 13 }}>Không tìm thấy ngôn ngữ nào</Text>
+              <Text style={{ padding: 16, textAlign: 'center', color: COLORS.lineDot, fontSize: 13 }}>Không tìm thấy ngôn ngữ nào</Text>
             )}
             {filteredLanguages.map((lang) => {
               const isSource = lang.code === sourceLanguage;
@@ -98,21 +99,21 @@ export function LanguageDropdown({ languages, activeCode, sourceLanguage, onSele
                     justifyContent: 'space-between',
                     paddingHorizontal: 16,
                     paddingVertical: 12,
-                    backgroundColor: isActive ? '#EFF6FF' : '#FFFFFF',
+                    backgroundColor: isActive ? COLORS.tint : COLORS.white,
                     opacity: isSource ? 0.5 : 1,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text>{lang.flag}</Text>
-                    <Text style={{ fontSize: 14, color: isActive ? '#2563EB' : '#0F172A', fontWeight: isActive ? '600' : '400' }}>
-                      {lang.label} {isSource && <Text style={{ fontSize: 12, color: '#94A3B8' }}>(gốc)</Text>}
+                    <Text style={{ fontSize: 14, color: isActive ? COLORS.accent : COLORS.ink, fontWeight: isActive ? '600' : '400' }}>
+                      {lang.label} {isSource && <Text style={{ fontSize: 12, color: COLORS.lineDot }}>(gốc)</Text>}
                     </Text>
                   </View>
                   {!isSource && (
                     lang.available ? (
-                      <Text style={{ color: '#16A34A', fontSize: 14, fontWeight: '700' }}>✓</Text>
+                      <Text style={{ color: COLORS.success, fontSize: 14, fontWeight: '700' }}>✓</Text>
                     ) : (
-                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#F59E0B' }} />
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.star }} />
                     )
                   )}
                 </Pressable>

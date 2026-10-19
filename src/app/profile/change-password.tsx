@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 import { ApiError } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
 import { BackButton } from '@/components/BackButton';
+import { COLORS } from '@/lib/theme/colors';
 
 /** Port từ `fe/app/(public)/profile/change-password-modal.tsx`. */
 export default function ChangePasswordScreen() {
@@ -40,9 +41,9 @@ export default function ChangePasswordScreen() {
       <Field label="Mật khẩu mới" value={newPassword} onChangeText={setNewPassword} />
       <Field label="Xác nhận mật khẩu" value={confirmPassword} onChangeText={setConfirmPassword} />
 
-      {formError ? <Text style={{ color: '#DC2626', fontSize: 12.5 }}>{formError}</Text> : null}
+      {formError ? <Text style={{ color: COLORS.danger, fontSize: 12.5 }}>{formError}</Text> : null}
       {changePassword.error ? (
-        <Text style={{ color: '#DC2626', fontSize: 12.5 }}>
+        <Text style={{ color: COLORS.danger, fontSize: 12.5 }}>
           {changePassword.error instanceof ApiError ? changePassword.error.message : 'Có lỗi xảy ra.'}
         </Text>
       ) : null}
@@ -50,7 +51,7 @@ export default function ChangePasswordScreen() {
       <Pressable
         onPress={handleSubmit}
         disabled={changePassword.isPending}
-        style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: changePassword.isPending ? 0.6 : 1 }}
+        style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: changePassword.isPending ? 0.6 : 1 }}
       >
         {changePassword.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>Đổi mật khẩu</Text>}
       </Pressable>
@@ -61,12 +62,12 @@ export default function ChangePasswordScreen() {
 function Field({ label, value, onChangeText }: { label: string; value: string; onChangeText: (v: string) => void }) {
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#334155' }}>{label}</Text>
+      <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         secureTextEntry
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12, fontSize: 14 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, fontSize: 14 }}
       />
     </View>
   );

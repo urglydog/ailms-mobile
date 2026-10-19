@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/api/client';
 import { notificationsApi } from '@/lib/api/notifications';
 import { BackButton } from '@/components/BackButton';
 import type { Notification } from '@/types/notification';
+import { COLORS } from '@/lib/theme/colors';
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -50,7 +51,7 @@ export default function NotificationsScreen() {
           headerRight: () =>
             unreadCount > 0 ? (
               <Pressable onPress={() => markAllReadMutation.mutate()}>
-                <Text style={{ color: '#2563EB' }}>Đọc hết</Text>
+                <Text style={{ color: COLORS.accent }}>Đọc hết</Text>
               </Pressable>
             ) : null,
         }}
@@ -64,27 +65,27 @@ export default function NotificationsScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text>{error instanceof ApiError ? error.message : 'Không tải được thông báo.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Text style={{ color: '#64748B' }}>Chưa có thông báo nào.</Text>
+          <Text style={{ color: COLORS.inkFaint }}>Chưa có thông báo nào.</Text>
         </View>
       ) : (
         <>
-          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#E2E8F0', backgroundColor: '#fff' }}>
+          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: '#fff' }}>
             <Pressable
               onPress={() => setActiveTab('all')}
-              style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'all' ? '#2563EB' : 'transparent' }}
+              style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'all' ? COLORS.accent : 'transparent' }}
             >
-              <Text style={{ fontWeight: '600', color: activeTab === 'all' ? '#2563EB' : '#64748B' }}>Tất cả</Text>
+              <Text style={{ fontWeight: '600', color: activeTab === 'all' ? COLORS.accent : COLORS.inkFaint }}>Tất cả</Text>
             </Pressable>
             <Pressable
               onPress={() => setActiveTab('unread')}
-              style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'unread' ? '#2563EB' : 'transparent' }}
+              style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'unread' ? COLORS.accent : 'transparent' }}
             >
-              <Text style={{ fontWeight: '600', color: activeTab === 'unread' ? '#2563EB' : '#64748B' }}>Chưa đọc</Text>
+              <Text style={{ fontWeight: '600', color: activeTab === 'unread' ? COLORS.accent : COLORS.inkFaint }}>Chưa đọc</Text>
             </Pressable>
           </View>
           <FlatList
@@ -94,7 +95,7 @@ export default function NotificationsScreen() {
             onRefresh={refetch}
             ListEmptyComponent={
               <View style={{ alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-                <Text style={{ color: '#64748B' }}>Không có thông báo chưa đọc.</Text>
+                <Text style={{ color: COLORS.inkFaint }}>Không có thông báo chưa đọc.</Text>
               </View>
             }
             renderItem={({ item }) => (
@@ -116,15 +117,15 @@ function NotificationRow({ item, onPress }: { item: Notification; onPress: () =>
         gap: 10,
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
-        backgroundColor: item.isRead ? '#fff' : '#EFF6FF',
+        borderBottomColor: COLORS.lineSoft,
+        backgroundColor: item.isRead ? '#fff' : COLORS.tint,
       }}
     >
-      {!item.isRead ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#2563EB', marginTop: 6 }} /> : <View style={{ width: 8 }} />}
+      {!item.isRead ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent, marginTop: 6 }} /> : <View style={{ width: 8 }} />}
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontWeight: '600' }}>{item.title}</Text>
-        <Text style={{ color: '#475569' }}>{item.content}</Text>
-        <Text style={{ color: '#94A3B8', fontSize: 12 }}>{timeAgo(item.createdAt)}</Text>
+        <Text style={{ color: COLORS.inkMuted }}>{item.content}</Text>
+        <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>{timeAgo(item.createdAt)}</Text>
       </View>
     </Pressable>
   );

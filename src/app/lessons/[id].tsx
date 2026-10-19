@@ -28,6 +28,7 @@ import { useDubbingSocket } from '@/hooks/useDubbingSocket';
 import { useVoiceOptions } from '@/hooks/useVoiceOptions';
 import type { PipelineStep } from '@/types/dubbing';
 import type { ChapterNav, LessonNav } from '@/types/lesson';
+import { COLORS } from '@/lib/theme/colors';
 
 const STAGE_LABELS: Record<string, string> = {
   ASR: 'Đang bóc tách lời thoại (STT)',
@@ -430,7 +431,7 @@ export default function LessonPlayerScreen() {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Text>{error instanceof ApiError ? error.message : 'Không tải được bài học.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -446,12 +447,12 @@ export default function LessonPlayerScreen() {
       <Stack.Screen options={{ headerShown: true, title: lesson.lessonTitle, headerLeft: () => <BackButton /> }} />
 
       {streamConflict ? (
-        <View style={{ width: '100%', height: 220, backgroundColor: '#0F172A', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+        <View style={{ width: '100%', height: 220, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text style={{ color: '#F87171', fontWeight: '700', fontSize: 16 }}>Phiên xem bị giới hạn</Text>
-          <Text style={{ color: '#CBD5E1', textAlign: 'center', fontSize: 13, lineHeight: 20 }}>
+          <Text style={{ color: COLORS.line, textAlign: 'center', fontSize: 13, lineHeight: 20 }}>
             Tài khoản của bạn đang mở bài giảng này ở một thiết bị khác. Vui lòng dừng ở thiết bị kia, hoặc bấm giành lại quyền phát tại đây.
           </Text>
-          <Pressable onPress={handleResumeStream} style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, marginTop: 8 }}>
+          <Pressable onPress={handleResumeStream} style={{ backgroundColor: COLORS.accent, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, marginTop: 8 }}>
             <Text style={{ color: '#fff', fontWeight: '600' }}>Giành quyền phát</Text>
           </Pressable>
         </View>
@@ -472,9 +473,9 @@ export default function LessonPlayerScreen() {
 
       <View style={{ padding: 16, gap: 4 }}>
         <Text style={{ fontSize: 18, fontWeight: '700' }}>{lesson.lessonTitle}</Text>
-        <Text style={{ color: '#475569' }}>{lesson.courseTitle}</Text>
+        <Text style={{ color: COLORS.inkMuted }}>{lesson.courseTitle}</Text>
         {!lesson.enrolled && lesson.isPreview ? (
-          <Text style={{ color: '#D97706' }}>Bạn đang xem thử — ghi danh để xem toàn bộ khoá học.</Text>
+          <Text style={{ color: COLORS.warning }}>Bạn đang xem thử — ghi danh để xem toàn bộ khoá học.</Text>
         ) : null}
       </View>
 
@@ -492,7 +493,7 @@ export default function LessonPlayerScreen() {
         />
 
         {mode === 'activate' && currentLang && (
-          <View style={{ backgroundColor: '#F8FAFC', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+          <View style={{ backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: COLORS.lineSoft }}>
             <DubbingActivatePanel
               languageLabel={currentLang.label}
               onActivate={handleActivateDubbing}
@@ -507,7 +508,7 @@ export default function LessonPlayerScreen() {
         )}
 
         {mode === 'processing' && (
-          <View style={{ backgroundColor: '#F8FAFC', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+          <View style={{ backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: COLORS.lineSoft }}>
             <PipelineProgress
               steps={steps}
               percent={lastEvent && 'stage' in lastEvent && lastEvent.stage !== 'PREPARING' && lastEvent.stage !== 'FINALIZING' && lastEvent.totalChunks ? Math.round(((lastEvent.chunkIndex ?? 0) / lastEvent.totalChunks) * 100) : undefined}
@@ -523,8 +524,8 @@ export default function LessonPlayerScreen() {
           sidebar riêng bên web vào chung 1 hàng tab, hợp lý hơn cho màn hình hẹp của mobile thay
           vì chia 2 tầng tab như bản web). KHÔNG port dubbing/transcript/giới hạn phiên xem đồng
           thời — ngoài phạm vi 4 việc đã chốt, xem UpComming_Plan.md. */}
-      <View style={{ borderTopWidth: 1, borderTopColor: '#E2E8F0', marginTop: 8 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
+      <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, marginTop: 8 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
           {[...MAIN_TABS, { key: 'transcript', label: 'Transcript' }].map((tab) => (
             <Pressable
               key={tab.key}
@@ -533,11 +534,11 @@ export default function LessonPlayerScreen() {
                 paddingHorizontal: 14,
                 paddingVertical: 12,
                 borderBottomWidth: 2,
-                borderBottomColor: mainTab === tab.key ? '#2563EB' : 'transparent',
+                borderBottomColor: mainTab === tab.key ? COLORS.accent : 'transparent',
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: mainTab === tab.key ? '#2563EB' : '#64748B' }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: mainTab === tab.key ? COLORS.accent : COLORS.inkFaint }}>
                   {tab.label}
                 </Text>
                 {tab.key === 'materials' && lessonMaterialCount > 0 ? (
@@ -592,7 +593,7 @@ export default function LessonPlayerScreen() {
       </View>
 
       <View style={{ padding: 16, gap: 12 }}>
-        <Text style={{ fontWeight: '700', fontSize: 14, color: '#0F172A' }}>Nội dung khóa học</Text>
+        <Text style={{ fontWeight: '700', fontSize: 14, color: COLORS.ink }}>Nội dung khóa học</Text>
         {lesson.chapters.map((chapter) => (
           <ChapterNavSection key={chapter.chapterId} chapter={chapter} currentLessonId={lesson.lessonId} />
         ))}
@@ -621,15 +622,15 @@ function LessonNavRow({ lesson, active }: { lesson: LessonNav; active: boolean }
         justifyContent: 'space-between',
         paddingVertical: 8,
         paddingLeft: 12,
-        backgroundColor: active ? '#EFF6FF' : 'transparent',
+        backgroundColor: active ? COLORS.tint : 'transparent',
         borderRadius: 6,
       }}
     >
-      <Text style={{ color: active ? '#2563EB' : '#334155', fontWeight: active ? '700' : '400' }}>
+      <Text style={{ color: active ? COLORS.accent : COLORS.ink, fontWeight: active ? '700' : '400' }}>
         {lesson.isCompleted ? '✓ ' : ''}
         {lesson.lessonTitle}
       </Text>
-      <Text style={{ color: '#94A3B8' }}>{Math.round(lesson.durationSec / 60)} phút</Text>
+      <Text style={{ color: COLORS.lineDot }}>{Math.round(lesson.durationSec / 60)} phút</Text>
     </Pressable>
   );
 }

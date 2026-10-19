@@ -1,4 +1,5 @@
 import Markdown from 'react-native-markdown-display';
+import { COLORS } from '@/lib/theme/colors';
 
 /** Mobile chưa có renderer markdown nào trước đây (TutorChat/ExplainWrongAnswer/DiscoveryChat
  * đều hiện text thô — bug thật 12/10/2026, user báo cáo thấy nguyên `**text**`/`- item` chưa parse
@@ -18,7 +19,7 @@ export function MarkdownRenderer({ content, color = '#1E293B' }: { content: stri
         heading1: { fontSize: 16, fontWeight: '700', marginTop: 6, marginBottom: 4, color },
         heading2: { fontSize: 15, fontWeight: '700', marginTop: 6, marginBottom: 4, color },
         heading3: { fontSize: 14, fontWeight: '700', marginTop: 4, marginBottom: 3, color },
-        code_inline: { backgroundColor: '#F1F5F9', paddingHorizontal: 4, borderRadius: 4, fontSize: 12.5 },
+        code_inline: { backgroundColor: COLORS.surface, paddingHorizontal: 4, borderRadius: 4, fontSize: 12.5 },
         paragraph: { marginTop: 0, marginBottom: 4 },
       }}
     >

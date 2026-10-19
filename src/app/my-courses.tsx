@@ -8,6 +8,7 @@ import { ApiError } from '@/lib/api/client';
 import { enrollmentsApi } from '@/lib/api/enrollments';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { Enrollment } from '@/types/enrollment';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function MyCoursesScreen() {
   const { isAuthenticated } = useAuth();
@@ -36,12 +37,12 @@ export default function MyCoursesScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách khoá học đã ghi danh.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Text style={{ color: '#64748B' }}>Bạn chưa ghi danh khoá học nào.</Text>
+          <Text style={{ color: COLORS.inkFaint }}>Bạn chưa ghi danh khoá học nào.</Text>
         </View>
       ) : (
           <FlatList
@@ -70,20 +71,20 @@ function EnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
         if (enrollment.firstLessonId) router.push(`/lessons/${enrollment.firstLessonId}` as Href);
         else router.push(`/courses/${enrollment.courseSlug}` as Href);
       }}
-      style={{ width: cardWidth, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
+      style={{ width: cardWidth, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
     >
       {enrollment.thumbnailUrl ? (
         <Image source={{ uri: enrollment.thumbnailUrl }} style={{ width: '100%', height: 100 }} resizeMode="cover" />
       ) : (
-        <View style={{ width: '100%', height: 100, backgroundColor: '#E2E8F0' }} />
+        <View style={{ width: '100%', height: 100, backgroundColor: COLORS.lineSoft }} />
       )}
       <View style={{ padding: 10, gap: 6 }}>
         <Text style={{ fontWeight: '700', fontSize: 13, color: '#1E293B' }} numberOfLines={2}>{enrollment.courseTitle}</Text>
-        <Text style={{ color: '#64748B', fontSize: 11 }} numberOfLines={1}>{enrollment.instructorName}</Text>
-        <View style={{ height: 6, backgroundColor: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
-          <View style={{ height: 6, width: `${Math.min(100, enrollment.progressPct)}%`, backgroundColor: '#2563EB' }} />
+        <Text style={{ color: COLORS.inkFaint, fontSize: 11 }} numberOfLines={1}>{enrollment.instructorName}</Text>
+        <View style={{ height: 6, backgroundColor: COLORS.lineSoft, borderRadius: 3, overflow: 'hidden' }}>
+          <View style={{ height: 6, width: `${Math.min(100, enrollment.progressPct)}%`, backgroundColor: COLORS.accent }} />
         </View>
-        <Text style={{ color: '#64748B', fontSize: 11 }}>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 11 }}>
           {enrollment.progressPct.toFixed(0)}% hoàn thành
         </Text>
       </View>

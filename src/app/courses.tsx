@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { RankingBanner } from '@/components/ranking/RankingBanner';
 import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
 import type { CourseSummary } from '@/types/course';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function CoursesScreen() {
   const { isAuthenticated } = useAuth();
@@ -55,20 +56,20 @@ export default function CoursesScreen() {
                 placeholder="Tìm khoá học..."
                 value={searchInput}
                 onChangeText={setSearchInput}
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10 }}
+                style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10 }}
               />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
-                <Pressable onPress={() => setLevelFilter(null)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === null ? '#2563EB' : '#F1F5F9' }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === null ? '#FFF' : '#475569' }}>Tất cả cấp độ</Text>
+                <Pressable onPress={() => setLevelFilter(null)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === null ? COLORS.accent : COLORS.surface }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === null ? '#FFF' : COLORS.inkMuted }}>Tất cả cấp độ</Text>
                 </Pressable>
-                <Pressable onPress={() => setLevelFilter('BEGINNER')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'BEGINNER' ? '#2563EB' : '#F1F5F9' }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'BEGINNER' ? '#FFF' : '#475569' }}>Cơ bản</Text>
+                <Pressable onPress={() => setLevelFilter('BEGINNER')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'BEGINNER' ? COLORS.accent : COLORS.surface }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'BEGINNER' ? '#FFF' : COLORS.inkMuted }}>Cơ bản</Text>
                 </Pressable>
-                <Pressable onPress={() => setLevelFilter('INTERMEDIATE')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'INTERMEDIATE' ? '#2563EB' : '#F1F5F9' }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'INTERMEDIATE' ? '#FFF' : '#475569' }}>Trung cấp</Text>
+                <Pressable onPress={() => setLevelFilter('INTERMEDIATE')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'INTERMEDIATE' ? COLORS.accent : COLORS.surface }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'INTERMEDIATE' ? '#FFF' : COLORS.inkMuted }}>Trung cấp</Text>
                 </Pressable>
-                <Pressable onPress={() => setLevelFilter('ADVANCED')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'ADVANCED' ? '#2563EB' : '#F1F5F9' }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'ADVANCED' ? '#FFF' : '#475569' }}>Nâng cao</Text>
+                <Pressable onPress={() => setLevelFilter('ADVANCED')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'ADVANCED' ? COLORS.accent : COLORS.surface }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'ADVANCED' ? '#FFF' : COLORS.inkMuted }}>Nâng cao</Text>
                 </Pressable>
               </ScrollView>
             </View>
@@ -83,12 +84,12 @@ export default function CoursesScreen() {
             <View style={{ padding: 24, alignItems: 'center', gap: 12 }}>
               <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách khoá học.'}</Text>
               <Pressable onPress={() => refetch()}>
-                <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+                <Text style={{ color: COLORS.accent }}>Thử lại</Text>
               </Pressable>
             </View>
           ) : (
             <View style={{ padding: 40, alignItems: 'center' }}>
-              <Text style={{ color: '#64748B' }}>Không tìm thấy khoá học nào.</Text>
+              <Text style={{ color: COLORS.inkFaint }}>Không tìm thấy khoá học nào.</Text>
             </View>
           )
         }
@@ -106,17 +107,17 @@ function CourseCard({ course }: { course: CourseSummary }) {
   return (
     <Pressable
       onPress={() => router.push(`/courses/${course.slug}` as Href)}
-      style={{ width: cardWidth, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
+      style={{ width: cardWidth, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: '#FFF' }}
     >
       {course.thumbnailUrl ? (
         <Image source={{ uri: course.thumbnailUrl }} style={{ width: '100%', height: 100 }} resizeMode="cover" />
       ) : (
-        <View style={{ width: '100%', height: 100, backgroundColor: '#E2E8F0' }} />
+        <View style={{ width: '100%', height: 100, backgroundColor: COLORS.lineSoft }} />
       )}
       <View style={{ padding: 10, gap: 4 }}>
         <Text style={{ fontWeight: '700', fontSize: 13, color: '#1E293B' }} numberOfLines={2}>{course.title}</Text>
-        <Text style={{ color: '#64748B', fontSize: 11 }} numberOfLines={1}>{course.instructorName}</Text>
-        <Text style={{ color: '#2563EB', fontWeight: '700', fontSize: 13, marginTop: 4 }}>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 11 }} numberOfLines={1}>{course.instructorName}</Text>
+        <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13, marginTop: 4 }}>
           {course.isFree ? 'Miễn phí' : `${course.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>
       </View>

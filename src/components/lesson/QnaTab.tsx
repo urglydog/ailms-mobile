@@ -6,6 +6,7 @@ import { usersApi } from '@/lib/api/users';
 import { useLessonChat } from '@/hooks/useLessonChat';
 import { LockedFeatureNotice } from '@/components/lesson/LockedFeatureNotice';
 import type { LessonChatMessage } from '@/types/lessonPlayer';
+import { COLORS } from '@/lib/theme/colors';
 
 /** Port rút gọn từ `fe/components/community/LiveChatPanel.tsx` — chat realtime phẳng theo thời
  * gian (KHÔNG port phân trang trả lời kiểu bình luận Facebook/ghim câu trả lời giảng viên lên
@@ -36,23 +37,23 @@ export function QnaTab({ lessonId, enrolled, courseSlug }: { lessonId: number; e
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         renderItem={({ item }) => <ChatBubble message={item} isMine={me != null && item.senderId === String(me.id)} />}
         ListEmptyComponent={
-          <Text style={{ color: '#94A3B8', fontSize: 12.5, textAlign: 'center', marginTop: 24 }}>
+          <Text style={{ color: COLORS.lineDot, fontSize: 12.5, textAlign: 'center', marginTop: 24 }}>
             Chưa có câu hỏi nào — hãy là người đầu tiên hỏi về bài học này!
           </Text>
         }
       />
-      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: '#E2E8F0' }}>
+      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
         <TextInput
           value={input}
           onChangeText={setInput}
           placeholder="Đặt câu hỏi về bài học..."
-          style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
+          style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
           onSubmitEditing={handleSend}
         />
         <Pressable
           onPress={handleSend}
           disabled={!input.trim()}
-          style={{ backgroundColor: '#2563EB', borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', opacity: input.trim() ? 1 : 0.5 }}
+          style={{ backgroundColor: COLORS.accent, borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', opacity: input.trim() ? 1 : 0.5 }}
         >
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>Gửi</Text>
         </Pressable>
@@ -64,18 +65,18 @@ export function QnaTab({ lessonId, enrolled, courseSlug }: { lessonId: number; e
 function ChatBubble({ message, isMine }: { message: LessonChatMessage; isMine: boolean }) {
   return (
     <View style={{ alignSelf: isMine ? 'flex-end' : 'flex-start', maxWidth: '80%', gap: 2 }}>
-      <Text style={{ fontSize: 10.5, color: '#94A3B8', marginLeft: 4 }}>
+      <Text style={{ fontSize: 10.5, color: COLORS.lineDot, marginLeft: 4 }}>
         {message.senderName}{message.isInstructor ? ' · Giảng viên' : ''}
       </Text>
       <View
         style={{
-          backgroundColor: isMine ? '#2563EB' : message.isInstructor ? '#F0FDF4' : '#F1F5F9',
+          backgroundColor: isMine ? COLORS.accent : message.isInstructor ? '#F0FDF4' : COLORS.surface,
           borderRadius: 14,
           paddingHorizontal: 12,
           paddingVertical: 8,
         }}
       >
-        <Text style={{ color: isMine ? '#fff' : '#0F172A', fontSize: 13 }}>{message.content}</Text>
+        <Text style={{ color: isMine ? '#fff' : COLORS.ink, fontSize: 13 }}>{message.content}</Text>
       </View>
     </View>
   );

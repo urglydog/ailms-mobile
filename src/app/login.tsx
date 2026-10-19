@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function LoginScreen() {
   const { isAuthenticated, login, loginWithGoogle } = useAuth();
@@ -54,7 +55,7 @@ export default function LoginScreen() {
           alignItems: 'center',
           gap: 8,
           borderWidth: 1,
-          borderColor: '#CBD5E1',
+          borderColor: COLORS.line,
           borderRadius: 8,
           padding: 14,
           backgroundColor: '#fff',
@@ -69,9 +70,9 @@ export default function LoginScreen() {
       </Pressable>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 4 }}>
-        <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
-        <Text style={{ color: '#94A3B8', fontSize: 12 }}>hoặc</Text>
-        <View style={{ flex: 1, height: 1, backgroundColor: '#E2E8F0' }} />
+        <View style={{ flex: 1, height: 1, backgroundColor: COLORS.lineSoft }} />
+        <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>hoặc</Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: COLORS.lineSoft }} />
       </View>
 
       <TextInput
@@ -80,28 +81,28 @@ export default function LoginScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <TextInput
         placeholder="Mật khẩu"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
-      {error ? <Text style={{ color: '#DC2626' }}>{error}</Text> : null}
+      {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
       <Pressable
         onPress={handleSubmit}
         disabled={isSubmitting}
-        style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
+        style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
       >
         {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Đăng nhập</Text>}
       </Pressable>
 
-      <Link href={'/forgot-password' as Href} style={{ textAlign: 'center', color: '#2563EB', marginTop: 4 }}>
+      <Link href={'/forgot-password' as Href} style={{ textAlign: 'center', color: COLORS.accent, marginTop: 4 }}>
         Quên mật khẩu?
       </Link>
-      <Link href={'/register' as Href} style={{ textAlign: 'center', color: '#475569', marginTop: 4 }}>
+      <Link href={'/register' as Href} style={{ textAlign: 'center', color: COLORS.inkMuted, marginTop: 4 }}>
         Chưa có tài khoản? Đăng ký
       </Link>
     </View>

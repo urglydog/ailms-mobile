@@ -12,6 +12,7 @@ import { LockedFeatureNotice } from '@/components/lesson/LockedFeatureNotice';
 import type { MaterialAssignment, MaterialListItem, MaterialType, SharedMaterialListItem } from '@/types/material';
 import type { CourseResource } from '@/types/courseResource';
 import type { ChapterNav } from '@/types/lesson';
+import { COLORS } from '@/lib/theme/colors';
 
 const TYPE_ICON: Record<MaterialType, typeof Brain> = {
   MINDMAP: Brain,
@@ -151,7 +152,7 @@ export function MaterialsWorkspace({
             resourcesQuery.refetch();
           }}
         >
-          <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -191,10 +192,10 @@ export function MaterialsWorkspace({
       {activeTab === 'personal' ? (
         <Pressable
           onPress={() => setCreateOpen(true)}
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: '#2563EB', borderRadius: 10, paddingVertical: 10, backgroundColor: '#EFF6FF' }}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: COLORS.accent, borderRadius: 10, paddingVertical: 10, backgroundColor: COLORS.tint }}
         >
-          <Plus size={16} color="#2563EB" strokeWidth={2.5} />
-          <Text style={{ color: '#2563EB', fontWeight: '700', fontSize: 13 }}>Tạo học liệu AI mới</Text>
+          <Plus size={16} color={COLORS.accent} strokeWidth={2.5} />
+          <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13 }}>Tạo học liệu AI mới</Text>
         </Pressable>
       ) : null}
 
@@ -203,7 +204,7 @@ export function MaterialsWorkspace({
       ) : null}
 
       {currentData.length === 0 ? (
-        <Text style={{ color: '#64748B', textAlign: 'center', paddingVertical: 24 }}>Không có dữ liệu trong mục này.</Text>
+        <Text style={{ color: COLORS.inkFaint, textAlign: 'center', paddingVertical: 24 }}>Không có dữ liệu trong mục này.</Text>
       ) : (
         <View style={{ gap: 10 }}>
           {currentData.map((item, index) => {
@@ -217,16 +218,16 @@ export function MaterialsWorkspace({
                   alignItems: 'center',
                   gap: 12,
                   borderWidth: 1,
-                  borderColor: '#E2E8F0',
+                  borderColor: COLORS.lineSoft,
                   borderRadius: 10,
                   padding: 14,
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: COLORS.surface,
                 }}
               >
-                <Icon size={22} color="#2563EB" strokeWidth={1.75} />
+                <Icon size={22} color={COLORS.accent} strokeWidth={1.75} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontWeight: '600', fontSize: 14, color: '#1E293B' }}>{titleFor(item)}</Text>
-                  <Text style={{ color: '#64748B', fontSize: 12, marginTop: 2 }}>{label}</Text>
+                  <Text style={{ color: COLORS.inkFaint, fontSize: 12, marginTop: 2 }}>{label}</Text>
                 </View>
               </Pressable>
             );
@@ -301,14 +302,14 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
             riêng trong khung cố định thay vì để tự giãn theo nội dung. */}
         <View style={{ maxHeight: '85%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>Tạo học liệu AI mới</Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Tạo học liệu AI mới</Text>
             <Pressable onPress={onClose} hitSlop={8}>
-              <X size={20} color="#64748B" />
+              <X size={20} color={COLORS.inkFaint} />
             </Pressable>
           </View>
 
           <View style={{ gap: 8 }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Loại học liệu</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Loại học liệu</Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {CREATE_TYPES.map(({ id, label, Icon }) => {
                 const active = materialType === id;
@@ -316,10 +317,10 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
                   <Pressable
                     key={id}
                     onPress={() => setMaterialType(id)}
-                    style={{ flex: 1, alignItems: 'center', gap: 4, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: active ? '#2563EB' : '#E2E8F0', backgroundColor: active ? '#EFF6FF' : '#fff' }}
+                    style={{ flex: 1, alignItems: 'center', gap: 4, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.lineSoft, backgroundColor: active ? COLORS.tint : '#fff' }}
                   >
-                    <Icon size={18} color={active ? '#2563EB' : '#64748B'} strokeWidth={1.75} />
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: active ? '#2563EB' : '#475569' }}>{label}</Text>
+                    <Icon size={18} color={active ? COLORS.accent : COLORS.inkFaint} strokeWidth={1.75} />
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: active ? COLORS.accent : COLORS.inkMuted }}>{label}</Text>
                   </Pressable>
                 );
               })}
@@ -327,23 +328,23 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
           </View>
 
           <View style={{ gap: 8 }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: '#475569' }}>Ngôn ngữ</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Ngôn ngữ</Text>
             {languagesQuery.isLoading ? (
               <ActivityIndicator />
             ) : languages.length === 0 ? (
-              <Text style={{ color: '#94A3B8', fontSize: 12.5 }}>Khoá học chưa có ngôn ngữ nào khả dụng.</Text>
+              <Text style={{ color: COLORS.lineDot, fontSize: 12.5 }}>Khoá học chưa có ngôn ngữ nào khả dụng.</Text>
             ) : (
               <View>
                 <Pressable
                   onPress={() => setLanguagePickerOpen((o) => !o)}
-                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: languagePickerOpen ? '#2563EB' : '#E2E8F0', backgroundColor: '#fff' }}
+                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: languagePickerOpen ? COLORS.accent : COLORS.lineSoft, backgroundColor: '#fff' }}
                 >
-                  <Text style={{ fontSize: 13.5, fontWeight: '600', color: '#334155' }}>{selectedLanguageLabel ?? 'Chọn ngôn ngữ'}</Text>
-                  {languagePickerOpen ? <ChevronUp size={16} color="#64748B" /> : <ChevronDown size={16} color="#64748B" />}
+                  <Text style={{ fontSize: 13.5, fontWeight: '600', color: COLORS.ink }}>{selectedLanguageLabel ?? 'Chọn ngôn ngữ'}</Text>
+                  {languagePickerOpen ? <ChevronUp size={16} color={COLORS.inkFaint} /> : <ChevronDown size={16} color={COLORS.inkFaint} />}
                 </Pressable>
 
                 {languagePickerOpen ? (
-                  <View style={{ marginTop: 6, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 8, gap: 8 }}>
+                  <View style={{ marginTop: 6, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 8, gap: 8 }}>
                     <TextInput
                       value={languageSearch}
                       onChangeText={setLanguageSearch}
@@ -351,11 +352,11 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
                       autoCapitalize="none"
                       returnKeyType="done"
                       onSubmitEditing={() => Keyboard.dismiss()}
-                      style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13 }}
+                      style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13 }}
                     />
                     <ScrollView style={{ maxHeight: 160 }} contentContainerStyle={{ gap: 4 }} keyboardShouldPersistTaps="handled">
                       {filteredLanguages.length === 0 ? (
-                        <Text style={{ color: '#94A3B8', fontSize: 12.5, textAlign: 'center', paddingVertical: 8 }}>Không tìm thấy ngôn ngữ phù hợp.</Text>
+                        <Text style={{ color: COLORS.lineDot, fontSize: 12.5, textAlign: 'center', paddingVertical: 8 }}>Không tìm thấy ngôn ngữ phù hợp.</Text>
                       ) : (
                         filteredLanguages.map((lang) => {
                           const active = selectedLanguage === lang.code;
@@ -367,10 +368,10 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
                                 setLanguagePickerOpen(false);
                                 setLanguageSearch('');
                               }}
-                              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 9, borderRadius: 6, backgroundColor: active ? '#EFF6FF' : 'transparent' }}
+                              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 9, borderRadius: 6, backgroundColor: active ? COLORS.tint : 'transparent' }}
                             >
-                              <Text style={{ fontSize: 13.5, fontWeight: '600', color: active ? '#2563EB' : '#334155' }}>{lang.label}</Text>
-                              {active ? <Check size={16} color="#2563EB" strokeWidth={2.5} /> : null}
+                              <Text style={{ fontSize: 13.5, fontWeight: '600', color: active ? COLORS.accent : COLORS.ink }}>{lang.label}</Text>
+                              {active ? <Check size={16} color={COLORS.accent} strokeWidth={2.5} /> : null}
                             </Pressable>
                           );
                         })
@@ -385,7 +386,7 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
           <Pressable
             onPress={() => createMutation.mutate()}
             disabled={!selectedLanguage || createMutation.isPending}
-            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: '#2563EB', opacity: !selectedLanguage || createMutation.isPending ? 0.6 : 1 }}
+            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: COLORS.accent, opacity: !selectedLanguage || createMutation.isPending ? 0.6 : 1 }}
           >
             {createMutation.isPending ? (
               <ActivityIndicator color="#fff" />
@@ -410,13 +411,13 @@ function TabPill({ label, count, active, onPress }: { label: string; count?: num
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 999,
-        backgroundColor: active ? '#2563EB' : '#F1F5F9',
+        backgroundColor: active ? COLORS.accent : COLORS.surface,
       }}
     >
-      <Text style={{ fontSize: 13, fontWeight: '700', color: active ? '#fff' : '#475569' }}>{label}</Text>
+      <Text style={{ fontSize: 13, fontWeight: '700', color: active ? '#fff' : COLORS.inkMuted }}>{label}</Text>
       {!!count && (
-        <View style={{ backgroundColor: active ? 'rgba(255,255,255,0.25)' : '#CBD5E1', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: active ? '#fff' : '#334155' }}>{count}</Text>
+        <View style={{ backgroundColor: active ? 'rgba(255,255,255,0.25)' : COLORS.line, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: active ? '#fff' : COLORS.ink }}>{count}</Text>
         </View>
       )}
     </Pressable>

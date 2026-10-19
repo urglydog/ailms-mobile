@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Download, FolderOpen, FileText } from 'lucide-react-native';
 
 import { courseResourcesApi } from '@/lib/api/courseResources';
+import { COLORS } from '@/lib/theme/colors';
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -30,15 +31,15 @@ export function ResourcesTab({ courseId }: { courseId: number }) {
   }
 
   if (error) {
-    return <Text style={{ padding: 16, color: '#DC2626' }}>Lỗi khi tải tài nguyên khoá học.</Text>;
+    return <Text style={{ padding: 16, color: COLORS.danger }}>Lỗi khi tải tài nguyên khoá học.</Text>;
   }
 
   if (!resources || resources.length === 0) {
     return (
       <View style={{ padding: 24, alignItems: 'center', gap: 8 }}>
-        <FolderOpen size={36} color="#94A3B8" strokeWidth={1.5} />
-        <Text style={{ fontWeight: '700', color: '#0F172A' }}>Chưa có tài nguyên tĩnh</Text>
-        <Text style={{ color: '#64748B', fontSize: 12.5, textAlign: 'center' }}>
+        <FolderOpen size={36} color={COLORS.lineDot} strokeWidth={1.5} />
+        <Text style={{ fontWeight: '700', color: COLORS.ink }}>Chưa có tài nguyên tĩnh</Text>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 12.5, textAlign: 'center' }}>
           Giảng viên chưa đăng tải tài liệu đính kèm nào cho khóa học này.
         </Text>
       </View>
@@ -47,8 +48,8 @@ export function ResourcesTab({ courseId }: { courseId: number }) {
 
   return (
     <View style={{ padding: 16 }}>
-      <Text style={{ fontWeight: '700', fontSize: 15, marginBottom: 10, color: '#0F172A' }}>Tài nguyên đính kèm</Text>
-      <View style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, overflow: 'hidden' }}>
+      <Text style={{ fontWeight: '700', fontSize: 15, marginBottom: 10, color: COLORS.ink }}>Tài nguyên đính kèm</Text>
+      <View style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, overflow: 'hidden' }}>
         {resources.map((res, idx) => (
           <Pressable
             key={res.id}
@@ -59,19 +60,19 @@ export function ResourcesTab({ courseId }: { courseId: number }) {
               gap: 10,
               padding: 12,
               borderTopWidth: idx === 0 ? 0 : 1,
-              borderTopColor: '#F1F5F9',
+              borderTopColor: COLORS.surface,
             }}
           >
-            <View style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' }}>
-              <FileText size={17} color="#2563EB" strokeWidth={1.75} />
+            <View style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: COLORS.tint, alignItems: 'center', justifyContent: 'center' }}>
+              <FileText size={17} color={COLORS.accent} strokeWidth={1.75} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text numberOfLines={1} style={{ fontWeight: '600', fontSize: 13, color: '#0F172A' }}>{res.title}</Text>
-              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>
+              <Text numberOfLines={1} style={{ fontWeight: '600', fontSize: 13, color: COLORS.ink }}>{res.title}</Text>
+              <Text style={{ fontSize: 11, color: COLORS.inkFaint, marginTop: 1 }}>
                 {res.fileType} · {formatBytes(res.fileSize)}
               </Text>
             </View>
-            <Download size={16} color="#94A3B8" />
+            <Download size={16} color={COLORS.lineDot} />
           </Pressable>
         ))}
       </View>

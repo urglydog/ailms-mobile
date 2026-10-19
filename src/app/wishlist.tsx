@@ -7,6 +7,7 @@ import { wishlistApi } from '@/lib/api/wishlist';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { BackButton } from '@/components/BackButton';
 import type { WishlistItem } from '@/types/wishlist';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function WishlistScreen() {
   const { isAuthenticated } = useAuth();
@@ -39,12 +40,12 @@ export default function WishlistScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách yêu thích.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Text style={{ color: '#64748B' }}>Chưa có khoá học yêu thích nào.</Text>
+          <Text style={{ color: COLORS.inkFaint }}>Chưa có khoá học yêu thích nào.</Text>
         </View>
       ) : (
         <FlatList
@@ -66,24 +67,24 @@ function WishlistCard({ item, onRemove }: { item: WishlistItem; onRemove: () => 
   return (
     <Pressable
       onPress={() => router.push(`/courses/${item.courseSlug}` as Href)}
-      style={{ flexDirection: 'row', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, overflow: 'hidden' }}
+      style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden' }}
     >
       {item.thumbnailUrl ? (
         <Image source={{ uri: item.thumbnailUrl }} style={{ width: 100, height: 100 }} resizeMode="cover" />
       ) : (
-        <View style={{ width: 100, height: 100, backgroundColor: '#E2E8F0' }} />
+        <View style={{ width: 100, height: 100, backgroundColor: COLORS.lineSoft }} />
       )}
       <View style={{ flex: 1, padding: 10, gap: 4, justifyContent: 'center' }}>
         <Text style={{ fontWeight: '600' }} numberOfLines={2}>
           {item.courseTitle}
         </Text>
-        <Text style={{ color: '#475569', fontSize: 12 }}>{item.instructorName}</Text>
-        <Text style={{ color: '#2563EB', fontWeight: '600' }}>
+        <Text style={{ color: COLORS.inkMuted, fontSize: 12 }}>{item.instructorName}</Text>
+        <Text style={{ color: COLORS.accent, fontWeight: '600' }}>
           {item.isFree ? 'Miễn phí' : `${item.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>
       </View>
       <Pressable onPress={onRemove} style={{ padding: 12, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#DC2626', fontSize: 18 }}>♥</Text>
+        <Text style={{ color: COLORS.danger, fontSize: 18 }}>♥</Text>
       </Pressable>
     </Pressable>
   );

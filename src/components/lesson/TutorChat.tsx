@@ -6,6 +6,7 @@ import { Sparkles } from 'lucide-react-native';
 import { ApiError } from '@/lib/api/client';
 import { tutorApi } from '@/lib/api/tutor';
 import { LockedFeatureNotice } from '@/components/lesson/LockedFeatureNotice';
+import { COLORS } from '@/lib/theme/colors';
 
 interface ChatItem {
   id: string;
@@ -93,8 +94,8 @@ export function TutorChat({ courseId, lessonId, enrolled, courseSlug }: { course
         renderItem={({ item }) => <TutorBubble item={item} />}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', marginTop: 24, gap: 8 }}>
-            <Sparkles size={28} color="#94A3B8" strokeWidth={1.5} />
-            <Text style={{ color: '#94A3B8', fontSize: 12.5, textAlign: 'center' }}>
+            <Sparkles size={28} color={COLORS.lineDot} strokeWidth={1.5} />
+            <Text style={{ color: COLORS.lineDot, fontSize: 12.5, textAlign: 'center' }}>
               Hỏi Gia sư AI về bất kỳ điều gì trong bài học này.
             </Text>
           </View>
@@ -102,22 +103,22 @@ export function TutorChat({ courseId, lessonId, enrolled, courseSlug }: { course
         ListFooterComponent={ask.isPending ? <ActivityIndicator style={{ marginTop: 8 }} /> : null}
       />
       {ask.error ? (
-        <Text style={{ color: '#DC2626', fontSize: 11.5, paddingHorizontal: 12 }}>
+        <Text style={{ color: COLORS.danger, fontSize: 11.5, paddingHorizontal: 12 }}>
           {ask.error instanceof ApiError ? ask.error.message : 'Không gửi được câu hỏi, vui lòng thử lại.'}
         </Text>
       ) : null}
-      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: '#E2E8F0' }}>
+      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
         <TextInput
           value={input}
           onChangeText={setInput}
           placeholder="Hỏi Gia sư AI..."
-          style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
+          style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
           onSubmitEditing={handleSend}
         />
         <Pressable
           onPress={handleSend}
           disabled={!input.trim() || ask.isPending}
-          style={{ backgroundColor: '#2563EB', borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', opacity: !input.trim() || ask.isPending ? 0.5 : 1 }}
+          style={{ backgroundColor: COLORS.accent, borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', opacity: !input.trim() || ask.isPending ? 0.5 : 1 }}
         >
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>Gửi</Text>
         </Pressable>
@@ -130,8 +131,8 @@ function TutorBubble({ item }: { item: ChatItem }) {
   const isUser = item.sender === 'USER';
   return (
     <View style={{ alignSelf: isUser ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
-      <View style={{ backgroundColor: isUser ? '#2563EB' : '#F1F5F9', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 }}>
-        <Text style={{ color: isUser ? '#fff' : '#0F172A', fontSize: 13 }}>{item.content}</Text>
+      <View style={{ backgroundColor: isUser ? COLORS.accent : COLORS.surface, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <Text style={{ color: isUser ? '#fff' : COLORS.ink, fontSize: 13 }}>{item.content}</Text>
       </View>
     </View>
   );

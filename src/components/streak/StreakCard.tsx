@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
 import type { Streak } from '@/types/streak';
+import { COLORS } from '@/lib/theme/colors';
 
 /** Tách từ `u/[userId].tsx` (port `fe/components/streak/StreakCard.tsx`) để dùng lại ở trang
  * `/community` mà không copy-paste JSX. Chỉ hiện của chính người đang đăng nhập — BE chỉ có
@@ -11,7 +12,7 @@ export function StreakCard({ streak }: { streak: Streak }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Text style={{ fontSize: 22 }}>🔥</Text>
         <View>
-          <Text style={{ fontWeight: '700', fontSize: 13, color: '#0F172A' }}>Chuỗi {streak.currentStreak} ngày</Text>
+          <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }}>Chuỗi {streak.currentStreak} ngày</Text>
           <Text style={{ fontSize: 11.5, color: '#92400E' }}>Kỷ lục: {streak.longestStreak} ngày</Text>
         </View>
       </View>

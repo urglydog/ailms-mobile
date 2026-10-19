@@ -3,14 +3,15 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ExplainWrongAnswer } from '@/components/quiz/ExplainWrongAnswer';
 import type { QuizAttemptResult } from '@/types/quiz';
+import { COLORS } from '@/lib/theme/colors';
 
 /** Hiển thị kết quả 1 lượt làm bài — dùng chung cho lúc vừa nộp bài VÀ lúc xem lại lịch sử. */
 export function ExamResultView({ result }: { result: QuizAttemptResult }) {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 16 }}>
       <View style={{ alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontSize: 36, fontWeight: '800', color: '#2563EB' }}>{result.score.toFixed(1)}</Text>
-        <Text style={{ color: '#475569' }}>
+        <Text style={{ fontSize: 36, fontWeight: '800', color: COLORS.accent }}>{result.score.toFixed(1)}</Text>
+        <Text style={{ color: COLORS.inkMuted }}>
           Đúng {result.correctCount}/{result.totalQuestions} câu
         </Text>
       </View>
@@ -37,7 +38,7 @@ export function ExamResultView({ result }: { result: QuizAttemptResult }) {
               <Text
                 key={opt.id}
                 style={{
-                  color: isCorrectOption ? '#16A34A' : wasSelected ? '#DC2626' : '#334155',
+                  color: isCorrectOption ? COLORS.success : wasSelected ? COLORS.danger : COLORS.ink,
                   fontWeight: isCorrectOption || wasSelected ? '600' : '400',
                 }}
               >
@@ -58,7 +59,7 @@ export function ExamResultView({ result }: { result: QuizAttemptResult }) {
       ))}
 
       <Pressable onPress={() => router.replace('/my-courses' as Href)} style={{ alignItems: 'center', padding: 12 }}>
-        <Text style={{ color: '#2563EB', fontWeight: '600' }}>Về khoá học của tôi</Text>
+        <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Về khoá học của tôi</Text>
       </Pressable>
     </ScrollView>
   );

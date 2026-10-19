@@ -15,6 +15,7 @@ import { LiveBanner } from '@/components/course/LiveBanner';
 import { BundleUpsellWidget } from '@/components/course/BundleUpsellWidget';
 import type { CourseChapter } from '@/types/course';
 import type { CourseReview } from '@/types/review';
+import { COLORS } from '@/lib/theme/colors';
 
 function formatDuration(totalSec: number): string {
   const h = Math.floor(totalSec / 3600);
@@ -90,7 +91,7 @@ export default function CourseDetailScreen() {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Text>{error instanceof ApiError ? error.message : 'Không tải được khoá học.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -104,18 +105,18 @@ export default function CourseDetailScreen() {
         <Text style={{ fontSize: 22, fontWeight: '700', flex: 1 }}>{course.title}</Text>
         {isAuthenticated ? (
           <Pressable onPress={() => wishlistMutation.mutate()} hitSlop={8}>
-            <Text style={{ fontSize: 24, color: isWished ? '#DC2626' : '#CBD5E1' }}>♥</Text>
+            <Text style={{ fontSize: 24, color: isWished ? COLORS.danger : COLORS.line }}>♥</Text>
           </Pressable>
         ) : null}
       </View>
-      <Text style={{ color: '#475569' }}>
+      <Text style={{ color: COLORS.inkMuted }}>
         {course.instructorName} · {course.categoryName} · {course.level}
       </Text>
-      <Text style={{ color: '#475569' }}>
+      <Text style={{ color: COLORS.inkMuted }}>
         {course.learnerCount.toLocaleString('vi-VN')} học viên
         {course.avgRating ? ` · ${course.avgRating.toFixed(1)}★ (${course.reviewCount})` : ''}
       </Text>
-      <Text style={{ color: '#475569' }}>{formatDuration(course.totalDurationSec)}</Text>
+      <Text style={{ color: COLORS.inkMuted }}>{formatDuration(course.totalDurationSec)}</Text>
 
       <LiveBanner courseId={course.id} />
 
@@ -126,7 +127,7 @@ export default function CourseDetailScreen() {
           <Text style={{ fontSize: 18, fontWeight: '700' }}>Nội dung khoá học</Text>
           {isAuthenticated ? (
             <Pressable onPress={() => router.push(`/gradebook/${course.id}` as Href)}>
-              <Text style={{ color: '#2563EB' }}>Bảng điểm</Text>
+              <Text style={{ color: COLORS.accent }}>Bảng điểm</Text>
             </Pressable>
           ) : null}
         </View>
@@ -135,8 +136,8 @@ export default function CourseDetailScreen() {
         ))}
       </View>
 
-      <View style={{ borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 16, gap: 8 }}>
-        <Text style={{ fontSize: 20, fontWeight: '700', color: '#2563EB' }}>
+      <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 16, gap: 8 }}>
+        <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.accent }}>
           {course.isFree ? 'Miễn phí' : `${course.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>
 
@@ -148,14 +149,14 @@ export default function CourseDetailScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
-                style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+                style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
               />
             ) : null}
-            {enrollError ? <Text style={{ color: '#DC2626' }}>{enrollError}</Text> : null}
+            {enrollError ? <Text style={{ color: COLORS.danger }}>{enrollError}</Text> : null}
             <Pressable
               onPress={() => enrollMutation.mutate()}
               disabled={enrollMutation.isPending}
-              style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: enrollMutation.isPending ? 0.6 : 1 }}
+              style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: enrollMutation.isPending ? 0.6 : 1 }}
             >
               {enrollMutation.isPending ? (
                 <ActivityIndicator color="#fff" />
@@ -168,7 +169,7 @@ export default function CourseDetailScreen() {
           <View style={{ gap: 8 }}>
             <Pressable
               onPress={() => router.push(`/checkout/${slug}` as Href)}
-              style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center' }}
+              style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center' }}
             >
               <Text style={{ color: '#fff', fontWeight: '600' }}>Mua ngay</Text>
             </Pressable>
@@ -176,9 +177,9 @@ export default function CourseDetailScreen() {
               <Pressable
                 onPress={() => cartMutation.mutate()}
                 disabled={cartMutation.isPending}
-                style={{ borderWidth: 1, borderColor: '#2563EB', backgroundColor: isInCart ? '#EFF6FF' : '#fff', borderRadius: 8, padding: 14, alignItems: 'center', opacity: cartMutation.isPending ? 0.6 : 1 }}
+                style={{ borderWidth: 1, borderColor: COLORS.accent, backgroundColor: isInCart ? COLORS.tint : '#fff', borderRadius: 8, padding: 14, alignItems: 'center', opacity: cartMutation.isPending ? 0.6 : 1 }}
               >
-                <Text style={{ color: '#2563EB', fontWeight: '600' }}>
+                <Text style={{ color: COLORS.accent, fontWeight: '600' }}>
                   {isInCart ? 'Đã thêm vào giỏ hàng' : 'Thêm vào giỏ hàng'}
                 </Text>
               </Pressable>
@@ -217,22 +218,22 @@ function ReviewsSection({ courseId, isAuthenticated }: { courseId: number; isAut
   });
 
   return (
-    <View style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 16 }}>
+    <View style={{ gap: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 16 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Text style={{ fontSize: 18, fontWeight: '700' }}>Đánh giá</Text>
         {isAuthenticated && !showForm ? (
           <Pressable onPress={() => setShowForm(true)}>
-            <Text style={{ color: '#2563EB' }}>Viết đánh giá</Text>
+            <Text style={{ color: COLORS.accent }}>Viết đánh giá</Text>
           </Pressable>
         ) : null}
       </View>
 
       {showForm ? (
-        <View style={{ gap: 8, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}>
+        <View style={{ gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}>
           <View style={{ flexDirection: 'row', gap: 4 }}>
             {[1, 2, 3, 4, 5].map((star) => (
               <Pressable key={star} onPress={() => setRating(star)}>
-                <Text style={{ fontSize: 22, color: star <= rating ? '#F59E0B' : '#CBD5E1' }}>★</Text>
+                <Text style={{ fontSize: 22, color: star <= rating ? COLORS.star : COLORS.line }}>★</Text>
               </Pressable>
             ))}
           </View>
@@ -242,26 +243,26 @@ function ReviewsSection({ courseId, isAuthenticated }: { courseId: number; isAut
             onChangeText={setComment}
             multiline
             numberOfLines={3}
-            style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, minHeight: 70, textAlignVertical: 'top' }}
+            style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, minHeight: 70, textAlignVertical: 'top' }}
           />
-          {reviewError ? <Text style={{ color: '#DC2626', fontSize: 12 }}>{reviewError}</Text> : null}
+          {reviewError ? <Text style={{ color: COLORS.danger, fontSize: 12 }}>{reviewError}</Text> : null}
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <Pressable
               onPress={() => createMutation.mutate()}
               disabled={createMutation.isPending || !comment.trim()}
-              style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16, opacity: createMutation.isPending ? 0.6 : 1 }}
+              style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16, opacity: createMutation.isPending ? 0.6 : 1 }}
             >
               {createMutation.isPending ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Gửi</Text>}
             </Pressable>
             <Pressable onPress={() => setShowForm(false)} style={{ justifyContent: 'center' }}>
-              <Text style={{ color: '#64748B' }}>Huỷ</Text>
+              <Text style={{ color: COLORS.inkFaint }}>Huỷ</Text>
             </Pressable>
           </View>
         </View>
       ) : null}
 
       {reviews?.content.length === 0 ? (
-        <Text style={{ color: '#64748B' }}>Chưa có đánh giá nào.</Text>
+        <Text style={{ color: COLORS.inkFaint }}>Chưa có đánh giá nào.</Text>
       ) : (
         reviews?.content.map((review) => <ReviewRow key={review.id} review={review} />)
       )}
@@ -271,13 +272,13 @@ function ReviewsSection({ courseId, isAuthenticated }: { courseId: number; isAut
 
 function ReviewRow({ review }: { review: CourseReview }) {
   return (
-    <View style={{ gap: 2, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+    <View style={{ gap: 2, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.surface }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={{ fontWeight: '600' }}>{review.userName}</Text>
-        <Text style={{ color: '#F59E0B' }}>{'★'.repeat(review.rating)}</Text>
+        <Text style={{ color: COLORS.star }}>{'★'.repeat(review.rating)}</Text>
       </View>
-      {review.comment ? <Text style={{ color: '#475569' }}>{review.comment}</Text> : null}
-      <Text style={{ color: '#94A3B8', fontSize: 12 }}>{new Date(review.createdAt).toLocaleDateString('vi-VN')}</Text>
+      {review.comment ? <Text style={{ color: COLORS.inkMuted }}>{review.comment}</Text> : null}
+      <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>{new Date(review.createdAt).toLocaleDateString('vi-VN')}</Text>
     </View>
   );
 }
@@ -292,11 +293,11 @@ function ChapterSection({ chapter }: { chapter: CourseChapter }) {
           onPress={() => lesson.isPreview && router.push(`/lessons/${lesson.id}` as Href)}
           style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, paddingLeft: 12 }}
         >
-          <Text style={{ color: lesson.isPreview ? '#2563EB' : '#475569' }}>
+          <Text style={{ color: lesson.isPreview ? COLORS.accent : COLORS.inkMuted }}>
             {lesson.title}
             {lesson.isPreview ? ' (xem thử)' : ''}
           </Text>
-          <Text style={{ color: '#94A3B8' }}>{Math.round(lesson.durationSec / 60)} phút</Text>
+          <Text style={{ color: COLORS.lineDot }}>{Math.round(lesson.durationSec / 60)} phút</Text>
         </Pressable>
       ))}
     </View>

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
+import { COLORS } from '@/lib/theme/colors';
 
 /**
  * `Stack.Screen` tự thêm nút back khi có lịch sử điều hướng trong app (bấm/chạm qua từng
@@ -11,7 +12,7 @@ import { ChevronLeft } from 'lucide-react-native';
 export function BackButton() {
   return (
     <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8} style={{ paddingHorizontal: 4 }}>
-      <ChevronLeft size={26} color="#2563EB" strokeWidth={2} />
+      <ChevronLeft size={26} color={COLORS.accent} strokeWidth={2} />
     </Pressable>
   );
 }

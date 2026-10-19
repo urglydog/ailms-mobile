@@ -5,16 +5,17 @@ import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 
 import { authApi } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { COLORS } from '@/lib/theme/colors';
 
 function passwordStrengthLabel(password: string): { score: number; label: string; color: string } {
-  if (!password) return { score: 0, label: '', color: '#CBD5E1' };
-  if (password.length < 6) return { score: 1, label: 'Quá ngắn (tối thiểu 6 ký tự)', color: '#DC2626' };
+  if (!password) return { score: 0, label: '', color: COLORS.line };
+  if (password.length < 6) return { score: 1, label: 'Quá ngắn (tối thiểu 6 ký tự)', color: COLORS.danger };
   const hasLetter = /[A-Za-z]/.test(password);
   const hasNumber = /\d/.test(password);
   const hasSpecial = /[@$!%*#?&.]/.test(password);
-  if (hasLetter && hasNumber && hasSpecial && password.length >= 8) return { score: 4, label: 'Mạnh', color: '#16A34A' };
-  if (hasLetter && hasNumber) return { score: 3, label: 'Tốt', color: '#2563EB' };
-  return { score: 2, label: 'Yếu (cần cả chữ và số)', color: '#D97706' };
+  if (hasLetter && hasNumber && hasSpecial && password.length >= 8) return { score: 4, label: 'Mạnh', color: COLORS.success };
+  if (hasLetter && hasNumber) return { score: 3, label: 'Tốt', color: COLORS.accent };
+  return { score: 2, label: 'Yếu (cần cả chữ và số)', color: COLORS.warning };
 }
 
 export default function RegisterScreen() {
@@ -73,7 +74,7 @@ export default function RegisterScreen() {
     return (
       <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
         <Text style={{ fontSize: 24, fontWeight: '700', marginBottom: 4 }}>Xác thực OTP</Text>
-        <Text style={{ color: '#475569' }}>
+        <Text style={{ color: COLORS.inkMuted }}>
           Vui lòng kiểm tra email <Text style={{ fontWeight: '700' }}>{email}</Text> để lấy mã OTP (6 chữ số).
         </Text>
         <TextInput
@@ -82,13 +83,13 @@ export default function RegisterScreen() {
           onChangeText={(v) => setOtp(v.slice(0, 6))}
           keyboardType="number-pad"
           maxLength={6}
-          style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12, textAlign: 'center', letterSpacing: 4, fontSize: 18 }}
+          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, textAlign: 'center', letterSpacing: 4, fontSize: 18 }}
         />
-        {error ? <Text style={{ color: '#DC2626' }}>{error}</Text> : null}
+        {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
         <Pressable
           onPress={handleVerify}
           disabled={isSubmitting}
-          style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
+          style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
         >
           {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Xác thực</Text>}
         </Pressable>
@@ -104,7 +105,7 @@ export default function RegisterScreen() {
         placeholder="Họ tên"
         value={fullName}
         onChangeText={setFullName}
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <TextInput
         placeholder="Email"
@@ -112,7 +113,7 @@ export default function RegisterScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <View style={{ gap: 4 }}>
         <TextInput
@@ -120,7 +121,7 @@ export default function RegisterScreen() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
         />
         {password.length > 0 ? <Text style={{ color: strength.color, fontSize: 12 }}>Mức độ bảo mật: {strength.label}</Text> : null}
       </View>
@@ -130,26 +131,26 @@ export default function RegisterScreen() {
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
-          style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
         />
         {confirmPassword.length > 0 ? (
-          <Text style={{ color: isMatch ? '#16A34A' : '#DC2626', fontSize: 12 }}>
+          <Text style={{ color: isMatch ? COLORS.success : COLORS.danger, fontSize: 12 }}>
             {isMatch ? 'Mật khẩu khớp' : 'Mật khẩu chưa khớp'}
           </Text>
         ) : null}
       </View>
 
-      {error ? <Text style={{ color: '#DC2626' }}>{error}</Text> : null}
+      {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
 
       <Pressable
         onPress={handleRegister}
         disabled={isSubmitting}
-        style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
+        style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
       >
         {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Đăng ký</Text>}
       </Pressable>
 
-      <Link href="/login" style={{ textAlign: 'center', color: '#2563EB', marginTop: 8 }}>
+      <Link href="/login" style={{ textAlign: 'center', color: COLORS.accent, marginTop: 8 }}>
         Đã có tài khoản? Đăng nhập ngay
       </Link>
     </ScrollView>

@@ -6,6 +6,7 @@ import { ExamResultView } from '@/components/ExamResultView';
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
 import { BackButton } from '@/components/BackButton';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function ExamAttemptReviewScreen() {
   const { attemptId } = useLocalSearchParams<{ attemptId: string }>();
@@ -29,7 +30,7 @@ export default function ExamAttemptReviewScreen() {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Text>{error instanceof ApiError ? error.message : 'Không tải được bài làm.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
         </Pressable>
       </View>
     );

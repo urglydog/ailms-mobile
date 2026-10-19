@@ -6,6 +6,7 @@ import { Star } from 'lucide-react-native';
 import { ApiError } from '@/lib/api/client';
 import { reviewsApi } from '@/lib/api/reviews';
 import type { CourseReview } from '@/types/review';
+import { COLORS } from '@/lib/theme/colors';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -40,12 +41,12 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
   return (
     <View style={{ padding: 16, gap: 16 }}>
       {!submitted ? (
-        <View style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, padding: 14, gap: 10 }}>
-          <Text style={{ fontWeight: '700', fontSize: 13, color: '#0F172A' }}>Viết đánh giá của bạn</Text>
+        <View style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 14, gap: 10 }}>
+          <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }}>Viết đánh giá của bạn</Text>
           <View style={{ flexDirection: 'row', gap: 4 }}>
             {[1, 2, 3, 4, 5].map((star) => (
               <Pressable key={star} onPress={() => setRating(star)} hitSlop={6}>
-                <Star size={26} color="#F59E0B" fill={star <= rating ? '#F59E0B' : 'transparent'} strokeWidth={1.75} />
+                <Star size={26} color={COLORS.star} fill={star <= rating ? COLORS.star : 'transparent'} strokeWidth={1.75} />
               </Pressable>
             ))}
           </View>
@@ -55,10 +56,10 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
             multiline
             numberOfLines={3}
             placeholder="Chia sẻ cảm nhận của bạn (không bắt buộc)..."
-            style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 10, fontSize: 13, minHeight: 70, textAlignVertical: 'top' }}
+            style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 70, textAlignVertical: 'top' }}
           />
           {createReview.error ? (
-            <Text style={{ color: '#DC2626', fontSize: 12 }}>
+            <Text style={{ color: COLORS.danger, fontSize: 12 }}>
               {createReview.error instanceof ApiError ? createReview.error.message : 'Không gửi được đánh giá.'}
             </Text>
           ) : null}
@@ -67,7 +68,7 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
             onPress={() => createReview.mutate()}
             style={{
               alignSelf: 'flex-start',
-              backgroundColor: '#2563EB',
+              backgroundColor: COLORS.accent,
               borderRadius: 999,
               paddingVertical: 9,
               paddingHorizontal: 18,
@@ -80,13 +81,13 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
           </Pressable>
         </View>
       ) : (
-        <Text style={{ color: '#16A34A', fontSize: 13 }}>Cảm ơn bạn đã đánh giá khóa học!</Text>
+        <Text style={{ color: COLORS.success, fontSize: 13 }}>Cảm ơn bạn đã đánh giá khóa học!</Text>
       )}
 
       {isLoading ? <ActivityIndicator /> : null}
 
       {!isLoading && reviews.length === 0 ? (
-        <Text style={{ color: '#64748B', fontSize: 13 }}>Chưa có đánh giá nào cho khóa học này.</Text>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 13 }}>Chưa có đánh giá nào cho khóa học này.</Text>
       ) : null}
 
       <View style={{ gap: 12 }}>
@@ -106,14 +107,14 @@ function ReviewCard({ review }: { review: CourseReview }) {
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontWeight: '700', fontSize: 12.5, color: '#0F172A' }}>{review.userName}</Text>
-          <Text style={{ fontSize: 11, color: '#94A3B8' }}>{formatDate(review.createdAt)}</Text>
+          <Text style={{ fontWeight: '700', fontSize: 12.5, color: COLORS.ink }}>{review.userName}</Text>
+          <Text style={{ fontSize: 11, color: COLORS.lineDot }}>{formatDate(review.createdAt)}</Text>
         </View>
-        <Text style={{ color: '#F59E0B', fontSize: 12 }}>
+        <Text style={{ color: COLORS.star, fontSize: 12 }}>
           {'★'.repeat(review.rating)}
           {'☆'.repeat(5 - review.rating)}
         </Text>
-        {review.comment ? <Text style={{ fontSize: 12.5, color: '#64748B' }}>{review.comment}</Text> : null}
+        {review.comment ? <Text style={{ fontSize: 12.5, color: COLORS.inkFaint }}>{review.comment}</Text> : null}
       </View>
     </View>
   );

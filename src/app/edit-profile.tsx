@@ -8,6 +8,7 @@ import { apiFormData, ApiError } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
 import { BackButton } from '@/components/BackButton';
 import type { UserProfile } from '@/types/user';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function EditProfileScreen() {
   const { data: me, isLoading } = useQuery({ queryKey: ['me'], queryFn: () => usersApi.getMe() });
@@ -85,11 +86,11 @@ function EditProfileForm({ me }: { me: UserProfile }) {
         {avatarUrl ? (
           <Image source={{ uri: avatarUrl }} style={{ width: 88, height: 88, borderRadius: 44 }} />
         ) : (
-          <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#475569', fontSize: 28 }}>{fullName.charAt(0).toUpperCase()}</Text>
+          <View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: COLORS.lineSoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: COLORS.inkMuted, fontSize: 28 }}>{fullName.charAt(0).toUpperCase()}</Text>
           </View>
         )}
-        <Text style={{ textAlign: 'center', color: '#2563EB', marginTop: 6 }}>
+        <Text style={{ textAlign: 'center', color: COLORS.accent, marginTop: 6 }}>
           {avatarMutation.isPending ? 'Đang tải...' : 'Đổi ảnh'}
         </Text>
       </Pressable>
@@ -98,13 +99,13 @@ function EditProfileForm({ me }: { me: UserProfile }) {
         placeholder="Họ tên"
         value={fullName}
         onChangeText={setFullName}
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <TextInput
         placeholder="Chức danh (vd: Sinh viên năm 3)"
         value={headline}
         onChangeText={setHeadline}
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <TextInput
         placeholder="Giới thiệu bản thân"
@@ -112,15 +113,15 @@ function EditProfileForm({ me }: { me: UserProfile }) {
         onChangeText={setBio}
         multiline
         numberOfLines={4}
-        style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12, minHeight: 90, textAlignVertical: 'top' }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, minHeight: 90, textAlignVertical: 'top' }}
       />
 
-      {error ? <Text style={{ color: '#DC2626' }}>{error}</Text> : null}
+      {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
 
       <Pressable
         onPress={() => saveMutation.mutate()}
         disabled={saveMutation.isPending}
-        style={{ backgroundColor: '#2563EB', borderRadius: 8, padding: 14, alignItems: 'center', opacity: saveMutation.isPending ? 0.6 : 1 }}
+        style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: saveMutation.isPending ? 0.6 : 1 }}
       >
         {saveMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Lưu thay đổi</Text>}
       </Pressable>

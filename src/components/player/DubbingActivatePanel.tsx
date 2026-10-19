@@ -1,6 +1,7 @@
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { VoicePicker } from '@/components/player/VoicePicker';
 import type { VoiceOption } from '@/types/voiceOptions';
+import { COLORS } from '@/lib/theme/colors';
 
 interface DubbingActivatePanelProps {
   languageLabel: string;
@@ -26,7 +27,7 @@ export function DubbingActivatePanel({
   return (
     <View style={{ gap: 16 }}>
       <View style={{ gap: 12 }}>
-        <Text style={{ fontSize: 14, color: '#0F172A', lineHeight: 20 }}>
+        <Text style={{ fontSize: 14, color: COLORS.ink, lineHeight: 20 }}>
           {quotaExceeded ? (
             'Bạn đã đạt giới hạn yêu cầu lồng tiếng hôm nay. Vui lòng quay lại vào ngày mai hoặc chọn ngôn ngữ đã có sẵn.'
           ) : (
@@ -56,7 +57,7 @@ export function DubbingActivatePanel({
             </Pressable>
           )}
           <Pressable onPress={onWatchOriginal}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: '#64748B' }}>Để dành sau</Text>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: COLORS.inkFaint }}>Để dành sau</Text>
           </Pressable>
         </View>
       </View>

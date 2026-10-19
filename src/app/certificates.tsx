@@ -8,6 +8,7 @@ import { ApiError } from '@/lib/api/client';
 import { saveAndShareBlob } from '@/lib/files';
 import { BackButton } from '@/components/BackButton';
 import type { Certificate } from '@/types/certificate';
+import { COLORS } from '@/lib/theme/colors';
 
 export default function CertificatesScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
@@ -27,12 +28,12 @@ export default function CertificatesScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách chứng chỉ.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: '#2563EB' }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Text style={{ color: '#64748B' }}>Hoàn thành 1 khoá học để nhận chứng chỉ đầu tiên.</Text>
+          <Text style={{ color: COLORS.inkFaint }}>Hoàn thành 1 khoá học để nhận chứng chỉ đầu tiên.</Text>
         </View>
       ) : (
         <FlatList
@@ -62,16 +63,16 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
   });
 
   return (
-    <View style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 14, gap: 6 }}>
+    <View style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 14, gap: 6 }}>
       <Text style={{ fontWeight: '700', fontSize: 16 }}>{certificate.courseTitle}</Text>
-      <Text style={{ color: '#475569' }}>{certificate.instructorName}</Text>
-      <Text style={{ color: '#94A3B8', fontSize: 12 }}>
+      <Text style={{ color: COLORS.inkMuted }}>{certificate.instructorName}</Text>
+      <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>
         Hoàn thành {new Date(certificate.completedAt).toLocaleDateString('vi-VN')} · {certificate.courseHours}h
       </Text>
       {certificate.status === 'REVOKED' ? (
-        <Text style={{ color: '#DC2626', fontSize: 12 }}>Chứng chỉ đã bị thu hồi</Text>
+        <Text style={{ color: COLORS.danger, fontSize: 12 }}>Chứng chỉ đã bị thu hồi</Text>
       ) : null}
-      {downloadError ? <Text style={{ color: '#DC2626', fontSize: 12 }}>{downloadError}</Text> : null}
+      {downloadError ? <Text style={{ color: COLORS.danger, fontSize: 12 }}>{downloadError}</Text> : null}
       <Pressable
         onPress={() => downloadMutation.mutate()}
         disabled={downloadMutation.isPending}
@@ -80,7 +81,7 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
         {downloadMutation.isPending ? (
           <ActivityIndicator size="small" />
         ) : (
-          <Text style={{ color: '#2563EB', fontWeight: '600' }}>Tải PDF</Text>
+          <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Tải PDF</Text>
         )}
       </Pressable>
     </View>

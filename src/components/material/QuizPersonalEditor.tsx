@@ -6,6 +6,7 @@ import { CheckCircle2, Plus, Trash2, X } from 'lucide-react-native';
 import { ApiError } from '@/lib/api/client';
 import { personalQuizApi, type QuizOptionReq } from '@/lib/api/quizzes';
 import type { QuizQuestion } from '@/types/material';
+import { COLORS } from '@/lib/theme/colors';
 
 interface Props {
   questions: QuizQuestion[];
@@ -73,7 +74,7 @@ export function QuizPersonalEditor({ questions, quizId, materialId }: Props) {
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
         <Pressable
           onPress={() => setIsAdding(true)}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16 }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16 }}
         >
           <Plus size={16} color="#fff" />
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Thêm câu hỏi</Text>
@@ -81,18 +82,18 @@ export function QuizPersonalEditor({ questions, quizId, materialId }: Props) {
       </View>
 
       {questions.map((q, idx) => (
-        <View key={q.id} style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, padding: 14, gap: 10 }}>
+        <View key={q.id} style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
-            <Text style={{ flex: 1, fontWeight: '700', fontSize: 13.5, color: '#0F172A' }}>
-              <Text style={{ color: '#2563EB' }}>Câu {idx + 1}: </Text>
+            <Text style={{ flex: 1, fontWeight: '700', fontSize: 13.5, color: COLORS.ink }}>
+              <Text style={{ color: COLORS.accent }}>Câu {idx + 1}: </Text>
               {q.content}
             </Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Pressable onPress={() => setEditingQuestion(q)} style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: '#F1F5F9' }}>
-                <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0F172A' }}>Sửa</Text>
+              <Pressable onPress={() => setEditingQuestion(q)} style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: COLORS.surface }}>
+                <Text style={{ fontSize: 11.5, fontWeight: '700', color: COLORS.ink }}>Sửa</Text>
               </Pressable>
               <Pressable onPress={() => handleDelete(q.id)} style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: '#FEF2F2' }}>
-                <Trash2 size={14} color="#DC2626" />
+                <Trash2 size={14} color={COLORS.danger} />
               </Pressable>
             </View>
           </View>
@@ -103,14 +104,14 @@ export function QuizPersonalEditor({ questions, quizId, materialId }: Props) {
                 style={{
                   flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                   borderRadius: 8, borderWidth: 1, padding: 10,
-                  borderColor: opt.isCorrect ? '#86EFAC' : '#E2E8F0',
-                  backgroundColor: opt.isCorrect ? '#F0FDF4' : '#F8FAFC',
+                  borderColor: opt.isCorrect ? '#86EFAC' : COLORS.lineSoft,
+                  backgroundColor: opt.isCorrect ? '#F0FDF4' : COLORS.surface,
                 }}
               >
-                <Text style={{ flex: 1, fontSize: 13, color: opt.isCorrect ? '#15803D' : '#475569', fontWeight: opt.isCorrect ? '700' : '500' }}>
+                <Text style={{ flex: 1, fontSize: 13, color: opt.isCorrect ? '#15803D' : COLORS.inkMuted, fontWeight: opt.isCorrect ? '700' : '500' }}>
                   {opt.content}
                 </Text>
-                {opt.isCorrect ? <CheckCircle2 size={16} color="#16A34A" /> : null}
+                {opt.isCorrect ? <CheckCircle2 size={16} color={COLORS.success} /> : null}
               </View>
             ))}
           </View>
@@ -157,25 +158,25 @@ function QuestionForm({
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: '#0F172A' }}>{initial.id ? 'Sửa câu hỏi' : 'Thêm câu hỏi'}</Text>
+        <Text style={{ fontSize: 17, fontWeight: '700', color: COLORS.ink }}>{initial.id ? 'Sửa câu hỏi' : 'Thêm câu hỏi'}</Text>
         <Pressable onPress={onCancel} hitSlop={8}>
-          <X size={22} color="#64748B" />
+          <X size={22} color={COLORS.inkFaint} />
         </Pressable>
       </View>
 
       <View style={{ gap: 6 }}>
-        <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#475569' }}>Nội dung câu hỏi</Text>
+        <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.inkMuted }}>Nội dung câu hỏi</Text>
         <TextInput
           value={content}
           onChangeText={setContent}
           multiline
           numberOfLines={3}
-          style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13.5, textAlignVertical: 'top', minHeight: 70 }}
+          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5, textAlignVertical: 'top', minHeight: 70 }}
         />
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: '#0F172A' }}>Nhiều đáp án đúng</Text>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.ink }}>Nhiều đáp án đúng</Text>
         <Switch
           value={isMultipleChoice}
           onValueChange={(v) => {
@@ -192,15 +193,15 @@ function QuestionForm({
       </View>
 
       <View style={{ gap: 8 }}>
-        <Text style={{ fontSize: 12.5, fontWeight: '600', color: '#475569' }}>Đáp án (chạm vào dấu tick để đánh dấu đúng)</Text>
+        <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.inkMuted }}>Đáp án (chạm vào dấu tick để đánh dấu đúng)</Text>
         {options.map((opt, idx) => (
           <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Pressable
               onPress={() => toggleCorrect(idx)}
               style={{
                 width: 26, height: 26, borderRadius: isMultipleChoice ? 6 : 13, borderWidth: 2,
-                borderColor: opt.isCorrect ? '#16A34A' : '#94A3B8',
-                backgroundColor: opt.isCorrect ? '#16A34A' : 'transparent',
+                borderColor: opt.isCorrect ? COLORS.success : COLORS.lineDot,
+                backgroundColor: opt.isCorrect ? COLORS.success : 'transparent',
                 alignItems: 'center', justifyContent: 'center',
               }}
             >
@@ -210,26 +211,26 @@ function QuestionForm({
               value={opt.content}
               onChangeText={(text) => setOptions((prev) => prev.map((o, i) => (i === idx ? { ...o, content: text } : o)))}
               placeholder={`Đáp án ${idx + 1}`}
-              style={{ flex: 1, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 10, fontSize: 13.5 }}
+              style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
             />
             <Pressable onPress={() => setOptions((prev) => prev.filter((_, i) => i !== idx))} hitSlop={6}>
-              <X size={18} color="#DC2626" />
+              <X size={18} color={COLORS.danger} />
             </Pressable>
           </View>
         ))}
         <Pressable onPress={() => setOptions((prev) => [...prev, { content: '', isCorrect: false }])}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#2563EB' }}>+ Thêm lựa chọn</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.accent }}>+ Thêm lựa chọn</Text>
         </Pressable>
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10, paddingTop: 8 }}>
         <Pressable onPress={onCancel} style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
-          <Text style={{ fontWeight: '600', color: '#64748B' }}>Huỷ bỏ</Text>
+          <Text style={{ fontWeight: '600', color: COLORS.inkFaint }}>Huỷ bỏ</Text>
         </Pressable>
         <Pressable
           onPress={() => onSave({ id: initial.id, content, isMultipleChoice, options })}
           disabled={!canSave || saving}
-          style={{ backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 20, opacity: !canSave || saving ? 0.5 : 1 }}
+          style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 20, opacity: !canSave || saving ? 0.5 : 1 }}
         >
           <Text style={{ color: '#fff', fontWeight: '700' }}>{saving ? 'Đang lưu...' : 'Lưu câu hỏi'}</Text>
         </Pressable>

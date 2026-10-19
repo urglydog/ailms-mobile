@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Image, Pressable, Text, View, useWindowDim
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
+import { Reveal } from '@/components/ui/Reveal';
 import { ApiError } from '@/lib/api/client';
 import { enrollmentsApi } from '@/lib/api/enrollments';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -53,7 +54,11 @@ export default function MyCoursesScreen() {
             numColumns={2}
             columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
             contentContainerStyle={{ paddingBottom: 16, paddingTop: 16, gap: 12 }}
-            renderItem={({ item }) => <EnrollmentCard enrollment={item} />}
+            renderItem={({ item, index }) => (
+              <Reveal index={index} style={{ flex: 1 }}>
+                <EnrollmentCard enrollment={item} />
+              </Reveal>
+            )}
           />
       )}
       <BottomNav />

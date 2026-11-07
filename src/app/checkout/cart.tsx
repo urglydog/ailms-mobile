@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, Stack, type Href } from 'expo-router';
+import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
@@ -8,12 +8,14 @@ import { ApiError } from '@/lib/api/client';
 import { PaymentAbortedError, purchaseBatchWithPayOs } from '@/lib/payment/payosCheckout';
 import { paymentsApi } from '@/lib/api/payments';
 import { CouponSection } from '@/components/checkout/CouponSection';
+import { useCartBundleMatches } from '@/hooks/useCartBundleMatches';
 import { useCheckoutCoupons } from '@/hooks/useCheckoutCoupons';
 import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
 import { COLORS } from '@/lib/theme/colors';
 
 export default function CartCheckoutScreen() {
+  const { courseIds: courseIdsParam } = useLocalSearchParams<{ courseIds?: string }>();
   const queryClient = useQueryClient();
   const [billingName, setBillingName] = useState('');
   const [billingPhone, setBillingPhone] = useState('');
@@ -22,12 +24,21 @@ export default function CartCheckoutScreen() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PaymentRecord | null>(null);
 
-  const { data: cartItems, isLoading } = useQuery({
+  const { data: allCartItems, isLoading } = useQuery({
     queryKey: ['cart'],
     queryFn: () => cartApi.list(),
   });
+  // Chỉ thanh toán các khóa đã chọn ở màn giỏ hàng (`?courseIds=`); không có param thì lấy cả giỏ.
+  const chosenIds = (courseIdsParam ?? '').split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0);
+  const cartItems = allCartItems
+    ? chosenIds.length > 0 ? allCartItems.filter((i) => chosenIds.includes(i.courseId)) : allCartItems
+    : undefined;
 
-  const coupons = useCheckoutCoupons((cartItems ?? []).map((i) => i.courseId));
+  // Gói combo khớp với các khóa đang thanh toán; coupon chỉ áp cho khóa lẻ (không nằm trong gói).
+  const bundleMatch = useCartBundleMatches((cartItems ?? []).map((i) => i.courseId));
+  const standaloneIds = (cartItems ?? []).filter((i) => !bundleMatch.priceByCartCourseId.has(i.courseId)).map((i) => i.courseId);
+
+  const coupons = useCheckoutCoupons(standaloneIds);
 
   const checkoutMutation = useMutation({
     mutationFn: () => {
@@ -36,6 +47,7 @@ export default function CartCheckoutScreen() {
       return purchaseBatchWithPayOs(
         {
           courseIds: cartItems!.map(i => i.courseId),
+          bundleIds: bundleMatch.matchedBundles.length > 0 ? bundleMatch.matchedBundles.map((m) => m.bundle.id) : undefined,
           billingName: billingName || undefined,
           billingPhone: billingPhone || undefined,
           ...coupons.paymentCouponParams,
@@ -122,7 +134,10 @@ export default function CartCheckoutScreen() {
   }
 
   const totalOriginal = cartItems.reduce((sum, item) => sum + item.price, 0);
-  const totalFinalPrice = cartItems.reduce((sum, item) => sum + (coupons.prices.get(item.courseId)?.finalPrice ?? item.price), 0);
+  const totalFinalPrice = cartItems.reduce(
+    (sum, item) => sum + (bundleMatch.priceByCartCourseId.get(item.courseId) ?? coupons.prices.get(item.courseId)?.finalPrice ?? item.price),
+    0,
+  );
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>

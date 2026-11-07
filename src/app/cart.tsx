@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, type Href } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, Image } from 'react-native';
-import { Trash2 } from 'lucide-react-native';
+import { Check, Trash2 } from 'lucide-react-native';
 
 import { cartApi } from '@/lib/api/cart';
 import { ApiError } from '@/lib/api/client';
 import { BackButton } from '@/components/BackButton';
+import { useCartBundleMatches } from '@/hooks/useCartBundleMatches';
 import type { CartItem } from '@/types/cart';
 import { COLORS } from '@/lib/theme/colors';
 
@@ -22,8 +24,27 @@ export default function CartScreen() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
   });
 
-  const totalOriginalPrice = cartItems?.reduce((sum, item) => sum + item.price, 0) || 0;
-  const totalFinalPrice = cartItems?.reduce((sum, item) => sum + item.finalPrice, 0) || 0;
+  // Chọn khóa để thanh toán (checkbox giống web): `deselected` chứa khóa đã bỏ chọn, mặc định chọn hết.
+  const [deselected, setDeselected] = useState<Set<number>>(new Set());
+  const selectedItems = useMemo(
+    () => (cartItems ?? []).filter((i) => !deselected.has(i.courseId)),
+    [cartItems, deselected],
+  );
+  const selectedIds = useMemo(() => selectedItems.map((i) => i.courseId), [selectedItems]);
+  const bundleMatch = useCartBundleMatches(selectedIds);
+  const priceOf = (item: CartItem) => bundleMatch.priceByCartCourseId.get(item.courseId) ?? item.finalPrice;
+
+  const toggle = (courseId: number) =>
+    setDeselected((prev) => {
+      const next = new Set(prev);
+      if (next.has(courseId)) next.delete(courseId);
+      else next.add(courseId);
+      return next;
+    });
+  const allSelected = (cartItems?.length ?? 0) > 0 && deselected.size === 0;
+
+  const totalOriginalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
+  const totalFinalPrice = selectedItems.reduce((sum, item) => sum + priceOf(item), 0);
   const isDiscounted = totalFinalPrice < totalOriginalPrice;
 
   return (
@@ -48,8 +69,22 @@ export default function CartScreen() {
       ) : (
         <>
           <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+            <Pressable
+              onPress={() => setDeselected(allSelected ? new Set(cartItems.map((i) => i.courseId)) : new Set())}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+            >
+              <View style={{ width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: COLORS.accent, backgroundColor: allSelected ? COLORS.accent : '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                {allSelected ? <Check size={14} color="#fff" /> : null}
+              </View>
+              <Text style={{ color: COLORS.ink, fontWeight: '600' }}>Chọn tất cả ({selectedItems.length}/{cartItems.length})</Text>
+            </Pressable>
             {cartItems.map((item) => (
-              <View key={item.courseId} style={{ flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 12 }}>
+              <View key={item.courseId} style={{ flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 12, opacity: deselected.has(item.courseId) ? 0.55 : 1 }}>
+                <Pressable onPress={() => toggle(item.courseId)} style={{ justifyContent: 'center' }}>
+                  <View style={{ width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: COLORS.accent, backgroundColor: deselected.has(item.courseId) ? '#fff' : COLORS.accent, alignItems: 'center', justifyContent: 'center' }}>
+                    {deselected.has(item.courseId) ? null : <Check size={14} color="#fff" />}
+                  </View>
+                </Pressable>
                 {item.thumbnailUrl ? (
                   <Image source={{ uri: item.thumbnailUrl }} style={{ width: 80, height: 80, borderRadius: 8 }} />
                 ) : (
@@ -63,9 +98,14 @@ export default function CartScreen() {
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
                     <View>
                       <Text style={{ fontWeight: '800', fontSize: 16, color: COLORS.accent }}>
-                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.finalPrice)}
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(priceOf(item))}
                       </Text>
-                      {item.discountPercent ? (
+                      {bundleMatch.bundleByCartCourseId.get(item.courseId) ? (
+                        <Text style={{ fontSize: 11, color: COLORS.cyanInk, backgroundColor: COLORS.cyan, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4, marginTop: 2 }}>
+                          Gói combo -{bundleMatch.bundleByCartCourseId.get(item.courseId)?.discountPercent}%
+                        </Text>
+                      ) : null}
+                      {priceOf(item) < item.price ? (
                         <Text style={{ fontSize: 12, color: COLORS.lineDot, textDecorationLine: 'line-through' }}>
                           {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}
                         </Text>
@@ -98,9 +138,15 @@ export default function CartScreen() {
                 ) : null}
               </View>
             </View>
-            <Pressable 
-              onPress={() => router.push('/checkout/cart' as Href)}
-              style={{ backgroundColor: COLORS.accent, paddingVertical: 14, borderRadius: 8, alignItems: 'center' }}
+            {bundleMatch.partialSuggestions.map((sug) => (
+              <Text key={sug.bundle.id} style={{ fontSize: 12, color: COLORS.successInk, backgroundColor: COLORS.successTint, borderRadius: 8, padding: 8 }}>
+                {`Thêm khóa "${sug.missingCourse.title}" để mua gói "${sug.bundle.title}" giảm ${sug.bundle.discountPercent}%.`}
+              </Text>
+            ))}
+            <Pressable
+              disabled={selectedIds.length === 0}
+              onPress={() => router.push(`/checkout/cart?courseIds=${selectedIds.join(',')}` as Href)}
+              style={{ backgroundColor: COLORS.accent, paddingVertical: 14, borderRadius: 8, alignItems: 'center', opacity: selectedIds.length === 0 ? 0.5 : 1 }}
             >
               <Text style={{ color: 'white', fontWeight: '700', fontSize: 15 }}>Tiến hành thanh toán</Text>
             </Pressable>

@@ -9,4 +9,9 @@ export const bundlesApi = {
   getForCourse(courseId: number): Promise<CourseBundle[]> {
     return api.get<CourseBundle[]>(`/api/v1/courses/${courseId}/bundles`);
   },
+
+  /** Gộp tra bundle cho nhiều courseId trong 1 request (public — dùng ở giỏ hàng/thanh toán). */
+  getForCourses(courseIds: number[]): Promise<CourseBundle[]> {
+    return api.get<CourseBundle[]>(`/api/v1/courses/bundles/active?courseIds=${courseIds.join(',')}`);
+  },
 };

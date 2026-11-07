@@ -5,10 +5,7 @@ import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 
 import { BackButton } from '@/components/BackButton';
 import { COLORS } from '@/lib/theme/colors';
-
-/** Địa chỉ web LinguaLearn — các trang chính sách/giới thiệu mở bằng trình duyệt trong app (nội dung
- * luôn đồng bộ với web, không sao chép sang app). Có thể đổi bằng `EXPO_PUBLIC_WEB_URL`. */
-const WEB_URL = (process.env.EXPO_PUBLIC_WEB_URL ?? 'https://ailms-web-client.vercel.app').replace(/\/$/, '');
+import { WEB_URL } from '@/lib/webUrl';
 
 const PAGES: { label: string; path: string }[] = [
   { label: 'Giới thiệu', path: '/about' },

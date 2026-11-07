@@ -11,6 +11,20 @@ export interface LiveViewSummary {
   startedAt: string | null;
 }
 
+export interface LiveFeedItem {
+  id: number;
+  title: string;
+  thumbnailUrl: string | null;
+  status: LiveSessionStatus;
+  scheduledAt: string | null;
+  startedAt: string | null;
+  courseId: number;
+  courseTitle: string;
+  courseSlug: string;
+  instructorName: string;
+  sourceLanguage: string;
+}
+
 export interface BundleCourseItem {
   id: number;
   title: string;

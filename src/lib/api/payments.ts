@@ -10,6 +10,11 @@ export const paymentsApi = {
     return api.post<PaymentUrlResponse>('/api/v1/payments/create-batch', data);
   },
 
+  /** Học viên hủy ở PayOS — BE đánh dấu đơn PENDING của chính mình là FAILED (nhả suất coupon). */
+  cancel(orderCode: string): Promise<{ status: string }> {
+    return api.post<{ status: string }>(`/api/v1/payments/cancel?orderCode=${encodeURIComponent(orderCode)}`, {});
+  },
+
   listMine(): Promise<PaymentRecord[]> {
     return api.get<PaymentRecord[]>('/api/v1/payments/mine');
   },

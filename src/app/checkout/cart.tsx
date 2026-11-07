@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { cartApi } from '@/lib/api/cart';
 import { ApiError } from '@/lib/api/client';
-import { purchaseBatchWithPayOs } from '@/lib/payment/payosCheckout';
+import { PaymentAbortedError, purchaseBatchWithPayOs } from '@/lib/payment/payosCheckout';
+import { paymentsApi } from '@/lib/api/payments';
+import { CouponSection } from '@/components/checkout/CouponSection';
+import { useCheckoutCoupons } from '@/hooks/useCheckoutCoupons';
 import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
 import { COLORS } from '@/lib/theme/colors';
@@ -14,7 +17,8 @@ export default function CartCheckoutScreen() {
   const queryClient = useQueryClient();
   const [billingName, setBillingName] = useState('');
   const [billingPhone, setBillingPhone] = useState('');
-  const [couponCode, setCouponCode] = useState('');
+  const createdRef = useRef<string | null>(null);
+  const stopRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PaymentRecord | null>(null);
 
@@ -23,14 +27,22 @@ export default function CartCheckoutScreen() {
     queryFn: () => cartApi.list(),
   });
 
+  const coupons = useCheckoutCoupons((cartItems ?? []).map((i) => i.courseId));
+
   const checkoutMutation = useMutation({
-    mutationFn: () =>
-      purchaseBatchWithPayOs({
-        courseIds: cartItems!.map(i => i.courseId),
-        billingName: billingName || undefined,
-        billingPhone: billingPhone || undefined,
-        couponCode: couponCode || undefined,
-      }),
+    mutationFn: () => {
+      stopRef.current = false;
+      createdRef.current = null;
+      return purchaseBatchWithPayOs(
+        {
+          courseIds: cartItems!.map(i => i.courseId),
+          billingName: billingName || undefined,
+          billingPhone: billingPhone || undefined,
+          ...coupons.paymentCouponParams,
+        },
+        { onCreated: (ref) => { createdRef.current = ref; }, shouldStop: () => stopRef.current },
+      );
+    },
     onSuccess: (payment) => {
       setError(null);
       setResult(payment);
@@ -40,6 +52,7 @@ export default function CartCheckoutScreen() {
       }
     },
     onError: (err: unknown) => {
+      if (err instanceof PaymentAbortedError) return;
       setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Thanh toán thất bại, vui lòng thử lại.');
     },
   });
@@ -93,17 +106,34 @@ export default function CartCheckoutScreen() {
         <Text style={{ color: COLORS.inkMuted, textAlign: 'center' }}>
           Đang chờ xác nhận thanh toán — đừng tắt app, hoàn tất thanh toán trên trình duyệt rồi quay lại đây.
         </Text>
+        <Pressable
+          onPress={() => {
+            stopRef.current = true;
+            const ref = createdRef.current;
+            if (ref) paymentsApi.cancel(ref).catch(() => {});
+            checkoutMutation.reset();
+          }}
+          style={{ borderWidth: 1, borderColor: COLORS.danger, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 20, marginTop: 8 }}
+        >
+          <Text style={{ color: COLORS.danger, fontWeight: '600' }}>Hủy thanh toán</Text>
+        </Pressable>
       </View>
     );
   }
 
-  const totalFinalPrice = cartItems.reduce((sum, item) => sum + item.finalPrice, 0);
+  const totalOriginal = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const totalFinalPrice = cartItems.reduce((sum, item) => sum + (coupons.prices.get(item.courseId)?.finalPrice ?? item.price), 0);
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
       <Stack.Screen options={{ headerShown: true, title: 'Thanh toán giỏ hàng', headerLeft: () => <BackButton /> }} />
       <Text style={{ fontSize: 18, fontWeight: '700' }}>Thanh toán {cartItems.length} khoá học</Text>
-      <Text style={{ fontSize: 22, fontWeight: '700', color: COLORS.accent }}>{totalFinalPrice.toLocaleString('vi-VN')}đ</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+        <Text style={{ fontSize: 22, fontWeight: '700', color: COLORS.accent }}>{totalFinalPrice.toLocaleString('vi-VN')}đ</Text>
+        {totalFinalPrice < totalOriginal ? (
+          <Text style={{ color: COLORS.inkFaint, textDecorationLine: 'line-through' }}>{totalOriginal.toLocaleString('vi-VN')}đ</Text>
+        ) : null}
+      </View>
 
       <TextInput
         placeholder="Họ tên xuất hoá đơn (không bắt buộc)"
@@ -118,12 +148,16 @@ export default function CartCheckoutScreen() {
         keyboardType="phone-pad"
         style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
-      <TextInput
-        placeholder="Mã giảm giá chung (không bắt buộc)"
-        value={couponCode}
-        onChangeText={setCouponCode}
-        autoCapitalize="characters"
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+      <CouponSection
+        available={coupons.available}
+        loading={coupons.loading}
+        selectedId={coupons.selectedId}
+        onSelect={coupons.setSelectedId}
+        appliedCode={coupons.appliedCode}
+        applying={coupons.applying}
+        codeError={coupons.codeError}
+        onApplyCode={(c) => void coupons.applyCode(c)}
+        onRemoveCode={coupons.removeCode}
       />
 
       {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}

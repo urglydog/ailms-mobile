@@ -111,6 +111,8 @@ export default function ProfileScreen() {
             <MenuRow label="Yêu thích" href={'/wishlist' as Href} />
             <MenuRow label="Chứng chỉ của tôi" href={'/certificates' as Href} />
             <MenuRow label="Lịch sử thanh toán" href={'/payments' as Href} />
+            <MenuRow label="Khiếu nại giao dịch" href={'/disputes' as Href} />
+            <MenuRow label="Trợ giúp & Hỗ trợ" href={'/help' as Href} />
             <MenuRow label="Thông báo" href={'/notifications' as Href} />
           </View>
 

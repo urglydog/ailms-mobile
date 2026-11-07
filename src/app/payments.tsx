@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Stack, router } from 'expo-router';
+import { Stack, router, type Href } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { paymentsApi } from '@/lib/api/payments';
@@ -85,6 +85,12 @@ function PaymentCard({ payment }: { payment: PaymentRecord }) {
             {new Date(payment.paidAt).toLocaleString('vi-VN')}
           </Text>
         </View>
+      ) : null}
+
+      {isPaid ? (
+        <Pressable onPress={() => router.push(`/disputes?ref=${payment.txnRef}` as Href)} style={{ marginTop: 4 }}>
+          <Text style={{ color: COLORS.danger, fontSize: 12, fontWeight: '600' }}>Khiếu nại giao dịch này</Text>
+        </Pressable>
       ) : null}
 
       {payment.couponCode && payment.discountAmount ? (

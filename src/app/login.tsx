@@ -102,6 +102,9 @@ export default function LoginScreen() {
       <Link href={'/forgot-password' as Href} style={{ textAlign: 'center', color: COLORS.accent, marginTop: 4 }}>
         Quên mật khẩu?
       </Link>
+      <Link href={'/help' as Href} style={{ textAlign: 'center', color: COLORS.inkMuted, marginTop: 4 }}>
+        Trợ giúp & Hỗ trợ
+      </Link>
       <Link href={'/register' as Href} style={{ textAlign: 'center', color: COLORS.inkMuted, marginTop: 4 }}>
         Chưa có tài khoản? Đăng ký
       </Link>

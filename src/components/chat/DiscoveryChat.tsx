@@ -15,7 +15,7 @@ import {
 import { MessageCircle, Send, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { api } from '@/lib/api/client';
+import { api, ApiError } from '@/lib/api/client';
 import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
 import { COLORS } from '@/lib/theme/colors';
 
@@ -72,8 +72,12 @@ export function DiscoveryChat() {
     try {
       const data = await api.post<DiscoveryChatResponse>('/api/v1/discovery/chat', { message: trimmed });
       setMessages((prev) => [...prev, { role: 'assistant', text: data.reply || 'Không có phản hồi.', courses: data.courses }]);
-    } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Xin lỗi, tôi đang gặp sự cố kết nối tới AI. Vui lòng kiểm tra lại.' }]);
+    } catch (err) {
+      // Hiện đúng lý do từ BE (hết lượt hỏi, bị khóa AI...) thay vì luôn báo "sự cố kết nối".
+      const text = err instanceof ApiError
+        ? err.message
+        : 'Xin lỗi, tôi đang gặp sự cố kết nối tới AI. Vui lòng kiểm tra lại.';
+      setMessages((prev) => [...prev, { role: 'assistant', text }]);
     } finally {
       setLoading(false);
       requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));

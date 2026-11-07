@@ -14,6 +14,8 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { BackButton } from '@/components/BackButton';
 import { LiveBanner } from '@/components/course/LiveBanner';
 import { BundleUpsellWidget } from '@/components/course/BundleUpsellWidget';
+import { CourseDubbingPanel } from '@/components/course/CourseDubbingPanel';
+import { RelatedCourses } from '@/components/course/RelatedCourses';
 import type { CourseChapter } from '@/types/course';
 import type { CourseReview } from '@/types/review';
 import { COLORS } from '@/lib/theme/colors';
@@ -125,6 +127,7 @@ export default function CourseDetailScreen() {
       <Text style={{ color: COLORS.inkMuted }}>{formatDuration(course.totalDurationSec)}</Text>
 
       <LiveBanner courseId={course.id} />
+      <CourseDubbingPanel languages={course.dubbedLanguages ?? []} />
 
       <Text style={{ fontSize: 16, lineHeight: 22 }}>{course.description}</Text>
 
@@ -197,6 +200,8 @@ export default function CourseDetailScreen() {
       </View>
 
       <ReviewsSection courseId={course.id} isAuthenticated={isAuthenticated === true} />
+
+      <RelatedCourses categorySlug={course.categorySlug} courseId={course.id} />
     </ScrollView>
   );
 }

@@ -5,7 +5,8 @@ import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, u
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
-import { coursesApi } from '@/lib/api/courses';
+import { categoriesApi, coursesApi } from '@/lib/api/courses';
+import { CourseFiltersModal, EMPTY_FILTERS, type CourseFilterState } from '@/components/course/CourseFiltersModal';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { RankingBanner } from '@/components/ranking/RankingBanner';
@@ -17,7 +18,13 @@ export default function CoursesScreen() {
   const { isAuthenticated } = useAuth();
   const [searchInput, setSearchInput] = useState('');
   const [keyword, setKeyword] = useState('');
-  const [levelFilter, setLevelFilter] = useState<string | null>(null);
+  const [filters, setFilters] = useState<CourseFilterState>(EMPTY_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
+  const activeFilterCount =
+    (filters.category ? 1 : 0) + (filters.level ? 1 : 0) + (filters.priceType !== 'all' ? 1 : 0) +
+    (filters.minRating ? 1 : 0) + (filters.durationBucket ? 1 : 0) + (filters.sortBy !== 'newest' ? 1 : 0);
+
+  const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.list(), staleTime: 10 * 60 * 1000 });
 
   // Debounce 400ms — tránh gọi API mỗi lần gõ 1 ký tự.
   useEffect(() => {
@@ -26,8 +33,17 @@ export default function CoursesScreen() {
   }, [searchInput]);
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
-    queryKey: ['courses', keyword, levelFilter],
-    queryFn: () => coursesApi.search({ keyword: keyword || undefined, level: levelFilter || undefined }),
+    queryKey: ['courses', keyword, filters],
+    queryFn: () =>
+      coursesApi.search({
+        keyword: keyword || undefined,
+        categorySlug: filters.category ?? undefined,
+        level: filters.level ?? undefined,
+        priceType: filters.priceType,
+        minRating: filters.minRating ?? undefined,
+        durationBucket: filters.durationBucket ?? undefined,
+        sortBy: filters.sortBy,
+      }),
     enabled: isAuthenticated === true,
   });
 
@@ -58,20 +74,21 @@ export default function CoursesScreen() {
                 onChangeText={setSearchInput}
                 style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10 }}
               />
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
-                <Pressable onPress={() => setLevelFilter(null)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === null ? COLORS.accent : COLORS.surface }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === null ? '#FFF' : COLORS.inkMuted }}>Tất cả cấp độ</Text>
+              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingVertical: 4 }}>
+                <Pressable
+                  onPress={() => setShowFilters(true)}
+                  style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: activeFilterCount > 0 ? COLORS.accent : COLORS.surface }}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: activeFilterCount > 0 ? '#FFF' : COLORS.inkMuted }}>
+                    Bộ lọc{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                  </Text>
                 </Pressable>
-                <Pressable onPress={() => setLevelFilter('BEGINNER')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'BEGINNER' ? COLORS.accent : COLORS.surface }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'BEGINNER' ? '#FFF' : COLORS.inkMuted }}>Cơ bản</Text>
-                </Pressable>
-                <Pressable onPress={() => setLevelFilter('INTERMEDIATE')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'INTERMEDIATE' ? COLORS.accent : COLORS.surface }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'INTERMEDIATE' ? '#FFF' : COLORS.inkMuted }}>Trung cấp</Text>
-                </Pressable>
-                <Pressable onPress={() => setLevelFilter('ADVANCED')} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: levelFilter === 'ADVANCED' ? COLORS.accent : COLORS.surface }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: levelFilter === 'ADVANCED' ? '#FFF' : COLORS.inkMuted }}>Nâng cao</Text>
-                </Pressable>
-              </ScrollView>
+                {activeFilterCount > 0 ? (
+                  <Pressable onPress={() => setFilters(EMPTY_FILTERS)}>
+                    <Text style={{ fontSize: 13, color: COLORS.accent, fontWeight: '600' }}>Xóa lọc</Text>
+                  </Pressable>
+                ) : null}
+              </View>
             </View>
           </>
         }
@@ -95,6 +112,13 @@ export default function CoursesScreen() {
         }
         renderItem={({ item }) => <CourseCard course={item} />}
       />
+      <CourseFiltersModal
+        visible={showFilters}
+        filters={filters}
+        categories={categories ?? []}
+        onChange={setFilters}
+        onClose={() => setShowFilters(false)}
+      />
       <BottomNav />
     </View>
   );
@@ -117,6 +141,9 @@ function CourseCard({ course }: { course: CourseSummary }) {
       <View style={{ padding: 10, gap: 4 }}>
         <Text style={{ fontWeight: '700', fontSize: 13, color: '#1E293B' }} numberOfLines={2}>{course.title}</Text>
         <Text style={{ color: COLORS.inkFaint, fontSize: 11 }} numberOfLines={1}>{course.instructorName}</Text>
+        {course.avgRating ? (
+          <Text style={{ color: COLORS.inkMuted, fontSize: 11 }}>★ {course.avgRating.toFixed(1)} ({course.reviewCount})</Text>
+        ) : null}
         <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13, marginTop: 4 }}>
           {course.isFree ? 'Miễn phí' : `${course.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>

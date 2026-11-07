@@ -9,6 +9,7 @@ import { PaymentAbortedError, purchaseCourseWithPayOs } from '@/lib/payment/payo
 import { paymentsApi } from '@/lib/api/payments';
 import { CouponSection } from '@/components/checkout/CouponSection';
 import { useCheckoutCoupons } from '@/hooks/useCheckoutCoupons';
+import { getReferralCode } from '@/lib/referral';
 import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
 import { COLORS } from '@/lib/theme/colors';
@@ -36,12 +37,14 @@ export default function CheckoutScreen() {
   const finalPrice = priced?.finalPrice ?? course?.price ?? 0;
 
   const checkoutMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       stopRef.current = false;
       createdRef.current = null;
+      const referralCode = await getReferralCode(course!.id);
       return purchaseCourseWithPayOs(
         {
           courseId: course!.id,
+          referralCode,
           billingName: billingName || undefined,
           billingPhone: billingPhone || undefined,
           ...coupons.paymentCouponParams,

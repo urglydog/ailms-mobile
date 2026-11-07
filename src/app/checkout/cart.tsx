@@ -10,6 +10,7 @@ import { paymentsApi } from '@/lib/api/payments';
 import { CouponSection } from '@/components/checkout/CouponSection';
 import { useCartBundleMatches } from '@/hooks/useCartBundleMatches';
 import { useCheckoutCoupons } from '@/hooks/useCheckoutCoupons';
+import { getReferralCodesFor } from '@/lib/referral';
 import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
 import { COLORS } from '@/lib/theme/colors';
@@ -41,12 +42,14 @@ export default function CartCheckoutScreen() {
   const coupons = useCheckoutCoupons(standaloneIds);
 
   const checkoutMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       stopRef.current = false;
       createdRef.current = null;
+      const referralCodes = await getReferralCodesFor(cartItems!.map((i) => i.courseId));
       return purchaseBatchWithPayOs(
         {
           courseIds: cartItems!.map(i => i.courseId),
+          referralCodes: Object.keys(referralCodes).length > 0 ? referralCodes : undefined,
           bundleIds: bundleMatch.matchedBundles.length > 0 ? bundleMatch.matchedBundles.map((m) => m.bundle.id) : undefined,
           billingName: billingName || undefined,
           billingPhone: billingPhone || undefined,

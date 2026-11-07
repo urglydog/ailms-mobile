@@ -114,6 +114,7 @@ export default function ProfileScreen() {
             <MenuRow label="Tin nhắn" href={'/messages' as Href} />
             <MenuRow label="Khiếu nại giao dịch" href={'/disputes' as Href} />
             <MenuRow label="Trợ giúp & Hỗ trợ" href={'/help' as Href} />
+            <MenuRow label="Thông tin & Chính sách" href={'/legal' as Href} />
             <MenuRow label="Thông báo" href={'/notifications' as Href} />
           </View>
 

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { ApiError } from '@/lib/api/client';
@@ -9,6 +9,7 @@ import { enrollmentsApi } from '@/lib/api/enrollments';
 import { reviewsApi } from '@/lib/api/reviews';
 import { wishlistApi } from '@/lib/api/wishlist';
 import { cartApi } from '@/lib/api/cart';
+import { captureReferral } from '@/lib/referral';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { BackButton } from '@/components/BackButton';
 import { LiveBanner } from '@/components/course/LiveBanner';
@@ -24,7 +25,7 @@ function formatDuration(totalSec: number): string {
 }
 
 export default function CourseDetailScreen() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug, ref } = useLocalSearchParams<{ slug: string; ref?: string }>();
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
@@ -35,6 +36,11 @@ export default function CourseDetailScreen() {
     queryFn: () => coursesApi.getDetail(slug),
     enabled: !!slug,
   });
+
+  // Ghi lại mã giới thiệu của Giảng viên (`?ref=`) để dùng lúc thanh toán (chia doanh thu 97/3).
+  useEffect(() => {
+    if (course && ref) void captureReferral(course.id, ref);
+  }, [course, ref]);
 
   const { data: wishlist } = useQuery({
     queryKey: ['wishlist'],

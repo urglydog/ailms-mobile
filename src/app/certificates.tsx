@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { ActivityIndicator, Alert, FlatList, Linking, Pressable, Share, Text, View } from 'react-native';
 
 import { certificatesApi } from '@/lib/api/certificates';
 import { ApiError } from '@/lib/api/client';
@@ -49,6 +50,21 @@ export default function CertificatesScreen() {
   );
 }
 
+/** Định dạng "Add to Profile" công khai của LinkedIn — cùng web (`buildLinkedInAddUrl`). */
+function buildLinkedInAddUrl(c: Certificate): string {
+  const d = new Date(c.completedAt);
+  const params = new URLSearchParams({
+    startTask: 'CERTIFICATION_NAME',
+    name: c.courseTitle,
+    organizationName: 'LinguaLearn',
+    issueYear: String(d.getFullYear()),
+    issueMonth: String(d.getMonth() + 1),
+    certUrl: c.verifyUrl,
+    certId: c.certificateCode,
+  });
+  return `https://www.linkedin.com/profile/add?${params.toString()}`;
+}
+
 function CertificateCard({ certificate }: { certificate: Certificate }) {
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
@@ -73,17 +89,33 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
         <Text style={{ color: COLORS.danger, fontSize: 12 }}>Chứng chỉ đã bị thu hồi</Text>
       ) : null}
       {downloadError ? <Text style={{ color: COLORS.danger, fontSize: 12 }}>{downloadError}</Text> : null}
-      <Pressable
-        onPress={() => downloadMutation.mutate()}
-        disabled={downloadMutation.isPending}
-        style={{ alignSelf: 'flex-start', marginTop: 4 }}
-      >
-        {downloadMutation.isPending ? (
-          <ActivityIndicator size="small" />
-        ) : (
-          <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Tải PDF</Text>
-        )}
-      </Pressable>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 4 }}>
+        <Pressable onPress={() => downloadMutation.mutate()} disabled={downloadMutation.isPending}>
+          {downloadMutation.isPending ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Tải PDF</Text>
+          )}
+        </Pressable>
+        {certificate.status !== 'REVOKED' ? (
+          <>
+            <Pressable
+              onPress={async () => {
+                await Clipboard.setStringAsync(certificate.verifyUrl);
+                Alert.alert('Đã sao chép', 'Link xác thực chứng chỉ đã được sao chép.');
+              }}
+            >
+              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Sao chép link xác thực</Text>
+            </Pressable>
+            <Pressable onPress={() => void Share.share({ message: `${certificate.courseTitle} — ${certificate.verifyUrl}`, url: certificate.verifyUrl })}>
+              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Chia sẻ</Text>
+            </Pressable>
+            <Pressable onPress={() => void Linking.openURL(buildLinkedInAddUrl(certificate))}>
+              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Thêm vào LinkedIn</Text>
+            </Pressable>
+          </>
+        ) : null}
+      </View>
     </View>
   );
 }

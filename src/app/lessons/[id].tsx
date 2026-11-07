@@ -87,8 +87,10 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
 const PROGRESS_REPORT_INTERVAL_SEC = 15;
 
 export default function LessonPlayerScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, seek } = useLocalSearchParams<{ id: string; seek?: string }>();
   const lessonId = Number(id);
+  // `?seek=<giây>` do "Ôn tập lại lý thuyết" (AI Gia sư giải thích câu sai) gắn vào — tua tới đúng mốc.
+  const seekSec = seek !== undefined && Number.isFinite(Number(seek)) ? Number(seek) : null;
   const queryClient = useQueryClient();
 
   const { data: lesson, isLoading, error, refetch } = useQuery({
@@ -279,10 +281,28 @@ export default function LessonPlayerScreen() {
   const isDirectVideo = !!lesson?.videoUrl && !lesson.youtubeId;
   const player = useVideoPlayer(isDirectVideo ? lesson!.videoUrl : null, (p) => {
     if (!lesson) return;
-    p.currentTime = lesson.lastPositionSec;
+    p.currentTime = seekSec ?? lesson.lastPositionSec;
     p.timeUpdateEventInterval = 1;
     p.play();
   });
+
+  // Player có thể chưa sẵn sàng ngay lúc đặt `currentTime` ở callback khởi tạo (đặt khi chưa load xong
+  // metadata bị bỏ qua, không báo lỗi) — thử lại vài lần trong ~2 giây, rồi bỏ param để quay lại bài
+  // sau không tua lại lần nữa (cùng cách web `?seek=`).
+  useEffect(() => {
+    if (seekSec === null || !lesson || !isDirectVideo) return;
+    let attempts = 0;
+    const timer = setInterval(() => {
+      attempts += 1;
+      player.currentTime = seekSec;
+      if (attempts >= 5) {
+        clearInterval(timer);
+        router.setParams({ seek: undefined });
+      }
+    }, 400);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seekSec, lesson?.lessonId, isDirectVideo]);
 
   // expo-av đã bị gỡ khỏi Expo Go từ SDK 55 (lỗi "Cannot find native module 'ExponentAV'") —
   // dùng expo-audio. Hook tự release player khi unmount và tự nạp lại khi `audioSrc` đổi.

@@ -1,9 +1,10 @@
 import { router, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
-import { ShoppingCart, Bell } from 'lucide-react-native';
+import { ShoppingCart, Bell, MessageCircle } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cartApi } from '@/lib/api/cart';
+import { messageApi } from '@/lib/api/communication';
 import { notificationsApi } from '@/lib/api/notifications';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { COLORS } from '@/lib/theme/colors';
@@ -22,7 +23,16 @@ export function TopNav() {
     queryKey: ['notifications'],
     queryFn: () => notificationsApi.getAll(),
     enabled: isAuthenticated === true,
+    refetchInterval: 30000,
   });
+
+  const { data: conversations } = useQuery({
+    queryKey: ['messages', 'conversations'],
+    queryFn: () => messageApi.listConversations(),
+    enabled: isAuthenticated === true,
+    refetchInterval: 15000,
+  });
+  const unreadMessages = conversations?.reduce((sum, c) => sum + c.unreadCount, 0) ?? 0;
   const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
   return (
@@ -31,6 +41,19 @@ export function TopNav() {
       
       {isAuthenticated && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Pressable
+            onPress={() => router.push('/messages' as Href)}
+            style={{ padding: 8, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <View>
+              <MessageCircle size={24} color={COLORS.inkMuted} />
+              {unreadMessages > 0 && (
+                <View style={{ position: 'absolute', top: -4, right: -6, backgroundColor: COLORS.accent, borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>{unreadMessages > 9 ? '9+' : unreadMessages}</Text>
+                </View>
+              )}
+            </View>
+          </Pressable>
           <Pressable
             onPress={() => router.push('/notifications' as Href)}
             style={{ padding: 8, justifyContent: 'center', alignItems: 'center' }}

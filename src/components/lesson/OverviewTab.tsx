@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { router, type Href } from 'expo-router';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 
+import { ApiError } from '@/lib/api/client';
 import { coursesApi } from '@/lib/api/courses';
-import { announcementApi } from '@/lib/api/communication';
+import { announcementApi, messageApi } from '@/lib/api/communication';
 import { COLORS } from '@/lib/theme/colors';
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -11,9 +13,15 @@ const LEVEL_LABEL: Record<string, string> = {
   ADVANCED: 'Nâng cao',
 };
 
-/** Port từ `fe/components/course/CourseOverviewTab.tsx` — bỏ nút "Nhắn tin giảng viên" (mobile
- * chưa có màn hộp thư `/messages`, ngoài phạm vi 4 việc đã chốt lần này). */
+/** Port từ `fe/components/course/CourseOverviewTab.tsx` — có nút "Nhắn tin giảng viên" (mở hội thoại
+ * `/messages/{id}`, tương đương `MessageInstructorFloatingButton` của web). */
 export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: string; courseId: number; enrolled: boolean }) {
+  const startChat = useMutation({
+    mutationFn: () => messageApi.startAsStudent(courseId),
+    onSuccess: (conv) => router.push(`/messages/${conv.id}` as Href),
+    onError: (err: unknown) => Alert.alert('Lỗi', err instanceof ApiError ? err.message : 'Không mở được hội thoại.'),
+  });
+
   const { data: course, isLoading } = useQuery({
     queryKey: ['course-detail', courseSlug],
     queryFn: () => coursesApi.getDetail(courseSlug),
@@ -61,6 +69,18 @@ export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: st
           <Text style={{ fontSize: 13.5, fontWeight: '600', color: COLORS.ink }}>{course.instructorName}</Text>
         </View>
       </View>
+
+      {enrolled ? (
+        <Pressable
+          disabled={startChat.isPending}
+          onPress={() => startChat.mutate()}
+          style={{ borderWidth: 1, borderColor: COLORS.accent, borderRadius: 8, padding: 10, alignItems: 'center', opacity: startChat.isPending ? 0.6 : 1 }}
+        >
+          <Text style={{ color: COLORS.accent, fontWeight: '700' }}>
+            {startChat.isPending ? 'Đang mở...' : 'Nhắn tin giảng viên'}
+          </Text>
+        </Pressable>
+      ) : null}
 
       {announcements && announcements.length > 0 ? (
         <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 12, gap: 8 }}>

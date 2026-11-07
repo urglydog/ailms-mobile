@@ -38,3 +38,44 @@ export const lessonChatApi = {
     return api.get<LessonChatMessage[]>(`/api/v1/lessons/${lessonId}/chats`);
   },
 };
+
+// ==================== Tin nhắn Học viên ↔ Giảng viên ====================
+
+export interface ConversationItem {
+  id: number;
+  otherUserId: number;
+  otherUserName: string;
+  otherUserAvatarUrl: string | null;
+  courseId: number | null;
+  courseTitle: string | null;
+  lastMessagePreview: string | null;
+  lastMessageAt: string;
+  unreadCount: number;
+}
+
+export interface MessageItem {
+  id: number;
+  senderId: number;
+  senderName: string;
+  senderAvatarUrl: string | null;
+  content: string;
+  createdAt: string;
+  mine: boolean;
+}
+
+/** Port từ `fe/lib/api/communication.ts` (`messageApi`) — phía Học viên. */
+export const messageApi = {
+  listConversations(): Promise<ConversationItem[]> {
+    return api.get<ConversationItem[]>('/api/v1/messages/conversations');
+  },
+  getMessages(conversationId: number): Promise<MessageItem[]> {
+    return api.get<MessageItem[]>(`/api/v1/messages/conversations/${conversationId}`);
+  },
+  sendMessage(conversationId: number, content: string): Promise<MessageItem> {
+    return api.post<MessageItem>(`/api/v1/messages/conversations/${conversationId}`, { content });
+  },
+  /** Bắt đầu (hoặc lấy lại) hội thoại với giảng viên của khóa học. */
+  startAsStudent(courseId: number): Promise<ConversationItem> {
+    return api.post<ConversationItem>('/api/v1/messages/conversations/start', { courseId, studentId: null });
+  },
+};

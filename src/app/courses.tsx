@@ -9,6 +9,7 @@ import { categoriesApi, coursesApi } from '@/lib/api/courses';
 import { CourseFiltersModal, EMPTY_FILTERS, type CourseFilterState } from '@/components/course/CourseFiltersModal';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { HomeShelves } from '@/components/course/HomeShelves';
 import { RankingBanner } from '@/components/ranking/RankingBanner';
 import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
 import type { CourseSummary } from '@/types/course';
@@ -65,6 +66,7 @@ export default function CoursesScreen() {
         ListHeaderComponent={
           <>
             <SystemAnnouncementBanner />
+            {!keyword && activeFilterCount === 0 ? <HomeShelves /> : null}
             <RankingBanner />
             <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>
               <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>

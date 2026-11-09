@@ -92,7 +92,7 @@ interface Props {
 
 /** Khung video + thanh điều khiển tuỳ biến nằm TRONG khung (giống `fe` `PlayerControls`): phát/dừng, lùi/tua 5s,
  * tốc độ, thanh tua, thời gian, loa, Gốc/Dịch, Transcript, Cài đặt, Toàn màn hình. Chạm vào video để hiện/ẩn;
- * tự ẩn sau 3,5s khi đang phát. Dùng chung cho khung nhúng và toàn màn hình (chỉ 1 khung mount tại 1 thời điểm). */
+ * luôn hiện (điện thoại không có hover). Dùng chung cho khung nhúng và toàn màn hình (chỉ 1 khung mount tại 1 thời điểm). */
 export function PlayerSurface(p: Props) {
   const { player } = p;
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
@@ -100,25 +100,7 @@ export function PlayerSurface(p: Props) {
   const sec = usePlayerTime(player, true);
   const duration = player.duration;
 
-  const [controlsVisible, setControlsVisible] = useState(true);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [drag, setDrag] = useState<number | null>(null);
-
-  const kick = () => {
-    setControlsVisible(true);
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setControlsVisible(false), 3500);
-  };
-  useEffect(() => {
-    if (!isPlaying) {
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-      return;
-    }
-    hideTimer.current = setTimeout(() => setControlsVisible(false), 3500);
-    return () => {
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-    };
-  }, [isPlaying]);
 
   // Thanh tua: kéo/chạm để tua (đo vị trí thanh trong cửa sổ để tính %).
   const barRef = useRef<View>(null);
@@ -148,23 +130,16 @@ export function PlayerSurface(p: Props) {
         translatedSubtitles={p.translatedSubtitles}
         player={player}
         settings={p.settings}
-        raised={controlsVisible}
+        raised
       />
 
-      {/* Chạm vào video để hiện/ẩn điều khiển (khi đã hiện thì chạm giữa video = phát/dừng). */}
-      <Pressable
-        onPress={() => (controlsVisible ? (isPlaying ? setControlsVisible(false) : togglePlay(player)) : kick())}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56 }}
-      />
+      {/* Chạm vào giữa video = phát/dừng (thanh điều khiển luôn hiện, không ẩn/hiện như web desktop hover). */}
+      <Pressable onPress={() => togglePlay(player)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56 }} />
 
-      {!isPlaying || controlsVisible ? (
-        <>
+      <>
           {!isPlaying ? (
             <Pressable
-              onPress={() => {
-                kick();
-                togglePlay(player);
-              }}
+              onPress={() => togglePlay(player)}
               accessibilityLabel="Phát"
               style={{ position: 'absolute', alignSelf: 'center', top: '35%', width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}
             >
@@ -183,16 +158,16 @@ export function PlayerSurface(p: Props) {
               <View style={{ position: 'absolute', left: `${ratio * 100}%`, marginLeft: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: '#fff' }} />
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-              <Btn kick={kick} label={isPlaying ? 'Tạm dừng' : 'Phát'} onPress={() => togglePlay(player)}>
+              <Btn label={isPlaying ? 'Tạm dừng' : 'Phát'} onPress={() => togglePlay(player)}>
                 {isPlaying ? <Pause size={18} color="#fff" fill="#fff" /> : <Play size={18} color="#fff" fill="#fff" />}
               </Btn>
-              <Btn kick={kick} label="Lùi 5 giây" onPress={() => seekTo(player, player.currentTime - 5)}>
+              <Btn label="Lùi 5 giây" onPress={() => seekTo(player, player.currentTime - 5)}>
                 <RotateCcw size={16} color="#fff" />
               </Btn>
-              <Btn kick={kick} label="Tua tới 5 giây" onPress={() => seekTo(player, player.currentTime + 5)}>
+              <Btn label="Tua tới 5 giây" onPress={() => seekTo(player, player.currentTime + 5)}>
                 <RotateCw size={16} color="#fff" />
               </Btn>
-              <Btn kick={kick} label="Tốc độ phát" active={p.rate !== 1} onPress={() => p.onRateChange(SPEEDS[(SPEEDS.indexOf(p.rate) + 1) % SPEEDS.length] ?? 1)}>
+              <Btn label="Tốc độ phát" active={p.rate !== 1} onPress={() => p.onRateChange(SPEEDS[(SPEEDS.indexOf(p.rate) + 1) % SPEEDS.length] ?? 1)}>
                 <Text style={txt}>{p.rate}×</Text>
               </Btn>
               <Text style={{ ...txt, fontVariant: ['tabular-nums'], marginLeft: 2 }} numberOfLines={1}>
@@ -200,7 +175,7 @@ export function PlayerSurface(p: Props) {
               </Text>
               <View style={{ flex: 1 }} />
               <Btn
-                kick={kick}
+               
                 label={p.dubActive ? 'Bật/tắt giọng lồng tiếng' : showMuted ? 'Bật tiếng' : 'Tắt tiếng'}
                 onPress={() => {
                   if (p.dubActive) p.onToggleDubMute();
@@ -209,36 +184,32 @@ export function PlayerSurface(p: Props) {
               >
                 {showMuted ? <VolumeX size={17} color="#fff" /> : <Volume2 size={17} color="#fff" />}
               </Btn>
-              <Btn kick={kick} label="Phụ đề gốc" active={p.settings.showOriginal} disabled={p.originalSubtitles.length === 0} onPress={() => p.onSettingsChange({ ...p.settings, showOriginal: !p.settings.showOriginal })}>
+              <Btn label="Phụ đề gốc" active={p.settings.showOriginal} disabled={p.originalSubtitles.length === 0} onPress={() => p.onSettingsChange({ ...p.settings, showOriginal: !p.settings.showOriginal })}>
                 <Text style={txt}>Gốc</Text>
               </Btn>
-              <Btn kick={kick} label="Phụ đề đã dịch" active={p.settings.showTranslated} disabled={p.translatedSubtitles.length === 0} onPress={() => p.onSettingsChange({ ...p.settings, showTranslated: !p.settings.showTranslated })}>
+              <Btn label="Phụ đề đã dịch" active={p.settings.showTranslated} disabled={p.translatedSubtitles.length === 0} onPress={() => p.onSettingsChange({ ...p.settings, showTranslated: !p.settings.showTranslated })}>
                 <Text style={txt}>Dịch</Text>
               </Btn>
-              <Btn kick={kick} label="Bản ghi lời thoại" onPress={p.onToggleTranscript}>
+              <Btn label="Bản ghi lời thoại" onPress={p.onToggleTranscript}>
                 <FileText size={16} color="#fff" />
               </Btn>
-              <Btn kick={kick} label="Cài đặt" onPress={p.onOpenSettings}>
+              <Btn label="Cài đặt" onPress={p.onOpenSettings}>
                 <Settings size={16} color="#fff" />
               </Btn>
-              <Btn kick={kick} label={p.isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'} onPress={p.onToggleFullscreen}>
+              <Btn label={p.isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'} onPress={p.onToggleFullscreen}>
                 {p.isFullscreen ? <Minimize2 size={16} color="#fff" /> : <Maximize2 size={16} color="#fff" />}
               </Btn>
             </View>
           </View>
-        </>
-      ) : null}
+      </>
     </View>
   );
 }
 
-function Btn({ onPress, children, label, active, disabled, kick }: { onPress: () => void; children: React.ReactNode; label: string; active?: boolean; disabled?: boolean; kick: () => void }) {
+function Btn({ onPress, children, label, active, disabled }: { onPress: () => void; children: React.ReactNode; label: string; active?: boolean; disabled?: boolean }) {
   return (
     <Pressable
-      onPress={() => {
-        kick();
-        onPress();
-      }}
+      onPress={onPress}
       disabled={disabled}
       accessibilityLabel={label}
       hitSlop={6}

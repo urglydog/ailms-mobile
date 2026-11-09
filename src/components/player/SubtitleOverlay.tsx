@@ -23,7 +23,7 @@ interface Props {
 
 /** Phụ đề phủ lên video (gốc + đã dịch). Đặt trong khung video `position: relative`. Lưu ý: ở chế độ
  * toàn màn hình native của `expo-video` lớp phủ này không hiện (chỉ thấy trong khung nhúng). */
-export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, player, settings, raised = false }: Props) {
+export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, player, settings, raised = true }: Props) {
   const currentSec = usePlayerTime(player, true);
   const original = settings.showOriginal ? activeAt(originalSubtitles, currentSec) : null;
   const translated = settings.showTranslated ? activeAt(translatedSubtitles, currentSec) : null;

@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import { usePlayerTime } from '@/hooks/usePlayerTime';
 import type { SubtitleSegment } from '@/types/lesson';
 import { FONT_SIZE_PX, type SubtitleSettings } from '@/lib/subtitleSettings';
 
@@ -14,13 +15,14 @@ function hexToRgba(hex: string, alpha: number): string {
 interface Props {
   originalSubtitles: SubtitleSegment[];
   translatedSubtitles: SubtitleSegment[];
-  currentSec: number;
+  player: { currentTime: number };
   settings: SubtitleSettings;
 }
 
 /** Phụ đề phủ lên video (gốc + đã dịch). Đặt trong khung video `position: relative`. Lưu ý: ở chế độ
  * toàn màn hình native của `expo-video` lớp phủ này không hiện (chỉ thấy trong khung nhúng). */
-export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, currentSec, settings }: Props) {
+export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, player, settings }: Props) {
+  const currentSec = usePlayerTime(player, true);
   const original = settings.showOriginal ? activeAt(originalSubtitles, currentSec) : null;
   const translated = settings.showTranslated ? activeAt(translatedSubtitles, currentSec) : null;
   if (!original && !translated) return null;
@@ -55,7 +57,7 @@ export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, curren
         right: 12,
         alignItems: 'center',
         gap: 4,
-        ...(settings.position === 'bottom' ? { bottom: 44 } : { top: 12 }),
+        ...(settings.position === 'bottom' ? { bottom: 72 } : { top: 12 }),
       }}
     >
       {translated ? line(translated.text, fontSize) : null}

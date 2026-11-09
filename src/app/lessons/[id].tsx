@@ -8,7 +8,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View, Platform } from 'react-native';
-import { useAudioPlayer } from 'expo-audio';
+import { DubAudioSync } from '@/components/player/DubAudioSync';
+import { usePlayerTime } from '@/hooks/usePlayerTime';
 
 import { ApiError, getOrCreateStreamSessionId } from '@/lib/api/client';
 import { lessonsApi } from '@/lib/api/lessons';
@@ -134,7 +135,6 @@ export default function LessonPlayerScreen() {
   const [activeLang, setActiveLang] = useState<string | null>(null);
   const [subSettings, setSubSettings] = useState<SubtitleSettings>(DEFAULT_SUBTITLE_SETTINGS);
   const [showSubModal, setShowSubModal] = useState(false);
-  const [currentSec, setCurrentSec] = useState(0);
   useEffect(() => {
     loadSubtitleSettings().then(setSubSettings);
   }, []);
@@ -317,43 +317,22 @@ export default function LessonPlayerScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seekSec, lesson?.lessonId, isDirectVideo]);
 
-  // expo-av đã bị gỡ khỏi Expo Go từ SDK 55 (lỗi "Cannot find native module 'ExponentAV'") —
-  // dùng expo-audio. Hook tự release player khi unmount và tự nạp lại khi `audioSrc` đổi.
-  const dubPlayer = useAudioPlayer(audioSrc);
+  // Giọng lồng tiếng chạy ở `DubAudioSync` (mount phía client, tự đồng bộ vị trí với video).
 
-  // Audio lồng tiếng đi theo trạng thái phát/dừng của video (video bị mute khi có audioSrc).
-  useEventListener(player, 'playingChange', ({ isPlaying }) => {
-    if (!audioSrc) return;
-    if (isPlaying) dubPlayer.play();
-    else dubPlayer.pause();
-  });
-
-  useEffect(() => {
-    if (audioSrc && player.playing) dubPlayer.play();
-  }, [audioSrc, dubPlayer, player]);
-
-  // expo-router giữ màn hình sống trong stack khi chuyển tab (không unmount) — video/audio tự
-  // phát (xem `p.play()` ở trên) sẽ tiếp tục chạy NỀN nếu không chủ động pause lúc rời màn hình.
-  // Tự resume lại khi quay lại màn hình nếu video đang phát dở trước đó.
+  // expo-router giữ màn hình sống trong stack khi chuyển tab (không unmount) — video tự phát
+  // (xem `p.play()` ở trên) sẽ tiếp tục chạy NỀN nếu không chủ động pause lúc rời màn hình.
   useFocusEffect(
     useCallback(() => {
       return () => {
-        // Cả 2 player (video + audio lồng tiếng) đều có thể đã bị giải phóng (native shared
-        // object) trước khi cleanup này chạy — pause lúc đó ném NotFoundException, crash cả app
-        // nếu không try/catch riêng từng cái (bug thật 16/10/2026: ban đầu chỉ bọc `player`, bỏ
-        // sót `dubPlayer` nên vẫn crash y hệt).
+        // Player có thể đã bị giải phóng (native shared object) trước khi cleanup chạy — pause lúc
+        // đó ném NotFoundException (bug thật 16/10/2026), nên bọc try/catch.
         try {
           player.pause();
         } catch {
           // Không có gì để pause — bỏ qua.
         }
-        try {
-          dubPlayer.pause();
-        } catch {
-          // Không có gì để pause — bỏ qua.
-        }
       };
-    }, [player, dubPlayer]),
+    }, [player]),
   );
 
   const sessionIdRef = useRef<string | null>(null);
@@ -414,11 +393,6 @@ export default function LessonPlayerScreen() {
 
   const lastReportedAtRef = useRef(0);
 
-  // Mốc thời gian dạng state để phụ đề phủ video và tab Transcript tô sáng đúng câu đang nói
-  // (trước đây `player.currentTime` đọc trực tiếp lúc render → không cập nhật khi video chạy).
-  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
-    setCurrentSec(currentTime);
-  });
 
   useEventListener(player, 'timeUpdate', ({ currentTime }) => {
     if (!lesson) return;
@@ -501,7 +475,7 @@ export default function LessonPlayerScreen() {
           <SubtitleOverlay
             originalSubtitles={lesson.originalSubtitles ?? []}
             translatedSubtitles={currentLang?.subtitles ?? []}
-            currentSec={currentSec}
+            player={player}
             settings={subSettings}
           />
         </View>
@@ -536,6 +510,8 @@ export default function LessonPlayerScreen() {
         }}
         onClose={() => setShowSubModal(false)}
       />
+
+      {typeof window !== 'undefined' && audioSrc ? <DubAudioSync key={audioSrc} src={audioSrc} video={player} /> : null}
 
       <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 16, gap: 4 }}>
@@ -646,10 +622,10 @@ export default function LessonPlayerScreen() {
         {mainTab === 'reviews' && <ReviewsTab courseId={lesson.courseId} />}
         {mainTab === 'transcript' && (
           <View style={{ padding: 16 }}>
-            <TranscriptPanel
+            <LiveTranscript
+              player={player}
               originalSubtitles={lesson.originalSubtitles ?? []}
               translatedSubtitles={currentLang?.subtitles ?? []}
-              currentSec={currentSec}
               onSeek={(sec) => {
                 player.currentTime = sec;
                 player.play();
@@ -701,4 +677,10 @@ function LessonNavRow({ lesson, active }: { lesson: LessonNav; active: boolean }
       <Text style={{ color: COLORS.lineDot }}>{Math.round(lesson.durationSec / 60)} phút</Text>
     </Pressable>
   );
+}
+
+/** Transcript tô sáng theo thời gian video — đọc giờ ở đây (không ở màn cha) để chỉ re-render phần này. */
+function LiveTranscript({ player, ...rest }: { player: { currentTime: number } } & Omit<React.ComponentProps<typeof TranscriptPanel>, 'currentSec'>) {
+  const currentSec = usePlayerTime(player, true);
+  return <TranscriptPanel {...rest} currentSec={currentSec} />;
 }

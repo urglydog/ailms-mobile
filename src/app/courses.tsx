@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-query';
-import { Redirect, router, type Href } from 'expo-router';
+import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
@@ -11,6 +11,7 @@ import { CourseFiltersModal, DURATIONS, EMPTY_FILTERS, LEVELS, SORTS, type Cours
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { HomeShelves } from '@/components/course/HomeShelves';
+import { CategoryTiles } from '@/components/course/CategoryTiles';
 import { RankingBanner } from '@/components/ranking/RankingBanner';
 import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
 import type { CourseSummary, Page } from '@/types/course';
@@ -20,7 +21,8 @@ export default function CoursesScreen() {
   const { isAuthenticated } = useAuth();
   const [searchInput, setSearchInput] = useState('');
   const [keyword, setKeyword] = useState('');
-  const [filters, setFilters] = useState<CourseFilterState>(EMPTY_FILTERS);
+  const { category: categoryParam } = useLocalSearchParams<{ category?: string }>();
+  const [filters, setFilters] = useState<CourseFilterState>({ ...EMPTY_FILTERS, category: categoryParam ?? null });
   const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const activeFilterCount =
@@ -98,6 +100,7 @@ export default function CoursesScreen() {
         ListHeaderComponent={
           <>
             <SystemAnnouncementBanner />
+            {!keyword && activeFilterCount === 0 ? <CategoryTiles onPick={(slug) => setFilters({ ...EMPTY_FILTERS, category: slug })} /> : null}
             {!keyword && activeFilterCount === 0 ? <HomeShelves /> : null}
             <RankingBanner />
             <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>

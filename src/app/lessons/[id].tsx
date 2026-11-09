@@ -8,7 +8,7 @@ import { DEFAULT_SUBTITLE_SETTINGS, loadSubtitleSettings, saveSubtitleSettings, 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View, Platform } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Switch, Text, View, Platform } from 'react-native';
 import { DubAudioSync } from '@/components/player/DubAudioSync';
 import { usePlayerTime } from '@/hooks/usePlayerTime';
 
@@ -138,6 +138,7 @@ export default function LessonPlayerScreen() {
   const [showSubModal, setShowSubModal] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [dubMuted, setDubMuted] = useState(false);
+  const [lastDubLang, setLastDubLang] = useState<string | null>(null);
   useEffect(() => {
     loadSubtitleSettings().then(setSubSettings);
   }, []);
@@ -553,11 +554,41 @@ export default function LessonPlayerScreen() {
           sourceLanguage={lesson.sourceLanguage}
           onSelect={(code) => {
             setActiveLang(code);
+            setLastDubLang(code);
             const langs = voiceOptions?.filter((v) => v.language === code) ?? [];
             const def = langs.find((v) => v.isDefault) ?? langs[0];
             setSelectedVoiceName(def?.voiceName ?? null);
           }}
         />
+
+        {/* Công tắc "Nghe bản gốc" như web (`DubbingBar`): bật = nghe âm thanh gốc (bỏ giọng lồng tiếng);
+            tắt = quay lại giọng lồng tiếng vừa dùng, hoặc giọng đã sẵn sàng đầu tiên. */}
+        {isDirectVideo ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: COLORS.white }}>
+            <Text style={{ color: COLORS.ink, fontWeight: '600' }}>Nghe bản gốc</Text>
+            <Switch
+              value={activeLang === null}
+              trackColor={{ true: COLORS.accent, false: COLORS.line }}
+              onValueChange={(listenOriginal) => {
+                if (listenOriginal) {
+                  setActiveLang(null);
+                  return;
+                }
+                const ready = (lesson.languages ?? []).filter((l) => l.available);
+                const target = ready.find((l) => l.code === lastDubLang) ?? ready[0];
+                if (!target) {
+                  Alert.alert('Chưa có giọng lồng tiếng', 'Chọn một ngôn ngữ ở trên và kích hoạt lồng tiếng AI để nghe.');
+                  return;
+                }
+                setActiveLang(target.code);
+                setLastDubLang(target.code);
+                const langs = voiceOptions?.filter((v) => v.language === target.code) ?? [];
+                const def = langs.find((v) => v.isDefault) ?? langs[0];
+                setSelectedVoiceName(def?.voiceName ?? null);
+              }}
+            />
+          </View>
+        ) : null}
 
         {mode === 'activate' && currentLang && (
           <View style={{ backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: COLORS.lineSoft }}>

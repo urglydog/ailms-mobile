@@ -54,7 +54,7 @@ export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video
   }, [resolved.offsetSec]);
   const lastSeekAtRef = useRef(0);
   const warnedRef = useRef(false);
-  const clockRef = useRef({ last: -1, advanceAt: 0, mountedAt: Date.now() });
+  const clockRef = useRef({ last: -1, advanceAt: 0, mountedAt: 0 });
 
   // iOS: mặc định công tắc im lặng của máy chặn mọi âm thanh app → phải bật `playsInSilentMode`.
   useEffect(() => {
@@ -68,6 +68,7 @@ export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video
 
   useEffect(() => {
     let playingSince = 0;
+    clockRef.current.mountedAt = Date.now();
     const id = setInterval(() => {
       try {
         silence(video); // video luôn câm khi đang lồng tiếng

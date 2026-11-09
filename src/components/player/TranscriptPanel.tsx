@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, Pressable, ScrollView, Switch } from 'react-native';
 import type { SubtitleSegment } from '@/types/lesson';
 import { COLORS } from '@/lib/theme/colors';

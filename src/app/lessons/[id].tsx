@@ -1,5 +1,9 @@
 import { useEventListener } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { Captions } from 'lucide-react-native';
+import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
+import { SubtitleSettingsModal } from '@/components/player/SubtitleSettingsModal';
+import { DEFAULT_SUBTITLE_SETTINGS, loadSubtitleSettings, saveSubtitleSettings, type SubtitleSettings } from '@/lib/subtitleSettings';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -128,6 +132,12 @@ export default function LessonPlayerScreen() {
     ).length ?? 0);
 
   const [activeLang, setActiveLang] = useState<string | null>(null);
+  const [subSettings, setSubSettings] = useState<SubtitleSettings>(DEFAULT_SUBTITLE_SETTINGS);
+  const [showSubModal, setShowSubModal] = useState(false);
+  const [currentSec, setCurrentSec] = useState(0);
+  useEffect(() => {
+    loadSubtitleSettings().then(setSubSettings);
+  }, []);
   const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
   const { data: voiceOptions } = useVoiceOptions();
   const [mode, setMode] = useState<'watching' | 'activate' | 'processing'>('watching');
@@ -285,7 +295,7 @@ export default function LessonPlayerScreen() {
   const player = useVideoPlayer(isDirectVideo ? lesson!.videoUrl : null, (p) => {
     if (!lesson) return;
     p.currentTime = seekSec ?? lesson.lastPositionSec;
-    p.timeUpdateEventInterval = 1;
+    p.timeUpdateEventInterval = 0.25;
     p.play();
   });
 
@@ -404,6 +414,12 @@ export default function LessonPlayerScreen() {
 
   const lastReportedAtRef = useRef(0);
 
+  // Mốc thời gian dạng state để phụ đề phủ video và tab Transcript tô sáng đúng câu đang nói
+  // (trước đây `player.currentTime` đọc trực tiếp lúc render → không cập nhật khi video chạy).
+  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
+    setCurrentSec(currentTime);
+  });
+
   useEventListener(player, 'timeUpdate', ({ currentTime }) => {
     if (!lesson) return;
     if (currentTime - lastReportedAtRef.current >= PROGRESS_REPORT_INTERVAL_SEC) {
@@ -480,7 +496,15 @@ export default function LessonPlayerScreen() {
           </Pressable>
         </View>
       ) : isDirectVideo ? (
-        <VideoView player={player} style={VIDEO_FRAME} contentFit="contain" fullscreenOptions={{ enable: true }} nativeControls />
+        <View style={VIDEO_FRAME}>
+          <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: true }} nativeControls />
+          <SubtitleOverlay
+            originalSubtitles={lesson.originalSubtitles ?? []}
+            translatedSubtitles={currentLang?.subtitles ?? []}
+            currentSec={currentSec}
+            settings={subSettings}
+          />
+        </View>
       ) : lesson.youtubeId ? (
         <Pressable
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}
@@ -493,6 +517,25 @@ export default function LessonPlayerScreen() {
           <Text style={{ color: '#fff' }}>Chưa có video cho bài này.</Text>
         </View>
       )}
+
+      {isDirectVideo && !streamConflict ? (
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 12, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+          <Pressable onPress={() => setShowSubModal(true)} accessibilityLabel="Cài đặt phụ đề" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}>
+            <Captions size={18} color={COLORS.inkMuted} />
+            <Text style={{ color: COLORS.inkMuted, fontSize: 13, fontWeight: '600' }}>Phụ đề</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <SubtitleSettingsModal
+        visible={showSubModal}
+        settings={subSettings}
+        hasTranslated={(currentLang?.subtitles?.length ?? 0) > 0}
+        onChange={(next) => {
+          setSubSettings(next);
+          saveSubtitleSettings(next);
+        }}
+        onClose={() => setShowSubModal(false)}
+      />
 
       <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 16, gap: 4 }}>
@@ -606,7 +649,7 @@ export default function LessonPlayerScreen() {
             <TranscriptPanel
               originalSubtitles={lesson.originalSubtitles ?? []}
               translatedSubtitles={currentLang?.subtitles ?? []}
-              currentSec={player.currentTime}
+              currentSec={currentSec}
               onSeek={(sec) => {
                 player.currentTime = sec;
                 player.play();

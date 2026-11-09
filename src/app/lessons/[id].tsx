@@ -236,7 +236,10 @@ export default function LessonPlayerScreen() {
     const lang = lesson.languages?.find((l) => l.code === activeLang);
     if (!lang) return;
 
-    if (lang.track?.status === 'AVAILABLE') {
+    // `lang.available` (BE `isPlayable`) là nguồn xác thực như web — trước đây so `track.status ===
+    // 'AVAILABLE'` (giá trị BE không bao giờ trả: thật là PROCESSING/PARTIAL/COMPLETED/FAILED) nên
+    // ngôn ngữ ĐÃ có lồng tiếng vẫn hiện panel "Kích hoạt lồng tiếng AI".
+    if (lang.available) {
       setMode('watching');
     } else if (lang.track?.status === 'PROCESSING' || lang.track?.status === 'CREATED') {
       setMode('processing');

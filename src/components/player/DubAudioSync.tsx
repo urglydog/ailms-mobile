@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useEvent } from 'expo';
+import { Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useAudioPlayer } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import type { VideoPlayer } from 'expo-video';
 import type { AudioTrack } from '@/types/lesson';
 
-/** Chu kỳ kiểm tra độ lệch (ms) và ngưỡng lệch (giây) — cổng từ `fe/hooks/useDualPlayerSync.ts`
- * (web dùng 0,2s; mobile dùng 0,6s vì player native báo `currentTime` thô hơn, ngưỡng chặt sẽ khiến
- * liên tục tua lại → giọng bị lặp câu). */
+/** Chu kỳ kiểm tra (ms) và ngưỡng lệch (giây) — cổng từ `fe/hooks/useDualPlayerSync.ts` (web 0,2s;
+ * mobile 0,6s vì player native báo `currentTime` thô hơn, ngưỡng chặt sẽ liên tục tua → lặp câu). */
 const SYNC_INTERVAL_MS = 250;
 const DRIFT_TOLERANCE_SEC = 0.6;
 /** Giữa 2 lần tự tua giọng tối thiểu (ms) — chống vòng lặp "tua → chưa kịp cập nhật → tua tiếp". */
@@ -28,74 +27,83 @@ function silence(video: VideoPlayer) {
   }
 }
 
+function applyMuted(dub: { muted: boolean }, muted: boolean) {
+  try {
+    dub.muted = muted;
+  } catch {
+    // Player đã giải phóng.
+  }
+}
+
 /**
  * Phát giọng lồng tiếng bám theo video (không render gì) — cổng từ `fe` `useDualPlayerSync`:
  *  - video luôn câm, mọi âm thanh đến từ giọng lồng tiếng (nghe giọng gốc = chọn "Âm thanh gốc");
- *  - play/pause của giọng đi theo SỰ KIỆN `playingChange` của video (không suy ra từ polling);
- *  - vòng kiểm 250ms CHỈ chạy khi video đang phát và chỉ tua khi lệch quá ngưỡng, có giãn cách.
+ *  - mỗi 250ms so TRẠNG THÁI THẬT của giọng với video: video phát mà giọng chưa phát thì phát lại
+ *    (web đặt `playing=true` ngay khi gọi `play()` dù trình duyệt có thể từ chối → không thể tin cờ
+ *    `playing`, phải đọc `currentStatus`); video dừng thì dừng giọng; chỉ tua khi lệch quá ngưỡng.
  * Tách component riêng để chỉ mount phía client (`Audio` không tồn tại khi render server web) và
  * để đổi ngôn ngữ thì remount theo `key`.
  */
-export function DubAudioSync({ track, video }: { track: AudioTrack; video: VideoPlayer }) {
+export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video: VideoPlayer; muted: boolean }) {
   const [resolved, setResolved] = useState(() => resolveAudio(track, video.currentTime));
   const dub = useAudioPlayer(resolved.src);
-  const { isPlaying } = useEvent(video, 'playingChange', { isPlaying: video.playing });
 
   const offsetRef = useRef(resolved.offsetSec);
   useEffect(() => {
     offsetRef.current = resolved.offsetSec;
   }, [resolved.offsetSec]);
   const lastSeekAtRef = useRef(0);
+  const warnedRef = useRef(false);
 
-  const seekToVideo = useCallback(() => {
-    try {
-      void dub.seekTo(Math.max(0, video.currentTime - offsetRef.current));
-      lastSeekAtRef.current = Date.now();
-    } catch {
-      // Player đã giải phóng.
-    }
-  }, [dub, video]);
-
-  // Video luôn câm khi đang lồng tiếng (kể cả khi người dùng bấm nút âm lượng gốc).
+  // iOS: mặc định công tắc im lặng của máy chặn mọi âm thanh app → phải bật `playsInSilentMode`.
   useEffect(() => {
-    silence(video);
-  });
+    if (Platform.OS === 'web') return;
+    setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+  }, []);
 
-  // Play/pause đi theo video. Khi bắt đầu phát: tua giọng về đúng vị trí rồi mới phát.
   useEffect(() => {
-    try {
-      if (isPlaying) {
-        seekToVideo();
-        dub.play();
-      } else {
-        dub.pause();
-      }
-    } catch {
-      // Player đã giải phóng.
-    }
-  }, [isPlaying, dub, seekToVideo]);
+    applyMuted(dub, muted);
+  }, [dub, muted]);
 
-  // Vòng kiểm: đổi chunk (khi chưa có finalUrl) và sửa độ lệch tích luỹ — chỉ khi video đang phát.
   useEffect(() => {
+    let playingSince = 0;
     const id = setInterval(() => {
       try {
-        if (!video.playing) return;
+        silence(video); // video luôn câm khi đang lồng tiếng
+
+        const status = dub.currentStatus;
+        if (!video.playing) {
+          playingSince = 0;
+          if (status.playing) dub.pause();
+          return;
+        }
+        if (!playingSince) playingSince = Date.now();
+
         const next = resolveAudio(track, video.currentTime);
         if (next.src !== resolved.src) {
           setResolved(next);
           return;
         }
+
+        if (!status.playing) dub.play();
+
         const target = Math.max(0, video.currentTime - offsetRef.current);
-        if (!dub.playing) dub.play();
-        if (Math.abs(target - dub.currentTime) > DRIFT_TOLERANCE_SEC && Date.now() - lastSeekAtRef.current > MIN_SEEK_GAP_MS) {
-          seekToVideo();
+        if (Math.abs(target - status.currentTime) > DRIFT_TOLERANCE_SEC && Date.now() - lastSeekAtRef.current > MIN_SEEK_GAP_MS) {
+          void dub.seekTo(target);
+          lastSeekAtRef.current = Date.now();
+        }
+
+        // Chẩn đoán: video đã phát >4s mà giọng vẫn chưa tải/phát được → báo 1 lần để dễ truy.
+        if (!warnedRef.current && Date.now() - playingSince > 4000 && (!status.isLoaded || !status.playing)) {
+          warnedRef.current = true;
+          console.warn('[DubAudioSync] giọng lồng tiếng chưa phát sau 4s', { src: resolved.src, status });
         }
       } catch {
-        // Player đã giải phóng.
+        // Player đã giải phóng — bỏ qua.
       }
     }, SYNC_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [dub, video, track, resolved.src, seekToVideo]);
+  }, [dub, video, track, resolved.src]);
 
   // Rời màn hình (expo-router giữ màn trong stack) thì dừng giọng.
   useFocusEffect(

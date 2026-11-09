@@ -1,6 +1,7 @@
 import { useEventListener } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { Captions } from 'lucide-react-native';
+import { Captions, Maximize2, Volume2, VolumeX } from 'lucide-react-native';
+import { FullscreenVideoModal } from '@/components/player/FullscreenVideoModal';
 import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
 import { SubtitleSettingsModal } from '@/components/player/SubtitleSettingsModal';
 import { DEFAULT_SUBTITLE_SETTINGS, loadSubtitleSettings, saveSubtitleSettings, type SubtitleSettings } from '@/lib/subtitleSettings';
@@ -135,6 +136,8 @@ export default function LessonPlayerScreen() {
   const [activeLang, setActiveLang] = useState<string | null>(null);
   const [subSettings, setSubSettings] = useState<SubtitleSettings>(DEFAULT_SUBTITLE_SETTINGS);
   const [showSubModal, setShowSubModal] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [dubMuted, setDubMuted] = useState(false);
   useEffect(() => {
     loadSubtitleSettings().then(setSubSettings);
   }, []);
@@ -474,7 +477,7 @@ export default function LessonPlayerScreen() {
         </View>
       ) : isDirectVideo ? (
         <View style={VIDEO_FRAME}>
-          <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: true }} nativeControls />
+          <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: false }} nativeControls />
           <SubtitleOverlay
             originalSubtitles={lesson.originalSubtitles ?? []}
             translatedSubtitles={currentLang?.subtitles ?? []}
@@ -496,13 +499,31 @@ export default function LessonPlayerScreen() {
       )}
 
       {isDirectVideo && !streamConflict ? (
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 12, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+          {audioSrc ? (
+            <Pressable onPress={() => setDubMuted((m) => !m)} accessibilityLabel="Bật/tắt giọng lồng tiếng" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}>
+              {dubMuted ? <VolumeX size={18} color={COLORS.danger} /> : <Volume2 size={18} color={COLORS.accent} />}
+              <Text style={{ color: dubMuted ? COLORS.danger : COLORS.accent, fontSize: 13, fontWeight: '600' }}>Lồng tiếng</Text>
+            </Pressable>
+          ) : null}
+          <Pressable onPress={() => setFullscreen(true)} accessibilityLabel="Toàn màn hình" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}>
+            <Maximize2 size={17} color={COLORS.inkMuted} />
+            <Text style={{ color: COLORS.inkMuted, fontSize: 13, fontWeight: '600' }}>Phóng to</Text>
+          </Pressable>
           <Pressable onPress={() => setShowSubModal(true)} accessibilityLabel="Cài đặt phụ đề" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}>
             <Captions size={18} color={COLORS.inkMuted} />
             <Text style={{ color: COLORS.inkMuted, fontSize: 13, fontWeight: '600' }}>Phụ đề</Text>
           </Pressable>
         </View>
       ) : null}
+      <FullscreenVideoModal
+        visible={fullscreen}
+        player={player}
+        originalSubtitles={lesson.originalSubtitles ?? []}
+        translatedSubtitles={currentLang?.subtitles ?? []}
+        settings={subSettings}
+        onClose={() => setFullscreen(false)}
+      />
       <SubtitleSettingsModal
         visible={showSubModal}
         settings={subSettings}
@@ -514,7 +535,7 @@ export default function LessonPlayerScreen() {
         onClose={() => setShowSubModal(false)}
       />
 
-      {typeof window !== 'undefined' && audioSrc ? <DubAudioSync key={currentLang?.code} track={track!} video={player} /> : null}
+      {typeof window !== 'undefined' && audioSrc ? <DubAudioSync key={currentLang?.code} track={track!} video={player} muted={dubMuted} /> : null}
 
       <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 16, gap: 4 }}>

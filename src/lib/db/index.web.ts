@@ -18,17 +18,24 @@ interface FakeRow {
 const flashcardsTable: FakeRow[] = [];
 const syncQueueTable: FakeRow[] = [];
 let nextSyncQueueId = 1;
+const materialCacheTable = new Map<number, string>();
 
 const webDb = {
   async execAsync() {
     // Schema đã "tồn tại sẵn" dưới dạng mảng JS — không cần CREATE TABLE.
   },
 
+  async withTransactionAsync(task: () => Promise<void>) {
+    await task();
+  },
+
   async runAsync(sql: string, params?: unknown) {
     const args = Array.isArray(params) ? params : params !== undefined ? [params] : [];
     const normalized = sql.trim().toUpperCase();
 
-    if (normalized.startsWith('DELETE FROM FLASHCARDS')) {
+    if (normalized.startsWith('INSERT OR REPLACE INTO MATERIAL_CACHE')) {
+      materialCacheTable.set(args[0] as number, args[1] as string);
+    } else if (normalized.startsWith('DELETE FROM FLASHCARDS')) {
       const materialId = args[0];
       for (let i = flashcardsTable.length - 1; i >= 0; i--) {
         if (flashcardsTable[i]?.material_id === materialId) flashcardsTable.splice(i, 1);
@@ -64,6 +71,11 @@ const webDb = {
 
   async getFirstAsync<T>(sql: string, params?: unknown): Promise<T | null> {
     const normalized = sql.trim().toUpperCase();
+    if (normalized.startsWith('SELECT * FROM MATERIAL_CACHE')) {
+      const id = Array.isArray(params) ? params[0] : params;
+      const json = materialCacheTable.get(id as number);
+      return (json !== undefined ? { material_id: id, json } : null) as T | null;
+    }
     if (normalized.startsWith('SELECT * FROM FLASHCARDS')) {
       const id = Array.isArray(params) ? params[0] : params;
       return (flashcardsTable.find((r) => r.id === id) as T) ?? null;

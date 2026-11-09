@@ -25,6 +25,11 @@ async function initDb(database: SQLite.SQLiteDatabase) {
       is_due INTEGER NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS material_cache (
+      material_id INTEGER PRIMARY KEY NOT NULL,
+      json TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS flashcard_sync_queue (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       flashcard_id INTEGER NOT NULL,

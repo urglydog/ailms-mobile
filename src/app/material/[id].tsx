@@ -40,16 +40,31 @@ export default function MaterialDetailScreen() {
   const { data: material, isLoading, error, refetch } = useQuery({
     queryKey: ['material', materialId],
     queryFn: async () => {
-      const data = await materialsApi.getDetail(materialId);
-      if (data.materialType === 'FLASHCARD' && data.flashcards) {
-        await flashcardDb.syncMaterialFlashcards(materialId, data.flashcards);
+      try {
+        // Đẩy review offline lên trước để dữ liệu server mới nhất khi tải lại thẻ.
+        await syncService.syncOfflineReviews();
+        const data = await materialsApi.getDetail(materialId);
+        if (data.materialType === 'FLASHCARD' && data.flashcards) {
+          await flashcardDb.syncMaterialFlashcards(materialId, data.flashcards);
+          await flashcardDb.saveMaterialCache(materialId, JSON.stringify(data));
+        }
+        return data;
+      } catch (err) {
+        // Lỗi từ server (ApiError: 403/404...) → báo như cũ. Chỉ khi KHÔNG kết nối được (mất mạng)
+        // mới dùng bản đã lưu để học flashcard offline.
+        if (err instanceof ApiError) throw err;
+        const cached = await flashcardDb.getMaterialCache(materialId);
+        if (!cached) throw err;
+        const data = JSON.parse(cached) as MaterialDetail;
+        data.flashcards = await flashcardDb.getOfflineFlashcards(materialId);
+        return data;
       }
-      return data;
     },
+    retry: false,
     enabled: !!materialId,
   });
 
-  if (isLoading || !material) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator />
@@ -57,7 +72,7 @@ export default function MaterialDetailScreen() {
     );
   }
 
-  if (error) {
+  if (error || !material) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Text>{error instanceof ApiError ? error.message : 'Không tải được học liệu.'}</Text>

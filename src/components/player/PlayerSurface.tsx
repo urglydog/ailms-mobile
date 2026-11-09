@@ -4,7 +4,7 @@ import { useEvent } from 'expo';
 import { VideoView, type VideoPlayer } from 'expo-video';
 import { FileText, Maximize2, Minimize2, Pause, Play, RotateCcw, RotateCw, Settings, Volume2, VolumeX } from 'lucide-react-native';
 import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
-import { usePlayerTime } from '@/hooks/usePlayerTime';
+import { usePlayerTime, useReallyPlaying } from '@/hooks/usePlayerTime';
 import type { SubtitleSegment } from '@/types/lesson';
 import type { SubtitleSettings } from '@/lib/subtitleSettings';
 
@@ -18,9 +18,9 @@ function seekTo(player: VideoPlayer, sec: number) {
   }
 }
 
-function togglePlay(player: VideoPlayer) {
+function togglePlay(player: VideoPlayer, reallyPlaying: boolean) {
   try {
-    if (player.playing) player.pause();
+    if (reallyPlaying) player.pause();
     else player.play();
   } catch {
     // Player đã giải phóng.
@@ -95,7 +95,7 @@ interface Props {
  * luôn hiện (điện thoại không có hover). Dùng chung cho khung nhúng và toàn màn hình (chỉ 1 khung mount tại 1 thời điểm). */
 export function PlayerSurface(p: Props) {
   const { player } = p;
-  const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
+  const isPlaying = useReallyPlaying(player);
   const { muted: videoMuted } = useEvent(player, 'mutedChange', { muted: player.muted });
   const sec = usePlayerTime(player, true);
   const duration = player.duration;
@@ -134,12 +134,12 @@ export function PlayerSurface(p: Props) {
       />
 
       {/* Chạm vào giữa video = phát/dừng (thanh điều khiển luôn hiện, không ẩn/hiện như web desktop hover). */}
-      <Pressable onPress={() => togglePlay(player)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56 }} />
+      <Pressable onPress={() => togglePlay(player, isPlaying)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56 }} />
 
       <>
           {!isPlaying ? (
             <Pressable
-              onPress={() => togglePlay(player)}
+              onPress={() => togglePlay(player, isPlaying)}
               accessibilityLabel="Phát"
               style={{ position: 'absolute', alignSelf: 'center', top: '35%', width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}
             >
@@ -158,7 +158,7 @@ export function PlayerSurface(p: Props) {
               <View style={{ position: 'absolute', left: `${ratio * 100}%`, marginLeft: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: '#fff' }} />
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-              <Btn label={isPlaying ? 'Tạm dừng' : 'Phát'} onPress={() => togglePlay(player)}>
+              <Btn label={isPlaying ? 'Tạm dừng' : 'Phát'} onPress={() => togglePlay(player, isPlaying)}>
                 {isPlaying ? <Pause size={18} color="#fff" fill="#fff" /> : <Play size={18} color="#fff" fill="#fff" />}
               </Btn>
               <Btn label="Lùi 5 giây" onPress={() => seekTo(player, player.currentTime - 5)}>

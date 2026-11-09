@@ -18,3 +18,27 @@ export function usePlayerTime(player: { currentTime: number }, active: boolean, 
   }, [player, active, intervalMs]);
   return sec;
 }
+
+/** Video có THỰC SỰ đang chạy không: `player.playing` có thể báo true dù trình duyệt chặn tự phát (video đứng im), nên
+ * chỉ coi là đang chạy khi thời gian thật sự tiến lên (cho 1,5s đầu để kịp khởi động). */
+export function useReallyPlaying(player: { currentTime: number; playing: boolean }, intervalMs = 250): boolean {
+  const [really, setReally] = useState(false);
+  useEffect(() => {
+    const mountedAt = Date.now();
+    let lastTime = -1;
+    let lastAdvanceAt = 0;
+    const id = setInterval(() => {
+      try {
+        const t = player.currentTime;
+        const now = Date.now();
+        if (Math.abs(t - lastTime) > 0.01) lastAdvanceAt = now;
+        lastTime = t;
+        setReally(player.playing && (now - lastAdvanceAt < 900 || now - mountedAt < 1500));
+      } catch {
+        setReally(false);
+      }
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [player, intervalMs]);
+  return really;
+}

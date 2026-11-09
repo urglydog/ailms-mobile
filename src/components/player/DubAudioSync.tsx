@@ -54,6 +54,7 @@ export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video
   }, [resolved.offsetSec]);
   const lastSeekAtRef = useRef(0);
   const warnedRef = useRef(false);
+  const clockRef = useRef({ last: -1, advanceAt: 0, mountedAt: Date.now() });
 
   // iOS: mặc định công tắc im lặng của máy chặn mọi âm thanh app → phải bật `playsInSilentMode`.
   useEffect(() => {
@@ -72,7 +73,14 @@ export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video
         silence(video); // video luôn câm khi đang lồng tiếng
 
         const status = dub.currentStatus;
-        if (!video.playing) {
+        // Video "đang phát" chỉ khi thời gian thật sự tiến lên — `video.playing` có thể báo true dù video đứng im
+        // (trình duyệt chặn tự phát); nếu tin cờ đó, giọng sẽ liên tục tua về mốc kẹt và lặp 1 câu.
+        const now = Date.now();
+        const clock = clockRef.current;
+        if (Math.abs(video.currentTime - clock.last) > 0.01) clock.advanceAt = now;
+        clock.last = video.currentTime;
+        const reallyPlaying = video.playing && (now - clock.advanceAt < 900 || now - clock.mountedAt < 1200);
+        if (!reallyPlaying) {
           playingSince = 0;
           if (status.playing) dub.pause();
           return;

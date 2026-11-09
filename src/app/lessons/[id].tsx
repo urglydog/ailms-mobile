@@ -86,6 +86,9 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
  * `LessonProgressController`), tránh spam request mỗi lần timeUpdate (0.5-1s/lần). */
 const PROGRESS_REPORT_INTERVAL_SEC = 15;
 
+// Khung video 16:9 theo bề rộng màn hình (không dùng chiều cao cố định) và ghim ở trên cùng.
+const VIDEO_FRAME = { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' } as const;
+
 export default function LessonPlayerScreen() {
   const { id, seek } = useLocalSearchParams<{ id: string; seek?: string }>();
   const lessonId = Number(id);
@@ -463,11 +466,11 @@ export default function LessonPlayerScreen() {
   const voicesForActiveLang = voiceOptions?.filter((vo) => vo.language === activeLang) ?? [];
 
   return (
-    <ScrollView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerShown: true, title: lesson.lessonTitle, headerLeft: () => <BackButton /> }} />
 
       {streamConflict ? (
-        <View style={{ width: '100%', height: 220, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+        <View style={{ ...VIDEO_FRAME, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
           <Text style={{ color: '#F87171', fontWeight: '700', fontSize: 16 }}>Phiên xem bị giới hạn</Text>
           <Text style={{ color: COLORS.line, textAlign: 'center', fontSize: 13, lineHeight: 20 }}>
             Tài khoản của bạn đang mở bài giảng này ở một thiết bị khác. Vui lòng dừng ở thiết bị kia, hoặc bấm giành lại quyền phát tại đây.
@@ -477,20 +480,21 @@ export default function LessonPlayerScreen() {
           </Pressable>
         </View>
       ) : isDirectVideo ? (
-        <VideoView player={player} style={{ width: '100%', height: 220, backgroundColor: '#000' }} nativeControls />
+        <VideoView player={player} style={VIDEO_FRAME} contentFit="contain" fullscreenOptions={{ enable: true }} nativeControls />
       ) : lesson.youtubeId ? (
         <Pressable
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}
-          style={{ width: '100%', height: 220, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}
+          style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}
         >
           <Text style={{ color: '#fff' }}>Video YouTube — chạm để mở</Text>
         </Pressable>
       ) : (
-        <View style={{ width: '100%', height: 220, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: '#fff' }}>Chưa có video cho bài này.</Text>
         </View>
       )}
 
+      <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 16, gap: 4 }}>
         <Text style={{ fontSize: 18, fontWeight: '700' }}>{lesson.lessonTitle}</Text>
         <Text style={{ color: COLORS.inkMuted }}>{lesson.courseTitle}</Text>
@@ -618,7 +622,8 @@ export default function LessonPlayerScreen() {
           <ChapterNavSection key={chapter.chapterId} chapter={chapter} currentLessonId={lesson.lessonId} />
         ))}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

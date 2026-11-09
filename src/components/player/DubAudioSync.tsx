@@ -86,6 +86,7 @@ export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video
         }
 
         if (!status.playing) dub.play();
+        if (Math.abs(dub.playbackRate - video.playbackRate) > 0.01) dub.setPlaybackRate(video.playbackRate);
 
         const target = Math.max(0, video.currentTime - offsetRef.current);
         if (Math.abs(target - status.currentTime) > DRIFT_TOLERANCE_SEC && Date.now() - lastSeekAtRef.current > MIN_SEEK_GAP_MS) {

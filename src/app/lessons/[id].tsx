@@ -1,6 +1,7 @@
 import { useEventListener } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { Captions, Maximize2, Volume2, VolumeX } from 'lucide-react-native';
+import { Captions, Maximize2, RotateCcw, RotateCw, Volume2, VolumeX } from 'lucide-react-native';
+import * as SecureStore from 'expo-secure-store';
 import { FullscreenVideoModal } from '@/components/player/FullscreenVideoModal';
 import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
 import { SubtitleSettingsModal } from '@/components/player/SubtitleSettingsModal';
@@ -93,6 +94,26 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
 const PROGRESS_REPORT_INTERVAL_SEC = 15;
 
 // Khung video 16:9 theo bề rộng màn hình (không dùng chiều cao cố định) và ghim ở trên cùng.
+const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+const AUTO_NEXT_KEY = 'lms_auto_next_lesson';
+
+function seekBy(player: { currentTime: number; duration: number }, deltaSec: number) {
+  try {
+    const next = player.currentTime + deltaSec;
+    player.currentTime = Math.max(0, player.duration > 0 ? Math.min(player.duration, next) : next);
+  } catch {
+    // Player đã giải phóng.
+  }
+}
+
+function applyRate(player: { playbackRate: number }, rate: number) {
+  try {
+    player.playbackRate = rate;
+  } catch {
+    // Player đã giải phóng.
+  }
+}
+
 const VIDEO_FRAME = { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' } as const;
 
 export default function LessonPlayerScreen() {
@@ -139,6 +160,17 @@ export default function LessonPlayerScreen() {
   const [fullscreen, setFullscreen] = useState(false);
   const [dubMuted, setDubMuted] = useState(false);
   const [lastDubLang, setLastDubLang] = useState<string | null>(null);
+  const updateSubSettings = (next: SubtitleSettings) => {
+    setSubSettings(next);
+    saveSubtitleSettings(next);
+  };
+  const [rate, setRate] = useState(1);
+  const [autoNext, setAutoNext] = useState(true);
+  useEffect(() => {
+    SecureStore.getItemAsync(AUTO_NEXT_KEY)
+      .then((v) => setAutoNext(v !== 'false'))
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     loadSubtitleSettings().then(setSubSettings);
   }, []);
@@ -400,6 +432,19 @@ export default function LessonPlayerScreen() {
 
   const lastReportedAtRef = useRef(0);
 
+  // Tốc độ phát (giọng lồng tiếng tự bám theo ở `DubAudioSync`); áp lại khi đổi bài (player mới).
+  useEffect(() => {
+    applyRate(player, rate);
+  }, [player, rate]);
+
+  // Tự chuyển bài tiếp theo khi hết video (giống `handleVideoEnded` của web, bật/tắt được).
+  const flatLessons = lesson?.chapters.flatMap((c) => c.lessons) ?? [];
+  const lessonIdx = flatLessons.findIndex((l) => l.lessonId === lessonId);
+  const nextLessonId = lessonIdx >= 0 && lessonIdx < flatLessons.length - 1 ? (flatLessons[lessonIdx + 1]?.lessonId ?? null) : null;
+  useEventListener(player, 'playToEnd', () => {
+    if (autoNext && nextLessonId) router.replace(`/lessons/${nextLessonId}` as Href);
+  });
+
 
   useEventListener(player, 'timeUpdate', ({ currentTime }) => {
     if (!lesson) return;
@@ -500,22 +545,46 @@ export default function LessonPlayerScreen() {
       )}
 
       {isDirectVideo && !streamConflict ? (
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }} contentContainerStyle={{ alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6 }}>
+          <CtrlBtn icon={<RotateCcw size={16} color={COLORS.inkMuted} />} label="5s" onPress={() => seekBy(player, -5)} a11y="Lùi 5 giây" />
+          <CtrlBtn icon={<RotateCw size={16} color={COLORS.inkMuted} />} label="5s" onPress={() => seekBy(player, 5)} a11y="Tua tới 5 giây" />
+          <CtrlBtn label={`${rate}×`} onPress={() => setRate(SPEEDS[(SPEEDS.indexOf(rate) + 1) % SPEEDS.length] ?? 1)} a11y="Tốc độ phát" active={rate !== 1} />
+          <CtrlBtn
+            label="Gốc"
+            a11y="Phụ đề gốc"
+            active={subSettings.showOriginal}
+            disabled={(lesson.originalSubtitles?.length ?? 0) === 0}
+            onPress={() => updateSubSettings({ ...subSettings, showOriginal: !subSettings.showOriginal })}
+          />
+          <CtrlBtn
+            label="Dịch"
+            a11y="Phụ đề đã dịch"
+            active={subSettings.showTranslated}
+            disabled={(currentLang?.subtitles?.length ?? 0) === 0}
+            onPress={() => updateSubSettings({ ...subSettings, showTranslated: !subSettings.showTranslated })}
+          />
+          <CtrlBtn
+            label="Tự chuyển bài"
+            a11y="Tự động chuyển bài tiếp theo"
+            active={autoNext}
+            onPress={() => {
+              const next = !autoNext;
+              setAutoNext(next);
+              SecureStore.setItemAsync(AUTO_NEXT_KEY, String(next)).catch(() => {});
+            }}
+          />
           {audioSrc ? (
-            <Pressable onPress={() => setDubMuted((m) => !m)} accessibilityLabel="Bật/tắt giọng lồng tiếng" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}>
-              {dubMuted ? <VolumeX size={18} color={COLORS.danger} /> : <Volume2 size={18} color={COLORS.accent} />}
-              <Text style={{ color: dubMuted ? COLORS.danger : COLORS.accent, fontSize: 13, fontWeight: '600' }}>Lồng tiếng</Text>
-            </Pressable>
+            <CtrlBtn
+              icon={dubMuted ? <VolumeX size={16} color={COLORS.danger} /> : <Volume2 size={16} color={COLORS.accent} />}
+              label="Lồng tiếng"
+              a11y="Bật/tắt giọng lồng tiếng"
+              active={!dubMuted}
+              onPress={() => setDubMuted((m) => !m)}
+            />
           ) : null}
-          <Pressable onPress={() => setFullscreen(true)} accessibilityLabel="Toàn màn hình" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}>
-            <Maximize2 size={17} color={COLORS.inkMuted} />
-            <Text style={{ color: COLORS.inkMuted, fontSize: 13, fontWeight: '600' }}>Phóng to</Text>
-          </Pressable>
-          <Pressable onPress={() => setShowSubModal(true)} accessibilityLabel="Cài đặt phụ đề" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 8 }}>
-            <Captions size={18} color={COLORS.inkMuted} />
-            <Text style={{ color: COLORS.inkMuted, fontSize: 13, fontWeight: '600' }}>Phụ đề</Text>
-          </Pressable>
-        </View>
+          <CtrlBtn icon={<Maximize2 size={15} color={COLORS.inkMuted} />} label="Phóng to" onPress={() => setFullscreen(true)} a11y="Toàn màn hình" />
+          <CtrlBtn icon={<Captions size={16} color={COLORS.inkMuted} />} label="Phụ đề" onPress={() => setShowSubModal(true)} a11y="Cài đặt phụ đề" />
+        </ScrollView>
       ) : null}
       <FullscreenVideoModal
         visible={fullscreen}
@@ -529,10 +598,7 @@ export default function LessonPlayerScreen() {
         visible={showSubModal}
         settings={subSettings}
         hasTranslated={(currentLang?.subtitles?.length ?? 0) > 0}
-        onChange={(next) => {
-          setSubSettings(next);
-          saveSubtitleSettings(next);
-        }}
+        onChange={updateSubSettings}
         onClose={() => setShowSubModal(false)}
       />
 
@@ -738,4 +804,29 @@ function LessonNavRow({ lesson, active }: { lesson: LessonNav; active: boolean }
 function LiveTranscript({ player, ...rest }: { player: { currentTime: number } } & Omit<React.ComponentProps<typeof TranscriptPanel>, 'currentSec'>) {
   const currentSec = usePlayerTime(player, true);
   return <TranscriptPanel {...rest} currentSec={currentSec} />;
+}
+
+function CtrlBtn({ icon, label, onPress, a11y, active, disabled }: { icon?: React.ReactNode; label: string; onPress: () => void; a11y: string; active?: boolean; disabled?: boolean }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityLabel={a11y}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: active ? COLORS.accent : COLORS.line,
+        backgroundColor: active ? COLORS.tint : COLORS.white,
+        opacity: disabled ? 0.4 : 1,
+      }}
+    >
+      {icon}
+      <Text style={{ fontSize: 12.5, fontWeight: '600', color: active ? COLORS.accent : COLORS.inkMuted }}>{label}</Text>
+    </Pressable>
+  );
 }

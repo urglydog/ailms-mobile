@@ -20,7 +20,7 @@ export const MindmapView = forwardRef<MindmapViewHandle, MindmapViewProps>(funct
   { mermaidCode, direction, onImageExtracted, onReady },
   ref,
 ) {
-  const webviewRef = useRef<WebView>(null);
+  const webviewRef = useRef<WebView<object>>(null);
   const html = useMemo(() => buildMermaidHtml(mermaidCode, direction ?? undefined), [mermaidCode, direction]);
 
   useImperativeHandle(ref, () => ({

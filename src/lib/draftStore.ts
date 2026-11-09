@@ -28,7 +28,7 @@ export function writeDraft(key: string, value: unknown): void {
     const file = draftFile(key);
     if (!file) return;
     if (!file.exists) file.create();
-    file.write(JSON.stringify(value));
+    file.writeSync(JSON.stringify(value));
   } catch {
     // best-effort
   }

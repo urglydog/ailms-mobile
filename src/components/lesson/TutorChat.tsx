@@ -100,7 +100,7 @@ export function TutorChat({ courseId, lessonId, enrolled, courseSlug }: { course
             </Text>
           </View>
         }
-        ListFooterComponent={ask.isPending ? <ActivityIndicator style={{ marginTop: 8 }} /> : null}
+        ListFooterComponent={ask.isPending ? <ActivityIndicator style={{ marginTop: 8 }} /> : undefined}
       />
       {ask.error ? (
         <Text style={{ color: COLORS.danger, fontSize: 11.5, paddingHorizontal: 12 }}>

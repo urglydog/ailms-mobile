@@ -25,7 +25,7 @@ export async function saveAndShareBlob(blob: Blob, filename: string, mimeType: s
   if (file.exists) file.delete();
   file.create();
   const bytes = new Uint8Array(await blob.arrayBuffer());
-  file.write(bytes);
+  file.writeSync(bytes);
 
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(file.uri, { mimeType });
@@ -37,7 +37,7 @@ export async function saveAndShareBlob(blob: Blob, filename: string, mimeType: s
  * `Blob`/`arrayBuffer()` như `saveAndShareBlob`. `Blob` polyfill của React Native (tạo tay bằng
  * `new Blob([...])`, không đến từ network response) không implement đầy đủ `.arrayBuffer()`, ném
  * lỗi runtime (bug thật: nút "Tải ảnh" của mindmap luôn báo "Không thể lưu sơ đồ"). Tách phần
- * base64 ra khỏi data URL rồi ghi thẳng bằng `File.write(..., {encoding:'base64'})`.
+ * base64 ra khỏi data URL rồi ghi thẳng bằng `File.writeSync(..., {encoding:'base64'})`.
  */
 export async function saveAndShareDataUrl(dataUrl: string, filename: string, mimeType: string): Promise<void> {
   if (Platform.OS === 'web') {
@@ -56,7 +56,7 @@ export async function saveAndShareDataUrl(dataUrl: string, filename: string, mim
   const file = new File(dir, filename);
   if (file.exists) file.delete();
   file.create();
-  file.write(base64, { encoding: 'base64' });
+  file.writeSync(base64, { encoding: 'base64' });
 
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(file.uri, { mimeType });

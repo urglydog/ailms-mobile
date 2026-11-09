@@ -1,6 +1,6 @@
 import { api } from '@/lib/api/client';
 import { getAccessToken, resolveBaseUrl } from '@/lib/api/client';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import type {
   CourseGradebook,
   ProctorFrameReq,
@@ -61,7 +61,7 @@ export const quizzesApi = {
     
     const response = await FileSystem.uploadAsync(url, fileUri, {
       httpMethod: 'POST',
-      uploadType: 1 as any, // FileSystemUploadType.MULTIPART = 1
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
       fieldName: 'file',
       headers: {
         Authorization: `Bearer ${token}`,

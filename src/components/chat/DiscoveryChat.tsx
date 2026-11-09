@@ -147,7 +147,7 @@ export function DiscoveryChat() {
                   <View style={{ alignSelf: 'flex-start', backgroundColor: COLORS.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 }}>
                     <ActivityIndicator size="small" color={COLORS.accent} />
                   </View>
-                ) : null
+                ) : undefined
               }
               renderItem={({ item }) => (
                 <View style={{ alignItems: item.role === 'user' ? 'flex-end' : 'flex-start', gap: 8 }}>

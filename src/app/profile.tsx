@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, Switch, Text, View, ScrollView } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, Switch, Text, View, ScrollView } from 'react-native';
 import { Monitor } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';
@@ -123,7 +123,12 @@ export default function ProfileScreen() {
           <SecuritySection />
 
           <Pressable
-            onPress={() => logout()}
+            onPress={() =>
+              Alert.alert('Xác nhận đăng xuất', 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống không?', [
+                { text: 'Hủy bỏ', style: 'cancel' },
+                { text: 'Đăng xuất', style: 'destructive', onPress: () => logout() },
+              ])
+            }
             style={{ marginTop: 16, borderWidth: 1, borderColor: COLORS.danger, borderRadius: 8, padding: 12, alignItems: 'center', width: '100%' }}
           >
             <Text style={{ color: COLORS.danger, fontWeight: '600' }}>Đăng xuất</Text>

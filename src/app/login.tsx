@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { COLORS } from '@/lib/theme/colors';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 export default function LoginScreen() {
   const { isAuthenticated, login, loginWithGoogle } = useAuth();
@@ -83,11 +84,10 @@ export default function LoginScreen() {
         keyboardType="email-address"
         style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
-      <TextInput
+      <PasswordInput
         placeholder="Mật khẩu"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
         style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}

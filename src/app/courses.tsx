@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
@@ -13,7 +13,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { HomeShelves } from '@/components/course/HomeShelves';
 import { RankingBanner } from '@/components/ranking/RankingBanner';
 import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
-import type { CourseSummary } from '@/types/course';
+import type { CourseSummary, Page } from '@/types/course';
 import { COLORS } from '@/lib/theme/colors';
 
 export default function CoursesScreen() {
@@ -35,10 +35,13 @@ export default function CoursesScreen() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data, isLoading, error, refetch, isRefetching } = useQuery({
+  const { data, isLoading, error, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<Page<CourseSummary>, Error, InfiniteData<Page<CourseSummary>>, readonly unknown[], number>({
     queryKey: ['courses', keyword, filters],
-    queryFn: () =>
+    initialPageParam: 0,
+    getNextPageParam: (last) => (last.number + 1 < last.totalPages ? last.number + 1 : undefined),
+    queryFn: ({ pageParam }) =>
       coursesApi.search({
+        page: pageParam,
         keyword: keyword || undefined,
         categorySlug: filters.category ?? undefined,
         level: filters.level ?? undefined,
@@ -80,7 +83,11 @@ export default function CoursesScreen() {
     <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       <TopNav />
       <FlatList
-        data={data?.content ?? []}
+        data={data?.pages.flatMap((p) => p.content) ?? []}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+        }}
+        onEndReachedThreshold={0.6}
         keyExtractor={(item) => String(item.id)}
         refreshing={isRefetching}
         onRefresh={refetch}
@@ -95,6 +102,9 @@ export default function CoursesScreen() {
             <RankingBanner />
             <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>
               <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>
+              {data && (keyword || activeFilterCount > 0) ? (
+                <Text style={{ fontSize: 12.5, color: COLORS.inkMuted }}>Tìm thấy {data.pages[0]?.totalElements ?? 0} khoá học</Text>
+              ) : null}
               <TextInput
                 placeholder="Tìm khoá học..."
                 value={searchInput}
@@ -151,10 +161,25 @@ export default function CoursesScreen() {
               </Pressable>
             </View>
           ) : (
-            <View style={{ padding: 40, alignItems: 'center' }}>
-              <Text style={{ color: COLORS.inkFaint }}>Không tìm thấy khoá học nào.</Text>
+            <View style={{ padding: 40, alignItems: 'center', gap: 8 }}>
+              <Text style={{ color: COLORS.ink, fontWeight: '700' }}>Không tìm thấy khoá học phù hợp</Text>
+              <Text style={{ color: COLORS.inkFaint, textAlign: 'center' }}>Thử bỏ một vài bộ lọc hoặc dùng từ khoá khác.</Text>
+              {activeFilterCount > 0 ? (
+                <Pressable onPress={() => setFilters(EMPTY_FILTERS)}>
+                  <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Xoá toàn bộ bộ lọc</Text>
+                </Pressable>
+              ) : null}
             </View>
           )
+        }
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={{ padding: 16 }}>
+              <ActivityIndicator />
+            </View>
+          ) : data && !hasNextPage && (data.pages[0]?.totalElements ?? 0) > 0 ? (
+            <Text style={{ textAlign: 'center', color: COLORS.inkFaint, fontSize: 12, padding: 16 }}>Bạn đã xem hết khoá học phù hợp.</Text>
+          ) : null
         }
         renderItem={({ item }) => <CourseCard course={item} list={view === 'list'} />}
       />

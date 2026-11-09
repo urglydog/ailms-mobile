@@ -19,6 +19,7 @@ import { RelatedCourses } from '@/components/course/RelatedCourses';
 import type { CourseChapter } from '@/types/course';
 import type { CourseReview } from '@/types/review';
 import { COLORS } from '@/lib/theme/colors';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 function formatDuration(totalSec: number): string {
   const h = Math.floor(totalSec / 3600);
@@ -153,11 +154,10 @@ export default function CourseDetailScreen() {
         {course.isFree ? (
           <>
             {course.requiresPassword ? (
-              <TextInput
+              <PasswordInput
                 placeholder="Mật khẩu khoá học"
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
                 style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
               />
             ) : null}

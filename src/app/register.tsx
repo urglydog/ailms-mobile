@@ -6,6 +6,7 @@ import { authApi } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { COLORS } from '@/lib/theme/colors';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 function passwordStrengthLabel(password: string): { score: number; label: string; color: string } {
   if (!password) return { score: 0, label: '', color: COLORS.line };
@@ -116,21 +117,19 @@ export default function RegisterScreen() {
         style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <View style={{ gap: 4 }}>
-        <TextInput
+        <PasswordInput
           placeholder="Mật khẩu"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
           style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
         />
         {password.length > 0 ? <Text style={{ color: strength.color, fontSize: 12 }}>Mức độ bảo mật: {strength.label}</Text> : null}
       </View>
       <View style={{ gap: 4 }}>
-        <TextInput
+        <PasswordInput
           placeholder="Xác nhận mật khẩu"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
-          secureTextEntry
           style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
         />
         {confirmPassword.length > 0 ? (

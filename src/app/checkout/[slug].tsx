@@ -14,6 +14,7 @@ import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
 import { QueryError } from '@/components/QueryError';
 import { COLORS } from '@/lib/theme/colors';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 export default function CheckoutScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -159,11 +160,10 @@ export default function CheckoutScreen() {
         onRemoveCode={coupons.removeCode}
       />
       {course.requiresPassword ? (
-        <TextInput
+        <PasswordInput
           placeholder="Mật khẩu khoá học"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
           style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
         />
       ) : null}

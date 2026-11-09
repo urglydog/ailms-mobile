@@ -1,12 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import { router, Stack } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
 import { BackButton } from '@/components/BackButton';
 import { COLORS } from '@/lib/theme/colors';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 /** Port từ `fe/app/(public)/profile/change-password-modal.tsx`. */
 export default function ChangePasswordScreen() {
@@ -63,11 +64,10 @@ function Field({ label, value, onChangeText }: { label: string; value: string; o
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>{label}</Text>
-      <TextInput
+      <PasswordInput
         value={value}
         onChangeText={onChangeText}
-        secureTextEntry
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, fontSize: 14 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
     </View>
   );

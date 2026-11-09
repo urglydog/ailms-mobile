@@ -6,6 +6,7 @@ import { authApi } from '@/lib/api/auth';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { COLORS } from '@/lib/theme/colors';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 
 function passwordStrengthScore(password: string): number {
   if (!password || password.length < 6) return password ? 1 : 0;
@@ -78,18 +79,16 @@ export default function ForgotPasswordScreen() {
           maxLength={6}
           style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, textAlign: 'center', letterSpacing: 4, fontSize: 18 }}
         />
-        <TextInput
+        <PasswordInput
           placeholder="Mật khẩu mới"
           value={newPassword}
           onChangeText={setNewPassword}
-          secureTextEntry
           style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
         />
-        <TextInput
+        <PasswordInput
           placeholder="Xác nhận mật khẩu mới"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
-          secureTextEntry
           style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
         />
         {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}

@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { Flame, Share2 } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
@@ -11,6 +13,7 @@ import { BackButton } from '@/components/BackButton';
 import { StreakCard } from '@/components/streak/StreakCard';
 import type { PublicCourseSummary } from '@/types/user';
 import { COLORS } from '@/lib/theme/colors';
+import { WEB_URL } from '@/lib/webUrl';
 
 type Tab = 'courses' | 'wishlist' | 'certificates';
 
@@ -43,7 +46,10 @@ export default function PublicProfileScreen() {
 
   // Cho phép link từ RankingBanner/trang /community mở sẵn tab Chứng chỉ qua `?tab=certificates`
   // (port từ `fe/app/(public)/u/[userId]/page.tsx`).
-  const [tab, setTab] = useState<Tab>(tabParam === 'certificates' ? 'certificates' : 'courses');
+  // Mặc định tab Chứng chỉ như web (spec mục 8); `?tab=courses|wishlist` mở thẳng tab tương ứng.
+  const [tab, setTab] = useState<Tab>(tabParam === 'courses' || tabParam === 'wishlist' ? tabParam : 'certificates');
+  const [topic, setTopic] = useState<string | null>(null);
+  const [certSort, setCertSort] = useState<'newest' | 'oldest' | 'title'>('newest');
 
   if (isLoading) {
     return (
@@ -62,6 +68,19 @@ export default function PublicProfileScreen() {
       </View>
     );
   }
+
+  const shareProfile = () => {
+    const url = `${WEB_URL}/u/${profile.id ?? userId}`;
+    Share.share({ message: `${profile.fullName} — hồ sơ học tập trên LinguaLearn\n${url}`, url }).catch(() => {});
+  };
+  const topics = Array.from(new Set(profile.certificates.map((c) => c.courseCategoryName))).sort((a, b) => a.localeCompare(b, 'vi'));
+  const certificates = profile.certificates
+    .filter((c) => topic === null || c.courseCategoryName === topic)
+    .sort((a, b) => {
+      if (certSort === 'title') return a.courseTitle.localeCompare(b.courseTitle, 'vi');
+      const d = new Date(a.issuedAt).getTime() - new Date(b.issuedAt).getTime();
+      return certSort === 'oldest' ? d : -d;
+    });
 
   const activeCourses = tab === 'courses' ? profile.courses : tab === 'wishlist' ? profile.wishlist : null;
 
@@ -83,6 +102,14 @@ export default function PublicProfileScreen() {
         </Text>
         <Text style={{ fontSize: 12, color: COLORS.lineDot }}>Thành viên từ {new Date(profile.memberSince).toLocaleDateString('vi-VN')}</Text>
 
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+          <Pressable
+            onPress={shareProfile}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.accent, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 16 }}
+          >
+            <Share2 size={14} color="#fff" />
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>Chia sẻ</Text>
+          </Pressable>
         {isOwnProfile ? (
           <Pressable
             onPress={() => router.push('/profile' as Href)}
@@ -91,18 +118,25 @@ export default function PublicProfileScreen() {
             <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 12.5 }}>Cài đặt tài khoản</Text>
           </Pressable>
         ) : null}
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <StatBox value={String(profile.certificates.length)} label="Chứng chỉ" />
+        {profile.courses ? <StatBox value={String(profile.courses.length)} label="Khoá học" /> : null}
+        {isOwnProfile && streak ? <StatBox value={String(streak.currentStreak)} label="Chuỗi ngày" icon={<Flame size={14} color={COLORS.streakInk} />} /> : null}
       </View>
 
       {isOwnProfile && streak ? <StreakCard streak={streak} /> : null}
 
       <View style={{ flexDirection: 'row', gap: 20, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
-        <TabButton label="Đã học" active={tab === 'courses'} onPress={() => setTab('courses')} />
-        <TabButton label="Yêu thích" active={tab === 'wishlist'} onPress={() => setTab('wishlist')} />
         <TabButton
           label={`Chứng chỉ${profile.certificates.length > 0 ? ` (${profile.certificates.length})` : ''}`}
           active={tab === 'certificates'}
           onPress={() => setTab('certificates')}
         />
+        <TabButton label="Đã học" active={tab === 'courses'} onPress={() => setTab('courses')} />
+        <TabButton label="Yêu thích" active={tab === 'wishlist'} onPress={() => setTab('wishlist')} />
       </View>
 
       {tab === 'certificates' ? (
@@ -110,14 +144,32 @@ export default function PublicProfileScreen() {
           <Text style={{ color: COLORS.inkFaint, fontSize: 13 }}>Chưa có chứng chỉ nào.</Text>
         ) : (
           <View style={{ gap: 10 }}>
-            {profile.certificates.map((cert) => (
-              <View key={cert.certificateCode} style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 12 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {([['newest', 'Mới nhất'], ['oldest', 'Cũ nhất'], ['title', 'Tên khoá']] as const).map(([v, label]) => (
+                <FilterChip key={v} label={label} active={certSort === v} onPress={() => setCertSort(v)} />
+              ))}
+            </View>
+            {topics.length > 1 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                <FilterChip label="Mọi chủ đề" active={topic === null} onPress={() => setTopic(null)} />
+                {topics.map((t) => (
+                  <FilterChip key={t} label={t} active={topic === t} onPress={() => setTopic(t)} />
+                ))}
+              </ScrollView>
+            ) : null}
+            {certificates.map((cert) => (
+              <Pressable
+                key={cert.certificateCode}
+                onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/verify/${cert.certificateCode}`).catch(() => {})}
+                style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 12 }}
+              >
                 <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }}>{cert.courseTitle}</Text>
                 <Text style={{ fontSize: 11.5, color: COLORS.inkFaint, marginTop: 2 }}>{cert.courseCategoryName}</Text>
                 <Text style={{ fontSize: 11, color: COLORS.lineDot, marginTop: 2 }}>
                   Cấp ngày {new Date(cert.issuedAt).toLocaleDateString('vi-VN')}
                 </Text>
-              </View>
+                <Text style={{ fontSize: 11, color: COLORS.accent, marginTop: 4, fontWeight: '600' }}>Xem / xác thực chứng chỉ</Text>
+              </Pressable>
             ))}
           </View>
         )
@@ -163,6 +215,29 @@ function CourseRow({ course }: { course: PublicCourseSummary }) {
           {course.isFree ? 'Miễn phí' : formatPrice(course.price)}
         </Text>
       </View>
+    </Pressable>
+  );
+}
+
+function StatBox({ value, label, icon }: { value: string; label: string; icon?: React.ReactNode }) {
+  return (
+    <View style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingVertical: 10, alignItems: 'center', backgroundColor: COLORS.white }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        {icon}
+        <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.ink }}>{value}</Text>
+      </View>
+      <Text style={{ fontSize: 11, color: COLORS.inkFaint }}>{label}</Text>
+    </View>
+  );
+}
+
+function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 16, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.line, backgroundColor: active ? COLORS.tint : COLORS.white }}
+    >
+      <Text style={{ color: active ? COLORS.accent : COLORS.inkMuted, fontWeight: '600', fontSize: 12 }}>{label}</Text>
     </Pressable>
   );
 }

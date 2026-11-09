@@ -21,13 +21,13 @@ export const EMPTY_FILTERS: CourseFilterState = {
   sortBy: 'newest',
 };
 
-const LEVELS: { value: string; label: string }[] = [
+export const LEVELS: { value: string; label: string }[] = [
   { value: 'BEGINNER', label: 'Cơ bản' },
   { value: 'INTERMEDIATE', label: 'Trung cấp' },
   { value: 'ADVANCED', label: 'Nâng cao' },
 ];
 const RATINGS = [4.5, 4.0, 3.5, 3.0];
-const DURATIONS: { value: string; label: string }[] = [
+export const DURATIONS: { value: string; label: string }[] = [
   { value: '0-1', label: '0-1 giờ' },
   { value: '1-3', label: '1-3 giờ' },
   { value: '3-6', label: '3-6 giờ' },
@@ -39,7 +39,7 @@ const PRICES: { value: CourseFilterState['priceType']; label: string }[] = [
   { value: 'free', label: 'Miễn phí' },
   { value: 'paid', label: 'Có phí' },
 ];
-const SORTS: { value: CourseSortBy; label: string }[] = [
+export const SORTS: { value: CourseSortBy; label: string }[] = [
   { value: 'newest', label: 'Mới nhất' },
   { value: 'relevance', label: 'Phù hợp nhất' },
   { value: 'rating', label: 'Đánh giá cao' },

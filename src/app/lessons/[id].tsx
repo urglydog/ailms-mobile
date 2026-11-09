@@ -1,14 +1,13 @@
 import { useEventListener } from 'expo';
 import { useVideoPlayer } from 'expo-video';
 import * as SecureStore from 'expo-secure-store';
-import { FullscreenVideoModal } from '@/components/player/FullscreenVideoModal';
 import { PlayerSurface } from '@/components/player/PlayerSurface';
 import { SubtitleSettingsModal } from '@/components/player/SubtitleSettingsModal';
 import { DEFAULT_SUBTITLE_SETTINGS, loadSubtitleSettings, saveSubtitleSettings, type SubtitleSettings } from '@/lib/subtitleSettings';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Switch, Text, View, Platform } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StatusBar, Switch, Text, View, Platform, useWindowDimensions } from 'react-native';
 import { DubAudioSync } from '@/components/player/DubAudioSync';
 import { usePlayerTime } from '@/hooks/usePlayerTime';
 
@@ -147,6 +146,23 @@ export default function LessonPlayerScreen() {
   const [subSettings, setSubSettings] = useState<SubtitleSettings>(DEFAULT_SUBTITLE_SETTINGS);
   const [showSubModal, setShowSubModal] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  // Toàn màn hình = chính khung video này phủ kín màn hình (KHÔNG gắn lại VideoView → không bị tua lại từ đầu như
+  // dùng Modal). App khoá dọc nên khi máy đang dọc, xoay khung 90° để lấp đầy như xem ngang.
+  const { width: winW, height: winH } = useWindowDimensions();
+  const rotateFs = winH > winW;
+  const fsW = rotateFs ? winH : winW;
+  const fsH = rotateFs ? winW : winH;
+  const fullscreenStyle = {
+    position: 'absolute' as const,
+    zIndex: 100,
+    elevation: 100,
+    width: fsW,
+    height: fsH,
+    left: (winW - fsW) / 2,
+    top: (winH - fsH) / 2,
+    backgroundColor: '#000',
+    transform: rotateFs ? [{ rotate: '90deg' }] : [],
+  };
   const [dubMuted, setDubMuted] = useState(false);
   const [lastDubLang, setLastDubLang] = useState<string | null>(null);
   const updateSubSettings = (next: SubtitleSettings) => {
@@ -156,28 +172,7 @@ export default function LessonPlayerScreen() {
   const [rate, setRate] = useState(1);
   // Đổi ngôn ngữ lồng tiếng khi đang xem thì video phải tiếp tục phát (như web) — nếu nền tảng làm video dừng
   // do đổi nguồn âm thanh thì tự phát lại trong ~1,5s đầu.
-  // Vào/ra toàn màn hình = gắn lại khung video mới → có thể bị tua về đầu/dừng; nhớ vị trí + trạng thái rồi khôi phục.
-  const toggleFullscreen = (next: boolean) => {
-    let at = 0;
-    let wasPlaying = false;
-    try {
-      at = player.currentTime;
-      wasPlaying = player.playing;
-    } catch {
-      // bỏ qua
-    }
-    setFullscreen(next);
-    for (const delay of [200, 600, 1200]) {
-      setTimeout(() => {
-        try {
-          if (Math.abs(player.currentTime - at) > 1.5) player.currentTime = at;
-          if (wasPlaying && !player.playing) player.play();
-        } catch {
-          // Player đã giải phóng.
-        }
-      }, delay);
-    }
-  };
+  const toggleFullscreen = (next: boolean) => setFullscreen(next);
 
   const changeLang = (code: string | null) => {
     let wasPlaying = false;
@@ -564,7 +559,7 @@ export default function LessonPlayerScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: lesson.lessonTitle, headerLeft: () => <BackButton /> }} />
+      <Stack.Screen options={{ headerShown: !fullscreen, title: lesson.lessonTitle, headerLeft: () => <BackButton /> }} />
 
       {streamConflict ? (
         <View style={{ ...VIDEO_FRAME, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
@@ -577,7 +572,7 @@ export default function LessonPlayerScreen() {
           </Pressable>
         </View>
       ) : isDirectVideo ? (
-        <View style={VIDEO_FRAME}>{fullscreen ? null : renderSurface(false)}</View>
+        <View style={fullscreen ? fullscreenStyle : VIDEO_FRAME}>{renderSurface(fullscreen)}</View>
       ) : lesson.youtubeId ? (
         <Pressable
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}
@@ -591,9 +586,7 @@ export default function LessonPlayerScreen() {
         </View>
       )}
 
-      <FullscreenVideoModal visible={fullscreen} onClose={() => toggleFullscreen(false)}>
-        {renderSurface(true)}
-      </FullscreenVideoModal>
+      <StatusBar hidden={fullscreen} />
       <SubtitleSettingsModal
         visible={showSubModal}
         settings={subSettings}

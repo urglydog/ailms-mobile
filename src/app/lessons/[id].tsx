@@ -156,6 +156,29 @@ export default function LessonPlayerScreen() {
   const [rate, setRate] = useState(1);
   // Đổi ngôn ngữ lồng tiếng khi đang xem thì video phải tiếp tục phát (như web) — nếu nền tảng làm video dừng
   // do đổi nguồn âm thanh thì tự phát lại trong ~1,5s đầu.
+  // Vào/ra toàn màn hình = gắn lại khung video mới → có thể bị tua về đầu/dừng; nhớ vị trí + trạng thái rồi khôi phục.
+  const toggleFullscreen = (next: boolean) => {
+    let at = 0;
+    let wasPlaying = false;
+    try {
+      at = player.currentTime;
+      wasPlaying = player.playing;
+    } catch {
+      // bỏ qua
+    }
+    setFullscreen(next);
+    for (const delay of [200, 600, 1200]) {
+      setTimeout(() => {
+        try {
+          if (Math.abs(player.currentTime - at) > 1.5) player.currentTime = at;
+          if (wasPlaying && !player.playing) player.play();
+        } catch {
+          // Player đã giải phóng.
+        }
+      }, delay);
+    }
+  };
+
   const changeLang = (code: string | null) => {
     let wasPlaying = false;
     try {
@@ -528,11 +551,11 @@ export default function LessonPlayerScreen() {
       onRateChange={setRate}
       onOpenSettings={() => setShowSubModal(true)}
       onToggleTranscript={() => {
-        setFullscreen(false);
+        toggleFullscreen(false);
         setMainTab('transcript');
       }}
       isFullscreen={isFullscreen}
-      onToggleFullscreen={() => setFullscreen(!isFullscreen)}
+      onToggleFullscreen={() => toggleFullscreen(!isFullscreen)}
     />
   );
 
@@ -568,7 +591,7 @@ export default function LessonPlayerScreen() {
         </View>
       )}
 
-      <FullscreenVideoModal visible={fullscreen} onClose={() => setFullscreen(false)}>
+      <FullscreenVideoModal visible={fullscreen} onClose={() => toggleFullscreen(false)}>
         {renderSurface(true)}
       </FullscreenVideoModal>
       <SubtitleSettingsModal

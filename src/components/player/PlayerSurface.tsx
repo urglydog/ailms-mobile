@@ -52,19 +52,21 @@ function createSeekPan(
   seek: (sec: number) => void,
 ) {
   const pct = (pageX: number) => Math.min(1, Math.max(0, (pageX - boxRef.current.left) / boxRef.current.width));
+  // Dùng toạ độ của `gestureState` (x0 lúc chạm, moveX lúc kéo/thả) — `nativeEvent.pageX` lúc thả tay có thể
+  // thiếu/NaN trên cảm ứng (touchend không còn ngón nào) khiến thao tác tua bị bỏ qua.
   return PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => {
+    onPanResponderGrant: (_e, g) => {
       barRef.current?.measureInWindow((x, _y, w) => {
         boxRef.current.left = x;
         boxRef.current.width = Math.max(1, w);
       });
-      setDrag(pct(e.nativeEvent.pageX));
+      setDrag(pct(g.x0));
     },
-    onPanResponderMove: (e) => setDrag(pct(e.nativeEvent.pageX)),
-    onPanResponderRelease: (e) => {
-      const ratio = pct(e.nativeEvent.pageX);
+    onPanResponderMove: (_e, g) => setDrag(pct(g.moveX || g.x0)),
+    onPanResponderRelease: (_e, g) => {
+      const ratio = pct(g.moveX || g.x0);
       setDrag(null);
       seek(ratio * durationRef.current);
     },

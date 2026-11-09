@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, ScrollView, Switch } from 'react-native';
 import type { SubtitleSegment } from '@/types/lesson';
 import { COLORS } from '@/lib/theme/colors';
@@ -32,6 +32,16 @@ export function TranscriptPanel({ originalSubtitles, translatedSubtitles, curren
   // Using sequence or index to determine active
   const activeIndex = originalSubtitles.findIndex((s) => currentSec >= s.startSec && currentSec < s.endSec);
 
+  // Tự cuộn tới dòng đang nói: mỗi dòng báo vị trí Y khi layout, đổi dòng active thì cuộn tới đó.
+  const scrollRef = useRef<ScrollView>(null);
+  const rowYs = useRef<number[]>([]);
+  useEffect(() => {
+    if (!autoScroll || activeIndex < 0) return;
+    const y = rowYs.current[activeIndex];
+    if (y === undefined) return;
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - 48), animated: true });
+  }, [activeIndex, autoScroll]);
+
   return (
     <View style={{ flex: 1, height: 300, backgroundColor: COLORS.surface, borderRadius: 8, borderWidth: 1, borderColor: COLORS.lineSoft, overflow: 'hidden' }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.white }}>
@@ -44,7 +54,7 @@ export function TranscriptPanel({ originalSubtitles, translatedSubtitles, curren
         <Text style={{ fontSize: 13, color: COLORS.inkFaint }}>Tự động cuộn theo lời thoại</Text>
       </View>
 
-      <ScrollView style={{ flex: 1, padding: 8 }}>
+      <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ padding: 8 }} nestedScrollEnabled>
         {originalSubtitles.length === 0 ? (
           <Text style={{ padding: 16, fontSize: 13, color: COLORS.lineDot }}>Bài học này chưa có bản ghi lời thoại.</Text>
         ) : (
@@ -55,6 +65,9 @@ export function TranscriptPanel({ originalSubtitles, translatedSubtitles, curren
             return (
               <Pressable
                 key={index}
+                onLayout={(e) => {
+                  rowYs.current[index] = e.nativeEvent.layout.y;
+                }}
                 onPress={() => onSeek(seg.startSec)}
                 style={{
                   paddingHorizontal: 12,

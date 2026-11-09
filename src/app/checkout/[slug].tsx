@@ -12,6 +12,7 @@ import { useCheckoutCoupons } from '@/hooks/useCheckoutCoupons';
 import { getReferralCode } from '@/lib/referral';
 import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
+import { QueryError } from '@/components/QueryError';
 import { COLORS } from '@/lib/theme/colors';
 
 export default function CheckoutScreen() {
@@ -26,7 +27,7 @@ export default function CheckoutScreen() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PaymentRecord | null>(null);
 
-  const { data: course, isLoading } = useQuery({
+  const { data: course, isLoading, error: loadError, refetch: refetchCourse } = useQuery({
     queryKey: ['course', slug],
     queryFn: () => coursesApi.getDetail(slug),
     enabled: !!slug,
@@ -66,12 +67,16 @@ export default function CheckoutScreen() {
     },
   });
 
-  if (isLoading || !course) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator />
       </View>
     );
+  }
+
+  if (loadError || !course) {
+    return <QueryError error={loadError} onRetry={() => refetchCourse()} />;
   }
 
   if (result) {

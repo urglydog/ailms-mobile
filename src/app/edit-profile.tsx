@@ -8,16 +8,19 @@ import { apiFormData, ApiError } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
 import { BackButton } from '@/components/BackButton';
 import type { UserProfile } from '@/types/user';
+import { QueryError } from '@/components/QueryError';
 import { COLORS } from '@/lib/theme/colors';
 
 export default function EditProfileScreen() {
-  const { data: me, isLoading } = useQuery({ queryKey: ['me'], queryFn: () => usersApi.getMe() });
+  const { data: me, isLoading, error, refetch } = useQuery({ queryKey: ['me'], queryFn: () => usersApi.getMe() });
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
       <Stack.Screen options={{ headerShown: true, title: 'Chỉnh sửa hồ sơ', headerLeft: () => <BackButton /> }} />
-      {isLoading || !me ? (
+      {isLoading ? (
         <ActivityIndicator style={{ marginTop: 40 }} />
+      ) : error || !me ? (
+        <QueryError error={error} onRetry={() => refetch()} compact />
       ) : (
         // key={me.id}: component chỉ mount lại khi đổi người dùng khác (thực tế không xảy ra ở
         // màn này) — mount 1 lần đúng lúc có dữ liệu, state form khởi tạo từ `me` ngay trong lazy

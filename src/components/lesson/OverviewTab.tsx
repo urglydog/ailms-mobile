@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { ApiError } from '@/lib/api/client';
 import { coursesApi } from '@/lib/api/courses';
 import { announcementApi, messageApi } from '@/lib/api/communication';
+import { QueryError } from '@/components/QueryError';
 import { COLORS } from '@/lib/theme/colors';
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -22,7 +23,7 @@ export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: st
     onError: (err: unknown) => Alert.alert('Lỗi', err instanceof ApiError ? err.message : 'Không mở được hội thoại.'),
   });
 
-  const { data: course, isLoading } = useQuery({
+  const { data: course, isLoading, error: loadError, refetch: refetchCourse } = useQuery({
     queryKey: ['course-detail', courseSlug],
     queryFn: () => coursesApi.getDetail(courseSlug),
   });
@@ -33,12 +34,16 @@ export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: st
     enabled: enrolled,
   });
 
-  if (isLoading || !course) {
+  if (isLoading) {
     return (
       <View style={{ padding: 16, alignItems: 'center' }}>
         <ActivityIndicator />
       </View>
     );
+  }
+
+  if (loadError || !course) {
+    return <QueryError error={loadError} onRetry={() => refetchCourse()} compact />;
   }
 
   const totalLessons = course.chapters.reduce((sum, ch) => sum + ch.lessons.length, 0);

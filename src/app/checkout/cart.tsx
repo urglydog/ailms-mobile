@@ -13,6 +13,7 @@ import { useCheckoutCoupons } from '@/hooks/useCheckoutCoupons';
 import { getReferralCodesFor } from '@/lib/referral';
 import { BackButton } from '@/components/BackButton';
 import type { PaymentRecord } from '@/types/payment';
+import { QueryError } from '@/components/QueryError';
 import { COLORS } from '@/lib/theme/colors';
 
 export default function CartCheckoutScreen() {
@@ -25,7 +26,7 @@ export default function CartCheckoutScreen() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PaymentRecord | null>(null);
 
-  const { data: allCartItems, isLoading } = useQuery({
+  const { data: allCartItems, isLoading, error: loadError, refetch: refetchCart } = useQuery({
     queryKey: ['cart'],
     queryFn: () => cartApi.list(),
   });
@@ -72,12 +73,16 @@ export default function CartCheckoutScreen() {
     },
   });
 
-  if (isLoading || !cartItems) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator />
       </View>
     );
+  }
+
+  if (loadError || !cartItems) {
+    return <QueryError error={loadError} onRetry={() => refetchCart()} />;
   }
 
   if (cartItems.length === 0 && !result) {

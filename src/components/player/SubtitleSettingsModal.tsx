@@ -1,4 +1,4 @@
-import { Modal, Pressable, Switch, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { COLORS } from '@/lib/theme/colors';
 import { COLOR_SWATCHES, type SubtitleFontSize, type SubtitleSettings } from '@/lib/subtitleSettings';
 
@@ -16,6 +16,10 @@ interface Props {
   hasTranslated: boolean;
   onChange: (next: SubtitleSettings) => void;
   onClose: () => void;
+  rate: number;
+  onRateChange: (rate: number) => void;
+  autoNext: boolean;
+  onAutoNextChange: (v: boolean) => void;
 }
 
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
@@ -45,13 +49,26 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-export function SubtitleSettingsModal({ visible, settings, hasTranslated, onChange, onClose }: Props) {
+export function SubtitleSettingsModal({ visible, settings, hasTranslated, onChange, onClose, rate, onRateChange, autoNext, onAutoNextChange }: Props) {
   const set = (patch: Partial<SubtitleSettings>) => onChange({ ...settings, ...patch });
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
-        <Pressable onPress={() => {}} style={{ backgroundColor: COLORS.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 32, gap: 18 }}>
-          <Text style={{ fontSize: 16, fontWeight: '800', color: COLORS.ink }}>Cài đặt phụ đề</Text>
+        <Pressable onPress={() => {}} style={{ backgroundColor: COLORS.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '88%' }}>
+          <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 18 }}>
+          <Text style={{ fontSize: 16, fontWeight: '800', color: COLORS.ink }}>Cài đặt</Text>
+
+          <Row label="Tốc độ phát">
+            {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
+              <Chip key={r} label={`${r}×`} active={rate === r} onPress={() => onRateChange(r)} />
+            ))}
+          </Row>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ color: COLORS.ink }}>Tự chuyển bài tiếp theo</Text>
+            <Switch value={autoNext} onValueChange={onAutoNextChange} trackColor={{ true: COLORS.accent, false: COLORS.line }} />
+          </View>
+
+          <Text style={{ fontSize: 14, fontWeight: '800', color: COLORS.ink, marginTop: 4 }}>Phụ đề</Text>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={{ color: COLORS.ink }}>Phụ đề gốc</Text>
@@ -92,6 +109,7 @@ export function SubtitleSettingsModal({ visible, settings, hasTranslated, onChan
           <Pressable onPress={onClose} style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 12, alignItems: 'center' }}>
             <Text style={{ color: '#fff', fontWeight: '700' }}>Xong</Text>
           </Pressable>
+          </ScrollView>
         </Pressable>
       </Pressable>
     </Modal>

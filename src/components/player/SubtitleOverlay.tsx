@@ -17,11 +17,13 @@ interface Props {
   translatedSubtitles: SubtitleSegment[];
   player: { currentTime: number };
   settings: SubtitleSettings;
+  /** Thanh điều khiển đang hiện → nâng phụ đề (vị trí dưới) lên để không che nút. */
+  raised?: boolean;
 }
 
 /** Phụ đề phủ lên video (gốc + đã dịch). Đặt trong khung video `position: relative`. Lưu ý: ở chế độ
  * toàn màn hình native của `expo-video` lớp phủ này không hiện (chỉ thấy trong khung nhúng). */
-export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, player, settings }: Props) {
+export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, player, settings, raised = false }: Props) {
   const currentSec = usePlayerTime(player, true);
   const original = settings.showOriginal ? activeAt(originalSubtitles, currentSec) : null;
   const translated = settings.showTranslated ? activeAt(translatedSubtitles, currentSec) : null;
@@ -57,7 +59,7 @@ export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, player
         right: 12,
         alignItems: 'center',
         gap: 4,
-        ...(settings.position === 'bottom' ? { bottom: 72 } : { top: 12 }),
+        ...(settings.position === 'bottom' ? { bottom: raised ? 84 : 14 } : { top: 12 }),
       }}
     >
       {translated ? line(translated.text, fontSize) : null}

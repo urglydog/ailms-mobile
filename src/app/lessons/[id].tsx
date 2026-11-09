@@ -1,9 +1,8 @@
 import { useEventListener } from 'expo';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { Captions, Maximize2, RotateCcw, RotateCw, Volume2, VolumeX } from 'lucide-react-native';
+import { useVideoPlayer } from 'expo-video';
 import * as SecureStore from 'expo-secure-store';
 import { FullscreenVideoModal } from '@/components/player/FullscreenVideoModal';
-import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
+import { PlayerSurface } from '@/components/player/PlayerSurface';
 import { SubtitleSettingsModal } from '@/components/player/SubtitleSettingsModal';
 import { DEFAULT_SUBTITLE_SETTINGS, loadSubtitleSettings, saveSubtitleSettings, type SubtitleSettings } from '@/lib/subtitleSettings';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -94,17 +93,7 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
 const PROGRESS_REPORT_INTERVAL_SEC = 15;
 
 // Khung video 16:9 theo bề rộng màn hình (không dùng chiều cao cố định) và ghim ở trên cùng.
-const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 const AUTO_NEXT_KEY = 'lms_auto_next_lesson';
-
-function seekBy(player: { currentTime: number; duration: number }, deltaSec: number) {
-  try {
-    const next = player.currentTime + deltaSec;
-    player.currentTime = Math.max(0, player.duration > 0 ? Math.min(player.duration, next) : next);
-  } catch {
-    // Player đã giải phóng.
-  }
-}
 
 function applyRate(player: { playbackRate: number }, rate: number) {
   try {
@@ -165,6 +154,27 @@ export default function LessonPlayerScreen() {
     saveSubtitleSettings(next);
   };
   const [rate, setRate] = useState(1);
+  // Đổi ngôn ngữ lồng tiếng khi đang xem thì video phải tiếp tục phát (như web) — nếu nền tảng làm video dừng
+  // do đổi nguồn âm thanh thì tự phát lại trong ~1,5s đầu.
+  const changeLang = (code: string | null) => {
+    let wasPlaying = false;
+    try {
+      wasPlaying = player.playing;
+    } catch {
+      // bỏ qua
+    }
+    setActiveLang(code);
+    if (!wasPlaying) return;
+    for (const delay of [150, 500, 1000, 1800]) {
+      setTimeout(() => {
+        try {
+          if (!player.playing) player.play();
+        } catch {
+          // Player đã giải phóng.
+        }
+      }, delay);
+    }
+  };
   const [autoNext, setAutoNext] = useState(true);
   useEffect(() => {
     SecureStore.getItemAsync(AUTO_NEXT_KEY)
@@ -504,6 +514,28 @@ export default function LessonPlayerScreen() {
 
 
 
+  const renderSurface = (isFullscreen: boolean) => (
+    <PlayerSurface
+      player={player}
+      originalSubtitles={lesson.originalSubtitles ?? []}
+      translatedSubtitles={currentLang?.subtitles ?? []}
+      settings={subSettings}
+      onSettingsChange={updateSubSettings}
+      dubActive={audioSrc !== null}
+      dubMuted={dubMuted}
+      onToggleDubMute={() => setDubMuted((m) => !m)}
+      rate={rate}
+      onRateChange={setRate}
+      onOpenSettings={() => setShowSubModal(true)}
+      onToggleTranscript={() => {
+        setFullscreen(false);
+        setMainTab('transcript');
+      }}
+      isFullscreen={isFullscreen}
+      onToggleFullscreen={() => setFullscreen(!isFullscreen)}
+    />
+  );
+
   const activeLangOption = voiceOptions?.find((vo) => vo.language === activeLang);
   const voicesForActiveLang = voiceOptions?.filter((vo) => vo.language === activeLang) ?? [];
 
@@ -522,15 +554,7 @@ export default function LessonPlayerScreen() {
           </Pressable>
         </View>
       ) : isDirectVideo ? (
-        <View style={VIDEO_FRAME}>
-          <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: false }} nativeControls />
-          <SubtitleOverlay
-            originalSubtitles={lesson.originalSubtitles ?? []}
-            translatedSubtitles={currentLang?.subtitles ?? []}
-            player={player}
-            settings={subSettings}
-          />
-        </View>
+        <View style={VIDEO_FRAME}>{fullscreen ? null : renderSurface(false)}</View>
       ) : lesson.youtubeId ? (
         <Pressable
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}
@@ -544,61 +568,21 @@ export default function LessonPlayerScreen() {
         </View>
       )}
 
-      {isDirectVideo && !streamConflict ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }} contentContainerStyle={{ alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6 }}>
-          <CtrlBtn icon={<RotateCcw size={16} color={COLORS.inkMuted} />} label="5s" onPress={() => seekBy(player, -5)} a11y="Lùi 5 giây" />
-          <CtrlBtn icon={<RotateCw size={16} color={COLORS.inkMuted} />} label="5s" onPress={() => seekBy(player, 5)} a11y="Tua tới 5 giây" />
-          <CtrlBtn label={`${rate}×`} onPress={() => setRate(SPEEDS[(SPEEDS.indexOf(rate) + 1) % SPEEDS.length] ?? 1)} a11y="Tốc độ phát" active={rate !== 1} />
-          <CtrlBtn
-            label="Gốc"
-            a11y="Phụ đề gốc"
-            active={subSettings.showOriginal}
-            disabled={(lesson.originalSubtitles?.length ?? 0) === 0}
-            onPress={() => updateSubSettings({ ...subSettings, showOriginal: !subSettings.showOriginal })}
-          />
-          <CtrlBtn
-            label="Dịch"
-            a11y="Phụ đề đã dịch"
-            active={subSettings.showTranslated}
-            disabled={(currentLang?.subtitles?.length ?? 0) === 0}
-            onPress={() => updateSubSettings({ ...subSettings, showTranslated: !subSettings.showTranslated })}
-          />
-          <CtrlBtn
-            label="Tự chuyển bài"
-            a11y="Tự động chuyển bài tiếp theo"
-            active={autoNext}
-            onPress={() => {
-              const next = !autoNext;
-              setAutoNext(next);
-              SecureStore.setItemAsync(AUTO_NEXT_KEY, String(next)).catch(() => {});
-            }}
-          />
-          {audioSrc ? (
-            <CtrlBtn
-              icon={dubMuted ? <VolumeX size={16} color={COLORS.danger} /> : <Volume2 size={16} color={COLORS.accent} />}
-              label="Lồng tiếng"
-              a11y="Bật/tắt giọng lồng tiếng"
-              active={!dubMuted}
-              onPress={() => setDubMuted((m) => !m)}
-            />
-          ) : null}
-          <CtrlBtn icon={<Maximize2 size={15} color={COLORS.inkMuted} />} label="Phóng to" onPress={() => setFullscreen(true)} a11y="Toàn màn hình" />
-          <CtrlBtn icon={<Captions size={16} color={COLORS.inkMuted} />} label="Phụ đề" onPress={() => setShowSubModal(true)} a11y="Cài đặt phụ đề" />
-        </ScrollView>
-      ) : null}
-      <FullscreenVideoModal
-        visible={fullscreen}
-        player={player}
-        originalSubtitles={lesson.originalSubtitles ?? []}
-        translatedSubtitles={currentLang?.subtitles ?? []}
-        settings={subSettings}
-        onClose={() => setFullscreen(false)}
-      />
+      <FullscreenVideoModal visible={fullscreen} onClose={() => setFullscreen(false)}>
+        {renderSurface(true)}
+      </FullscreenVideoModal>
       <SubtitleSettingsModal
         visible={showSubModal}
         settings={subSettings}
         hasTranslated={(currentLang?.subtitles?.length ?? 0) > 0}
         onChange={updateSubSettings}
+        rate={rate}
+        onRateChange={setRate}
+        autoNext={autoNext}
+        onAutoNextChange={(v) => {
+          setAutoNext(v);
+          SecureStore.setItemAsync(AUTO_NEXT_KEY, String(v)).catch(() => {});
+        }}
         onClose={() => setShowSubModal(false)}
       />
 
@@ -619,7 +603,7 @@ export default function LessonPlayerScreen() {
           activeCode={activeLang}
           sourceLanguage={lesson.sourceLanguage}
           onSelect={(code) => {
-            setActiveLang(code);
+            changeLang(code);
             setLastDubLang(code);
             const langs = voiceOptions?.filter((v) => v.language === code) ?? [];
             const def = langs.find((v) => v.isDefault) ?? langs[0];
@@ -637,7 +621,7 @@ export default function LessonPlayerScreen() {
               trackColor={{ true: COLORS.accent, false: COLORS.line }}
               onValueChange={(listenOriginal) => {
                 if (listenOriginal) {
-                  setActiveLang(null);
+                  changeLang(null);
                   return;
                 }
                 const ready = (lesson.languages ?? []).filter((l) => l.available);
@@ -646,7 +630,7 @@ export default function LessonPlayerScreen() {
                   Alert.alert('Chưa có giọng lồng tiếng', 'Chọn một ngôn ngữ ở trên và kích hoạt lồng tiếng AI để nghe.');
                   return;
                 }
-                setActiveLang(target.code);
+                changeLang(target.code);
                 setLastDubLang(target.code);
                 const langs = voiceOptions?.filter((v) => v.language === target.code) ?? [];
                 const def = langs.find((v) => v.isDefault) ?? langs[0];
@@ -661,7 +645,7 @@ export default function LessonPlayerScreen() {
             <DubbingActivatePanel
               languageLabel={currentLang.label}
               onActivate={handleActivateDubbing}
-              onWatchOriginal={() => setActiveLang(null)}
+              onWatchOriginal={() => changeLang(null)}
               quotaExceeded={quotaExceeded}
               isSubmitting={activateDubbing.isPending}
               voices={voicesForActiveLang}
@@ -676,7 +660,7 @@ export default function LessonPlayerScreen() {
             <PipelineProgress
               steps={steps}
               percent={lastEvent && 'stage' in lastEvent && lastEvent.stage !== 'PREPARING' && lastEvent.stage !== 'FINALIZING' && lastEvent.totalChunks ? Math.round(((lastEvent.chunkIndex ?? 0) / lastEvent.totalChunks) * 100) : undefined}
-              onWatchOriginal={() => setActiveLang(null)}
+              onWatchOriginal={() => changeLang(null)}
               onCancel={handleCancelDubbing}
               isCancelling={cancelDubbing.isPending}
             />
@@ -804,29 +788,4 @@ function LessonNavRow({ lesson, active }: { lesson: LessonNav; active: boolean }
 function LiveTranscript({ player, ...rest }: { player: { currentTime: number } } & Omit<React.ComponentProps<typeof TranscriptPanel>, 'currentSec'>) {
   const currentSec = usePlayerTime(player, true);
   return <TranscriptPanel {...rest} currentSec={currentSec} />;
-}
-
-function CtrlBtn({ icon, label, onPress, a11y, active, disabled }: { icon?: React.ReactNode; label: string; onPress: () => void; a11y: string; active?: boolean; disabled?: boolean }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityLabel={a11y}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: active ? COLORS.accent : COLORS.line,
-        backgroundColor: active ? COLORS.tint : COLORS.white,
-        opacity: disabled ? 0.4 : 1,
-      }}
-    >
-      {icon}
-      <Text style={{ fontSize: 12.5, fontWeight: '600', color: active ? COLORS.accent : COLORS.inkMuted }}>{label}</Text>
-    </Pressable>
-  );
 }

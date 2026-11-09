@@ -284,7 +284,7 @@ export default function LessonPlayerScreen() {
     if (track.finalUrl) return track.finalUrl;
     if (track.chunks && track.chunks.length > 0) {
       // Very naive chunk selection for native (since we don't sync offset easily here, we just play the first available chunk for now, or the final. Better implementation would sync with video currentTime)
-      return track.chunks[0].url;
+      return track.chunks[0].fileUrl;
     }
     return null;
   };
@@ -511,7 +511,7 @@ export default function LessonPlayerScreen() {
         onClose={() => setShowSubModal(false)}
       />
 
-      {typeof window !== 'undefined' && audioSrc ? <DubAudioSync key={audioSrc} src={audioSrc} video={player} /> : null}
+      {typeof window !== 'undefined' && audioSrc ? <DubAudioSync key={currentLang?.code} track={track!} video={player} /> : null}
 
       <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 16, gap: 4 }}>

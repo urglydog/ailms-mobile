@@ -7,9 +7,13 @@ export interface SubtitleSegment {
   text: string;
 }
 
+/** Khớp `LessonPlayerDto.AudioChunkRes` của BE (khác tên cũ `index`/`url` từng khai báo nhầm). */
 export interface AudioChunk {
-  index: number;
-  url: string;
+  chunkIndex: number;
+  /** Mốc bắt đầu/kết thúc (giây, tuyệt đối theo video) của đoạn; file chunk tự đánh t=0 ở đầu đoạn. */
+  startSec: number;
+  endSec: number;
+  fileUrl: string;
 }
 
 export interface AudioTrack {

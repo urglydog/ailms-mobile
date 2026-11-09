@@ -15,6 +15,8 @@ export interface Enrollment {
   quizScore: number | null;
   /** "Học ngay" — bài học đầu tiên của khoá; null nếu khoá chưa có bài học nào. */
   firstLessonId: number | null;
+  /** Bài đang học dở (BE trả); null/thiếu thì lùi về `firstLessonId`. */
+  resumeLessonId?: number | null;
   instructorName: string;
   myRating: number | null;
   enrolledAt: string;

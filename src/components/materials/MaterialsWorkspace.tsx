@@ -52,6 +52,26 @@ function displayFor(item: Row): { Icon: typeof Brain; label: string } {
   return { Icon: TYPE_ICON[item.materialType], label: TYPE_LABEL[item.materialType] };
 }
 
+/** Bài thi chính thức mở thẳng màn thi (kèm thông tin để hiện trang giới thiệu bài thi như web `MaterialManager`);
+ * học liệu khác mở màn chi tiết học liệu. */
+function hrefFor(item: MaterialListItem | SharedMaterialListItem): Href {
+  const shared = item as SharedMaterialListItem;
+  if (item.materialType === 'QUIZ' && item.quizType === 'OFFICIAL_EXAM' && shared.isOfficial === true && shared.materialId) {
+    const q = new URLSearchParams({
+      title: item.title ?? '',
+      duration: String(shared.durationMinutes ?? ''),
+      attempts: String(shared.maxAttempts ?? ''),
+      count: String(shared.randomPickCount || shared.questionCount || ''),
+      start: shared.startTime ?? '',
+      end: shared.endTime ?? '',
+      attemptCount: String(shared.attemptCount ?? 0),
+      proctored: String(shared.isProctored ?? false),
+    });
+    return `/exam/${shared.materialId}?${q.toString()}` as Href;
+  }
+  return `/material/${item.id}` as Href;
+}
+
 function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -212,7 +232,7 @@ export function MaterialsWorkspace({
             return (
               <Pressable
                 key={`${item.id}-${index}`}
-                onPress={() => (isResource(item) ? Linking.openURL(item.fileUrl) : router.push(`/material/${item.id}` as Href))}
+                onPress={() => (isResource(item) ? Linking.openURL(item.fileUrl) : router.push(hrefFor(item)))}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',

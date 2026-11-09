@@ -1,18 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, StyleSheet, AppState, AppStateStatus } from 'react-native';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { ShieldAlert, Video } from 'lucide-react-native';
 import { quizzesApi } from '@/lib/api/quizzes';
 import type { ProctorFrameRes } from '@/types/quiz';
 
+export interface ProctoringRecording {
+  uri: string;
+  durationSec: number;
+}
+
+export interface ProctoringHandle {
+  /** Dừng ghi hình và trả file video (tối đa ~8s chờ; `null` nếu không có bản ghi). Gọi TRƯỚC khi gỡ camera. */
+  finish: () => Promise<ProctoringRecording | null>;
+}
+
 interface Props {
   attemptId: number;
   isStarted: boolean;
   onViolation: (type: string, detail: string) => void;
-  onRecordingReady: (fileUri: string, durationSec: number) => void;
-  /** Kết quả BE (Gemini Vision) chấm 1 khung hình chụp định kỳ — port từ `fe`'s
-   * `analyzeProctorFrame`/`sendProctorFrame`, nguồn vi phạm hình ảnh được SERVER xác thực, khác
-   * `onViolation` (chỉ bắt được `TAB_SWITCH` phía client). */
+  /** Kết quả BE (Gemini Vision) chấm 1 khung hình chụp định kỳ — nguồn vi phạm hình ảnh được SERVER xác thực. */
   onProctorResult: (res: ProctorFrameRes) => void;
 }
 
@@ -21,75 +28,94 @@ function randomProctorDelayMs(): number {
   return 30_000 + Math.random() * 30_000;
 }
 
-export function ProctoringCameraView({ attemptId, isStarted, onViolation, onRecordingReady, onProctorResult }: Props) {
+/** Rời app dưới ngưỡng này (ms) không tính vi phạm — tránh báo nhầm khi hộp thoại hệ thống/thanh thông báo kéo xuống. */
+const MIN_AWAY_MS = 2000;
+/** Bỏ qua vi phạm "rời app" trong khoảng đầu mới vào thi (ms): thường là hộp thoại xin quyền/camera khởi động. */
+const START_GRACE_MS = 6000;
+
+export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function ProctoringCameraView(
+  { attemptId, isStarted, onViolation, onProctorResult },
+  ref,
+) {
   const [camPermission, requestCam] = useCameraPermissions();
   const [micPermission, requestMic] = useMicrophonePermissions();
   const cameraRef = useRef<any>(null);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const startTimeRef = useRef<number>(0);
+  const startedAtRef = useRef<number>(Date.now());
+  const recordPromiseRef = useRef<Promise<ProctoringRecording | null> | null>(null);
   const isRecordingRef = useRef<boolean>(false);
   const proctorFrameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!camPermission?.granted) requestCam();
     if (!micPermission?.granted) requestMic();
-  }, [camPermission, micPermission]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [camPermission?.granted, micPermission?.granted]);
 
+  // "Chuyển tab/rời app": chỉ tính khi RỜI ≥ 2s và đã qua giai đoạn khởi động (thay vì báo ngay mỗi lần app
+  // 'inactive' — hộp thoại xin quyền camera/mic cũng làm app 'inactive' nên trước đây vừa vào thi đã báo vi phạm).
   useEffect(() => {
-    const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
-      if (isStarted && (nextState === 'background' || nextState === 'inactive')) {
-        onViolation('TAB_SWITCH', 'Học viên rời khỏi ứng dụng trong lúc thi');
+    let leftAt: number | null = null;
+    const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      if (!isStarted) return;
+      if (next !== 'active') {
+        if (leftAt === null) leftAt = Date.now();
+        return;
+      }
+      const away = leftAt === null ? 0 : Date.now() - leftAt;
+      leftAt = null;
+      if (away >= MIN_AWAY_MS && Date.now() - startedAtRef.current > START_GRACE_MS) {
+        onViolation('TAB_SWITCH', `Học viên rời khỏi ứng dụng ${Math.round(away / 1000)} giây trong lúc thi`);
       }
     });
     return () => sub.remove();
   }, [isStarted, onViolation]);
 
-  const startRecording = async () => {
+  const startRecording = () => {
     if (!cameraRef.current || isRecordingRef.current) return;
-    try {
-      isRecordingRef.current = true;
-      startTimeRef.current = Date.now();
-      const video = await cameraRef.current.recordAsync({
-        maxDuration: 60 * 60 * 2, // 2 hours max
-        mute: false,
-      });
-      if (video?.uri) {
-        const durationSec = Math.round((Date.now() - startTimeRef.current) / 1000);
-        onRecordingReady(video.uri, durationSec);
+    isRecordingRef.current = true;
+    startTimeRef.current = Date.now();
+    recordPromiseRef.current = (async () => {
+      try {
+        const video = await cameraRef.current.recordAsync({ maxDuration: 60 * 60 * 2, mute: false });
+        isRecordingRef.current = false;
+        if (!video?.uri) return null;
+        return { uri: video.uri as string, durationSec: Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000)) };
+      } catch (err) {
+        console.warn('Record error:', err);
+        isRecordingRef.current = false;
+        return null;
       }
-    } catch (err) {
-      console.warn('Record error:', err);
-      isRecordingRef.current = false;
-    }
+    })();
   };
 
-  const stopRecording = () => {
-    if (cameraRef.current && isRecordingRef.current) {
-      cameraRef.current.stopRecording();
-      isRecordingRef.current = false;
-    }
-  };
+  useImperativeHandle(ref, () => ({
+    finish: async () => {
+      const pending = recordPromiseRef.current;
+      if (!pending) return null;
+      try {
+        if (isRecordingRef.current) cameraRef.current?.stopRecording();
+      } catch {
+        // bỏ qua
+      }
+      return Promise.race([pending, new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000))]);
+    },
+  }));
 
+  // Chỉ bắt đầu ghi khi camera ĐÃ SẴN SÀNG (trước đây gọi recordAsync ngay lúc có quyền, camera chưa mở nên không quay được).
   useEffect(() => {
-    if (isStarted && camPermission?.granted && micPermission?.granted) {
+    if (isStarted && cameraReady && camPermission?.granted && micPermission?.granted) {
       startRecording();
-    } else if (!isStarted && isRecordingRef.current) {
-      stopRecording();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStarted, camPermission, micPermission]);
+  }, [isStarted, cameraReady, camPermission?.granted, micPermission?.granted]);
 
-  // `expo-camera`'s `CameraView` (managed workflow) không hỗ trợ face detection trực tiếp
-  // (`onFacesDetected` không tồn tại trên API hiện tại — khác bản cũ `expo-face-detector` đã bị
-  // loại khỏi Expo SDK) — nên NO_FACE/MULTIPLE_FACES/HEAD_TURNED/GAZE_AWAY không thể phát hiện
-  // on-device như web (`@vladmandic/face-api`). Thay vào đó, chụp 1 khung hình định kỳ (random
-  // 30-60s, giống `fe`'s `scheduleNext`) gửi lên BE để Gemini Vision xác thực — đúng nguồn vi
-  // phạm hình ảnh web cũng dùng làm xác thực chính (client face-api chỉ là "cò súng" hiển thị,
-  // không phải nguồn xác thực). CHƯA xác nhận trên thiết bị thật `takePictureAsync()` có làm
-  // gián đoạn `recordAsync()` đang quay song song hay không — nếu phát hiện video bị cắt ngắn khi
-  // chụp frame, cân nhắc bỏ quay video liên tục, chỉ dựa vào chuỗi frame định kỳ.
+  // Chụp 1 khung hình định kỳ (random 30-60s) gửi BE để Gemini Vision xác thực (face detection on-device không có
+  // trong expo-camera managed). CHƯA xác nhận trên thiết bị thật `takePictureAsync()` có làm gián đoạn
+  // `recordAsync()` đang quay song song hay không — nếu video bị cắt ngắn, cân nhắc chỉ dựa vào chuỗi frame.
   useEffect(() => {
-    if (!isStarted) {
+    if (!isStarted || !cameraReady) {
       if (proctorFrameTimer.current) clearTimeout(proctorFrameTimer.current);
       return;
     }
@@ -122,7 +148,7 @@ export function ProctoringCameraView({ attemptId, isStarted, onViolation, onReco
       if (proctorFrameTimer.current) clearTimeout(proctorFrameTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStarted, attemptId]);
+  }, [isStarted, cameraReady, attemptId]);
 
   if (!camPermission?.granted || !micPermission?.granted) {
     return (
@@ -135,19 +161,14 @@ export function ProctoringCameraView({ attemptId, isStarted, onViolation, onReco
 
   return (
     <View style={styles.cameraWrapper}>
-      <CameraView
-        ref={cameraRef}
-        style={styles.camera}
-        facing="front"
-        mode="video"
-      />
+      <CameraView ref={cameraRef} style={styles.camera} facing="front" mode="video" onCameraReady={() => setCameraReady(true)} />
       <View style={styles.badge}>
         <Video size={12} color="#fff" />
         <Text style={styles.badgeText}>REC</Text>
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -41,6 +41,8 @@ export interface QuizQuestion {
 }
 
 export interface MaterialDetail extends MaterialListItem {
+  /** Chỉ phía app đặt: dữ liệu lấy từ bản lưu offline (mất mạng) thay vì từ server. */
+  fromOfflineCache?: boolean;
   mermaidCode?: string;
   flashcards?: FlashcardCard[];
   quizQuestions?: QuizQuestion[];
@@ -86,6 +88,16 @@ export interface SharedMaterialListItem {
   isOfficial: boolean;
   quizType?: 'LECTURE_QUIZ' | 'OFFICIAL_EXAM' | null;
   assignments: MaterialAssignment[];
+  /** ID Quiz thật (dùng mở `/exam/{materialId}`) — khác `id` (ID bản sinh học liệu). Chỉ có với QUIZ. */
+  materialId?: number | null;
+  questionCount?: number | null;
+  randomPickCount?: number | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  durationMinutes?: number | null;
+  maxAttempts?: number | null;
+  isProctored?: boolean | null;
+  attemptCount?: number | null;
 }
 
 export interface FlashcardReviewResult {

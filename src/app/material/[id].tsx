@@ -57,7 +57,7 @@ export default function MaterialDetailScreen() {
         if (!cached) throw err;
         const data = JSON.parse(cached) as MaterialDetail;
         data.flashcards = await flashcardDb.getOfflineFlashcards(materialId);
-        return data;
+        return { ...data, fromOfflineCache: true };
       }
     },
     retry: false,
@@ -90,7 +90,7 @@ export default function MaterialDetailScreen() {
         <MindmapSection mermaidCode={material.mermaidCode} />
       ) : null}
       {material.materialType === 'FLASHCARD' && material.flashcards ? (
-        <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} language={material.language} isOfficial={!!material.isOfficial} />
+        <FlashcardWorkspace materialId={materialId} initialCards={material.flashcards} language={material.language} isOfficial={!!material.isOfficial} offlineCache={!!material.fromOfflineCache} />
       ) : null}
       {material.materialType === 'QUIZ' ? (
         isRealOfficialExam(material) && material.quizId ? (
@@ -359,11 +359,27 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
 
 type WorkspaceMode = 'browse' | 'study';
 
-function FlashcardWorkspace({ materialId, initialCards, language, isOfficial }: { materialId: number; initialCards: FlashcardCard[]; language: string; isOfficial: boolean }) {
+function FlashcardWorkspace({ materialId, initialCards, language, isOfficial, offlineCache }: { materialId: number; initialCards: FlashcardCard[]; language: string; isOfficial: boolean; offlineCache: boolean }) {
   const [mode, setMode] = useState<WorkspaceMode>('study');
+  // Số lượt ôn đang chờ đồng bộ lên server — cho học viên thấy chế độ offline đang hoạt động.
+  const { data: pending = 0 } = useQuery({
+    queryKey: ['flashcard-sync-pending'],
+    queryFn: async () => (await flashcardDb.getSyncQueue()).length,
+    refetchInterval: 3000,
+  });
 
   return (
     <View style={{ flex: 1 }}>
+      {offlineCache || pending > 0 ? (
+        <View style={{ backgroundColor: COLORS.streakBg, paddingHorizontal: 14, paddingVertical: 8, gap: 2 }}>
+          {offlineCache ? (
+            <Text style={{ color: COLORS.streakInk, fontSize: 12.5, fontWeight: '700' }}>📴 Chế độ offline — đang dùng bản đã lưu trên máy</Text>
+          ) : null}
+          {pending > 0 ? (
+            <Text style={{ color: COLORS.streakInk, fontSize: 12 }}>{pending} lượt ôn chưa đồng bộ — sẽ tự gửi lên khi có mạng.</Text>
+          ) : null}
+        </View>
+      ) : null}
       <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
         <ModeTab label="Ôn tập" active={mode === 'study'} onPress={() => setMode('study')} />
         <ModeTab label="Xem tất cả" active={mode === 'browse'} onPress={() => setMode('browse')} />
@@ -438,6 +454,7 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
     mutationFn: async ({ flashcardId, quality }: { flashcardId: number; quality: number }) => {
       await flashcardDb.recordReview(flashcardId, quality);
       syncService.syncOfflineReviews().catch(console.error); // Sync ngầm
+      void queryClient.invalidateQueries({ queryKey: ['flashcard-sync-pending'] });
     },
     onSuccess: (_, { flashcardId }) => {
       setCompletedIds((prev) => new Set(prev).add(flashcardId));

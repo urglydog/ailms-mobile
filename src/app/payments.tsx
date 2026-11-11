@@ -48,10 +48,12 @@ function PaymentCard({ payment }: { payment: PaymentRecord }) {
   const isPaid = payment.status === 'PAID';
   const isPending = payment.status === 'PENDING';
   const isFailed = payment.status === 'FAILED' || payment.status === 'EXPIRED';
+  // REFUNDED (11/11/2026): giao dịch đã hoàn tiền — không phải lỗi nên không dùng màu đỏ.
+  const isRefunded = payment.status === 'REFUNDED';
 
-  const statusColor = isPaid ? COLORS.success : isPending ? COLORS.warning : COLORS.danger;
-  const statusBg = isPaid ? '#DCFCE7' : isPending ? '#FEF3C7' : '#FEE2E2';
-  const statusText = isPaid ? 'Thành công' : isPending ? 'Đang chờ' : 'Thất bại/Hết hạn';
+  const statusColor = isPaid ? COLORS.success : isPending ? COLORS.warning : isRefunded ? COLORS.accent : COLORS.danger;
+  const statusBg = isPaid ? '#DCFCE7' : isPending ? '#FEF3C7' : isRefunded ? '#DBEAFE' : '#FEE2E2';
+  const statusText = isPaid ? 'Thành công' : isPending ? 'Đang chờ' : isRefunded ? 'Đã hoàn tiền' : 'Thất bại/Hết hạn';
 
   return (
     <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 8 }}>

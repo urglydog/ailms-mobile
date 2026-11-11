@@ -1,5 +1,5 @@
 // Khớp PaymentDto / PaymentStatus phía BE (`be/src/main/java/com/lms/payment/`).
-export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED' | 'REFUNDED';
 
 export interface CreatePaymentRequest {
   courseId: number;

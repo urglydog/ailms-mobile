@@ -9,7 +9,7 @@ import { ApiError } from '@/lib/api/client';
 import { disputesApi } from '@/lib/api/disputes';
 import { paymentsApi } from '@/lib/api/payments';
 import { COLORS } from '@/lib/theme/colors';
-import type { DisputeRes, PickedEvidence } from '@/types/dispute';
+import type { DisputeCategory, DisputeRes, PickedEvidence } from '@/types/dispute';
 import type { PaymentRecord } from '@/types/payment';
 
 const STATUS_LABEL: Record<DisputeRes['status'], string> = {
@@ -24,6 +24,15 @@ const STATUS_COLOR: Record<DisputeRes['status'], string> = {
   RESOLVED_REJECTED: COLORS.inkMuted,
   REOPENED: COLORS.danger,
 };
+const CATEGORY_LABEL: Record<DisputeCategory, string> = {
+  CHANGED_MIND: 'Tôi đổi ý / không phù hợp',
+  CONTENT_MISMATCH: 'Nội dung khác mô tả',
+  TECHNICAL_ERROR: 'Lỗi kỹ thuật',
+  DOUBLE_CHARGE: 'Bị trừ tiền hai lần',
+  NOT_ENROLLED: 'Trừ tiền nhưng không ghi danh',
+  OTHER: 'Lý do khác',
+};
+const CATEGORIES = Object.keys(CATEGORY_LABEL) as DisputeCategory[];
 const MAX_FILES = 5;
 /** Phải khớp `lms.rules.dispute-reopen-window-days` ở BE — chỉ để ẩn/hiện nút, BE vẫn validate thật. */
 const REOPEN_WINDOW_DAYS = 7;
@@ -43,6 +52,7 @@ export default function DisputesScreen() {
   const { ref } = useLocalSearchParams<{ ref?: string }>();
   const queryClient = useQueryClient();
   const [selectedRef, setSelectedRef] = useState<string | null>(ref ?? null);
+  const [category, setCategory] = useState<DisputeCategory>('CHANGED_MIND');
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
   const [bank, setBank] = useState('');
@@ -58,11 +68,12 @@ export default function DisputesScreen() {
 
   const paid = (payments.data ?? []).filter((p) => p.status === 'PAID');
   const selected: PaymentRecord | undefined = paid.find((p) => p.txnRef === selectedRef);
-  const alreadyDisputed = (txnRef: string) =>
-    (disputes.data ?? []).some((d) => d.paymentTxnRef === txnRef && d.status === 'OPEN');
+  // Mỗi giao dịch chỉ có MỘT khiếu nại (BE từ 11/11/2026) — đã có khiếu nại ở bất kỳ trạng thái nào thì không gửi thêm.
+  const alreadyDisputed = (txnRef: string) => (disputes.data ?? []).some((d) => d.paymentTxnRef === txnRef);
 
   const canReopen = (d: DisputeRes) =>
     d.status === 'RESOLVED_REFUNDED' &&
+    d.refundTransferStatus !== 'PENDING_TRANSFER' &&
     !d.reopenedAt &&
     d.resolvedAt != null &&
     nowMs - new Date(d.resolvedAt).getTime() < REOPEN_WINDOW_DAYS * 24 * 60 * 60 * 1000;
@@ -97,12 +108,14 @@ export default function DisputesScreen() {
           description: description.trim() || undefined,
           refundBankAccount: bank.trim() || undefined,
           termsAccepted: accepted,
+          category,
         },
         files,
       ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['my-disputes'] });
       setSelectedRef(null);
+      setCategory('CHANGED_MIND');
       setReason('');
       setDescription('');
       setBank('');
@@ -170,7 +183,7 @@ export default function DisputesScreen() {
                       </Text>
                       {disabled ? (
                         <Text style={{ fontSize: 12, color: COLORS.warning, marginTop: 4 }}>
-                          Đang có khiếu nại chờ xử lý
+                          Giao dịch này đã có khiếu nại
                         </Text>
                       ) : null}
                     </Pressable>
@@ -197,6 +210,35 @@ export default function DisputesScreen() {
                   {error}
                 </Text>
               ) : null}
+
+              <View style={{ gap: 6 }}>
+                <Text style={{ fontWeight: '600', color: COLORS.ink }}>Loại vấn đề</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                  {CATEGORIES.map((c) => (
+                    <Pressable
+                      key={c}
+                      onPress={() => setCategory(c)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: category === c }}
+                      style={{
+                        borderWidth: 1,
+                        borderColor: category === c ? COLORS.accent : COLORS.line,
+                        backgroundColor: category === c ? '#DBEAFE' : '#fff',
+                        borderRadius: 999,
+                        paddingVertical: 6,
+                        paddingHorizontal: 12,
+                      }}
+                    >
+                      <Text style={{ color: category === c ? COLORS.accent : COLORS.ink, fontSize: 12, fontWeight: '600' }}>
+                        {CATEGORY_LABEL[c]}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>
+                  Hoàn tiền theo chính sách về thời hạn và tiến độ học; lỗi kỹ thuật được xét riêng. Giảng viên của khóa được báo và có thể phản hồi trước khi chúng tôi quyết định.
+                </Text>
+              </View>
 
               <TextInput
                 placeholder="Lý do * (vd: Bị trừ tiền nhưng không ghi danh được)"
@@ -276,6 +318,23 @@ export default function DisputesScreen() {
                       {STATUS_LABEL[d.status]}
                     </Text>
                   </View>
+
+                  {d.category ? (
+                    <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>Loại vấn đề: {CATEGORY_LABEL[d.category]}</Text>
+                  ) : null}
+
+                  {d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'PENDING_TRANSFER' ? (
+                    <Text style={{ fontSize: 12, color: COLORS.ink }}>
+                      Đã chấp nhận hoàn tiền, quyền truy cập khóa học đã được thu hồi. Chúng tôi sẽ chuyển khoản và báo lại cho bạn.
+                    </Text>
+                  ) : null}
+                  {d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'TRANSFERRED' ? (
+                    <Text style={{ fontSize: 12, color: COLORS.success }}>Đã chuyển tiền hoàn cho bạn. Nếu chưa nhận được, hãy báo lại bên dưới.</Text>
+                  ) : null}
+
+                  {(d.status === 'RESOLVED_REFUNDED' || d.status === 'RESOLVED_REJECTED') && d.adminNote ? (
+                    <Text style={{ fontSize: 13, color: COLORS.ink }}>Phản hồi từ hỗ trợ: {d.adminNote}</Text>
+                  ) : null}
 
                   {canReopen(d) && reopeningId !== d.id ? (
                     <Pressable onPress={() => { setReopeningId(d.id); setReopenReason(''); }}>

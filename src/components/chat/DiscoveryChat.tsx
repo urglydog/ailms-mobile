@@ -51,7 +51,7 @@ const EXAM_TAKING_PATH = /^\/exam\/[^/]+\/?$/;
  * Discovery", trước đây mobile hoàn toàn chưa có. Tin nhắn AI dùng `MarkdownRenderer` (tin nhắn
  * của user giữ `Text` thuần, không parse markdown — khớp `fe`'s cách phân nhánh `msg.role ===
  * 'user' ? msg.text : <MarkdownRenderer .../>`). */
-const TAB_PATHS = new Set(['/courses', '/my-courses', '/profile']);
+const TAB_PATHS = new Set(['/courses', '/search', '/my-courses', '/profile']);
 /** Chiều cao thanh điều hướng dưới (icon 24 + nhãn + padding) — nút nổi nằm ngay trên nó. */
 const BOTTOM_NAV_HEIGHT = 64;
 

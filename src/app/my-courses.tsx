@@ -55,7 +55,7 @@ export default function MyCoursesScreen() {
   const [status, setStatus] = useState<StatusFilter>('all');
   const [sort, setSort] = useState<SortOption>('recently-accessed');
   const [query, setQuery] = useState('');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [view, setView] = useState<'grid' | 'list'>('list');
 
   const courses = useMemo(() => data ?? [], [data]);
   const counts = useMemo(() => countByStatus(courses), [courses]);
@@ -156,7 +156,7 @@ export default function MyCoursesScreen() {
 
   const showSuggestions = courses.length === 0 || (!featured && suggestions.length > 0);
   const footer = showSuggestions && suggestions.length > 0 ? (
-    <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
+    <View style={{ paddingVertical: 16 }}>
       <CourseShelf title={courses.length === 0 ? 'Đang thịnh hành' : 'Khoá học tiếp theo cho bạn'} courses={suggestions} />
     </View>
   ) : null;

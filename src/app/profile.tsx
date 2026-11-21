@@ -12,7 +12,7 @@ import { usersApi } from '@/lib/api/users';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { UserProfile } from '@/types/user';
 import { COLORS } from '@/lib/theme/colors';
-import { Award, Bell, BookOpen, ChevronRight, FileText, Heart, LifeBuoy, MessageSquare, Radio, Receipt, ShieldAlert, type LucideIcon } from 'lucide-react-native';
+import { Award, Bell, BookOpen, Trophy, ChevronRight, FileText, Heart, LifeBuoy, MessageSquare, Radio, Receipt, ShieldAlert, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 
 export default function ProfileScreen() {
@@ -39,7 +39,7 @@ export default function ProfileScreen() {
       <TopNav />
       <ScrollView style={{ flex: 1 }}>
         <View style={{ padding: 16 }}>
-          <Text style={{ color: COLORS.ink, fontSize: 20, fontWeight: '700' }}>Hồ sơ</Text>
+          <Text style={{ color: COLORS.ink, fontSize: 22, fontWeight: '800' }}>Tài khoản</Text>
         </View>
 
       {isLoading ? (
@@ -79,7 +79,7 @@ export default function ProfileScreen() {
             {me.authProvider !== 'GOOGLE' ? (
               <QuickAction label="Đổi mật khẩu" onPress={() => router.push('/profile/change-password' as Href)} />
             ) : null}
-            <QuickAction label="Hồ sơ công khai" onPress={() => router.push(`/u/${me.id}` as Href)} />
+            <QuickAction label="Trang cá nhân" onPress={() => router.push(`/u/${me.id}` as Href)} />
           </View>
 
           {streak ? (
@@ -113,7 +113,8 @@ export default function ProfileScreen() {
             <MenuRow icon={BookOpen} label="Khoá học của tôi" href={'/my-courses' as Href} />
             <MenuRow icon={Heart} label="Yêu thích" href={'/wishlist' as Href} />
             <MenuRow icon={Award} label="Chứng chỉ của tôi" href={'/certificates' as Href} />
-            <MenuRow icon={Radio} label="Buổi live" href={'/live' as Href} last />
+            <MenuRow icon={Radio} label="Buổi live" href={'/live' as Href} />
+            <MenuRow icon={Trophy} label="Bảng xếp hạng" href={'/community' as Href} last />
           </MenuGroup>
           <MenuGroup title="Giao dịch">
             <MenuRow icon={Receipt} label="Lịch sử thanh toán" href={'/payments' as Href} />

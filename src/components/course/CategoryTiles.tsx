@@ -31,9 +31,9 @@ export function CategoryTiles({ onPick }: { onPick: (slug: string) => void }) {
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.list(), staleTime: 10 * 60 * 1000 });
   if (!categories || categories.length === 0) return null;
   return (
-    <View style={{ gap: 10, paddingHorizontal: 16, paddingTop: 12 }}>
+    <View style={{ gap: 10, paddingHorizontal: 16 }}>
       <View>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.ink }}>Khám phá theo chủ đề</Text>
+        <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.ink }}>Chủ đề phổ biến</Text>
         <Text style={{ fontSize: 12.5, color: COLORS.inkMuted }}>Chọn lĩnh vực bạn muốn học</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>

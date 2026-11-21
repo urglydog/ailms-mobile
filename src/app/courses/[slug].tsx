@@ -227,7 +227,9 @@ export default function CourseDetailScreen() {
 
       <ReviewsSection courseId={course.id} isAuthenticated={isAuthenticated === true} />
 
-      <RelatedCourses categorySlug={course.categorySlug} courseId={course.id} />
+      <View style={{ marginHorizontal: -16 }}>
+        <RelatedCourses categorySlug={course.categorySlug} courseId={course.id} />
+      </View>
     </ScrollView>
 
       <View

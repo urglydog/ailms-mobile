@@ -23,11 +23,11 @@ export function RankingBanner() {
   const showMyRankPin = isAuthenticated && myRanking?.ranked && !isMeInTopList;
 
   return (
-    <View style={{ backgroundColor: COLORS.warningTint, marginHorizontal: 16, marginTop: 16, borderRadius: 12, padding: 16, borderColor: COLORS.warningTint, borderWidth: 1 }}>
+    <View style={{ backgroundColor: COLORS.warningTint, marginHorizontal: 16, borderRadius: 12, padding: 16, borderColor: COLORS.warningTint, borderWidth: 1 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Trophy size={20} color={COLORS.star} />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Bảng xếp hạng cộng đồng</Text>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Bảng xếp hạng</Text>
         </View>
         <Pressable onPress={() => router.push('/community' as Href)} style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accentDark }}>Xem toàn bộ</Text>
@@ -56,7 +56,7 @@ function rankStyle(rank: number) {
   if (rank === 1) return { border: COLORS.warningTint, bg: COLORS.warningTint, text: COLORS.star };
   if (rank === 2) return { border: COLORS.lineSoft, bg: COLORS.surface, text: COLORS.inkFaint };
   if (rank === 3) return { border: COLORS.warningTint, bg: COLORS.warningTint, text: COLORS.streakFlame };
-  return { border: COLORS.lineSoft, bg: COLORS.white, text: COLORS.lineDot };
+  return { border: COLORS.lineSoft, bg: COLORS.surfaceRaised, text: COLORS.inkFaint };
 }
 
 function RankPill({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {

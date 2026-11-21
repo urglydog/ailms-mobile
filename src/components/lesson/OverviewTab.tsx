@@ -7,6 +7,8 @@ import { coursesApi } from '@/lib/api/courses';
 import { announcementApi, messageApi } from '@/lib/api/communication';
 import { QueryError } from '@/components/QueryError';
 import { COLORS } from '@/lib/theme/colors';
+import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
+import { useState } from 'react';
 
 const LEVEL_LABEL: Record<string, string> = {
   BEGINNER: 'Cơ bản',
@@ -17,6 +19,7 @@ const LEVEL_LABEL: Record<string, string> = {
 /** Port từ `fe/components/course/CourseOverviewTab.tsx` — có nút "Nhắn tin giảng viên" (mở hội thoại
  * `/messages/{id}`, tương đương `MessageInstructorFloatingButton` của web). */
 export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: string; courseId: number; enrolled: boolean }) {
+  const [descExpanded, setDescExpanded] = useState(false);
   const startChat = useMutation({
     mutationFn: () => messageApi.startAsStudent(courseId),
     onSuccess: (conv) => router.push(`/messages/${conv.id}` as Href),
@@ -57,7 +60,17 @@ export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: st
         </Text>
       </View>
 
-      <Text style={{ fontSize: 14, lineHeight: 21, color: COLORS.ink }}>{course.description}</Text>
+      {course.description ? (
+        <View style={{ gap: 4 }}>
+          {/* UI v3: mô tả là markdown — hiển thị đúng định dạng, thu gọn sẵn để không đẩy nội dung khác xuống quá xa. */}
+          <View style={{ maxHeight: descExpanded ? undefined : 180, overflow: 'hidden' }}>
+            <MarkdownRenderer content={course.description} />
+          </View>
+          <Pressable onPress={() => setDescExpanded((v) => !v)} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'flex-start', paddingVertical: 6 }}>
+            <Text style={{ color: COLORS.accentDark, fontWeight: '700' }}>{descExpanded ? 'Thu gọn' : 'Xem thêm'}</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 12, gap: 4 }}>
         <Text style={{ fontSize: 13, color: COLORS.inkFaint }}>

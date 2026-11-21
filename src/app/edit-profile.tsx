@@ -126,7 +126,7 @@ function EditProfileForm({ me }: { me: UserProfile }) {
         disabled={saveMutation.isPending}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: saveMutation.isPending ? 0.6 : 1 }}
       >
-        {saveMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Lưu thay đổi</Text>}
+        {saveMutation.isPending ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Lưu thay đổi</Text>}
       </Pressable>
     </>
   );

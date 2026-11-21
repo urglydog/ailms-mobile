@@ -20,7 +20,7 @@ const RULES: { test: RegExp; icon: LucideIcon }[] = [
   { test: /excel|sheet|office/, icon: Table2 },
   { test: /soft|ky-nang|manage|quan-ly/, icon: Users },
 ];
-const TINTS = ['#E8F2FF', '#E3F6EA', '#FFF1D6', '#F1E8FF', '#FFE8EC', '#E0F7FA'];
+const TINTS = [COLORS.tint, COLORS.successTint, COLORS.streakBg, COLORS.tint, COLORS.dangerTint, COLORS.aiTint];
 
 function iconFor(slug: string): LucideIcon {
   return RULES.find((r) => r.test.test(slug))?.icon ?? Folder;

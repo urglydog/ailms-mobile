@@ -54,7 +54,7 @@ export default function ChangePasswordScreen() {
         disabled={changePassword.isPending}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: changePassword.isPending ? 0.6 : 1 }}
       >
-        {changePassword.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>Đổi mật khẩu</Text>}
+        {changePassword.isPending ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700' }}>Đổi mật khẩu</Text>}
       </Pressable>
     </View>
   );

@@ -175,7 +175,7 @@ function ExamEntry({ quizId }: { quizId: number }) {
         onPress={() => router.push(`/exam/${quizId}` as Href)}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24 }}
       >
-        <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
+        <Text style={{ color: COLORS.white, fontWeight: '600' }}>Bắt đầu làm bài</Text>
       </Pressable>
     </View>
   );
@@ -251,7 +251,7 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
           onPress={() => setIsStarted(true)}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 24, marginTop: 8 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>Bắt đầu làm bài</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '600' }}>Bắt đầu làm bài</Text>
         </Pressable>
       </View>
     );
@@ -303,17 +303,17 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
         {question.options.map((option) => {
           const isSelected = selectedOptionId === option.id;
           let borderColor: string = COLORS.lineSoft;
-          let backgroundColor: string = '#fff';
+          let backgroundColor: string = COLORS.white;
           let textColor: string = COLORS.ink;
           if (isAnswered) {
             if (option.isCorrect) {
               borderColor = COLORS.success;
-              backgroundColor = '#F0FDF4';
-              textColor = '#166534';
+              backgroundColor = COLORS.successTint;
+              textColor = COLORS.successInk;
             } else if (isSelected) {
               borderColor = COLORS.danger;
-              backgroundColor = '#FEF2F2';
-              textColor = '#991B1B';
+              backgroundColor = COLORS.dangerTint;
+              textColor = COLORS.dangerInk;
             } else {
               backgroundColor = COLORS.surface;
             }
@@ -349,7 +349,7 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
           marginTop: 'auto',
         }}
       >
-        <Text style={{ color: isAnswered ? '#fff' : COLORS.lineDot, fontWeight: '600' }}>
+        <Text style={{ color: isAnswered ? COLORS.white : COLORS.lineDot, fontWeight: '600' }}>
           {currentIdx === questions.length - 1 ? 'Hoàn thành' : 'Câu tiếp theo'}
         </Text>
       </Pressable>
@@ -425,7 +425,7 @@ function SpeakButton({ text, language, dark }: { text: string; language: string 
         backgroundColor: dark ? 'rgba(255,255,255,0.15)' : COLORS.surface,
       }}
     >
-      <Volume2 size={18} color={dark ? '#fff' : COLORS.inkMuted} strokeWidth={1.75} />
+      <Volume2 size={18} color={dark ? COLORS.white : COLORS.inkMuted} strokeWidth={1.75} />
     </Pressable>
   );
 }
@@ -526,7 +526,7 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
               fontSize: 22,
               fontWeight: '600',
               textAlign: 'center',
-              color: isFlipped ? '#fff' : COLORS.ink,
+              color: isFlipped ? COLORS.white : COLORS.ink,
             }}
           >
             {isFlipped ? currentCard.backText : currentCard.frontText}
@@ -552,7 +552,7 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
                 <Text style={{ fontSize: 10, color: COLORS.lineDot }}>{fmt(btn.delta)}</Text>
               </View>
               <View style={{ backgroundColor: btn.color, borderRadius: 8, paddingVertical: 10, width: '100%', alignItems: 'center' }}>
-                <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>{btn.label}</Text>
+                <Text style={{ color: COLORS.white, fontWeight: '600', fontSize: 13 }}>{btn.label}</Text>
               </View>
             </Pressable>
           ))}
@@ -628,7 +628,7 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
             borderColor: COLORS.lineSoft,
           }}
         >
-          <Text style={{ fontSize: 22, fontWeight: '600', textAlign: 'center', color: isFlipped ? '#fff' : COLORS.ink }}>
+          <Text style={{ fontSize: 22, fontWeight: '600', textAlign: 'center', color: isFlipped ? COLORS.white : COLORS.ink }}>
             {isFlipped ? card.backText : card.frontText}
           </Text>
         </Pressable>
@@ -657,7 +657,7 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
           </Pressable>
           <Pressable
             onPress={handleDelete}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: COLORS.dangerTint, borderWidth: 1, borderColor: COLORS.dangerTint }}
           >
             <Trash2 size={14} color={COLORS.danger} strokeWidth={2} />
             <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.danger }}>Xoá</Text>
@@ -704,7 +704,7 @@ function EditFlashcardModal({ card, onClose, onSaved }: { card: FlashcardCard; o
     <Modal visible transparent presentationStyle="overFullScreen" animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ maxHeight: '85%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 14 }}>
+        <View style={{ maxHeight: '85%', backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 14 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Sửa thẻ</Text>
             <Pressable onPress={onClose} hitSlop={8}>
@@ -734,7 +734,7 @@ function EditFlashcardModal({ card, onClose, onSaved }: { card: FlashcardCard; o
             disabled={saving}
             style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: COLORS.accent, opacity: saving ? 0.6 : 1 }}
           >
-            {saving ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Lưu</Text>}
+            {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 14 }}>Lưu</Text>}
           </Pressable>
         </View>
       </View>

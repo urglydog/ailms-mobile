@@ -107,7 +107,7 @@ export function SubtitleSettingsModal({ visible, settings, hasTranslated, onChan
           </Row>
 
           <Pressable onPress={onClose} style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 12, alignItems: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>Xong</Text>
+            <Text style={{ color: COLORS.white, fontWeight: '700' }}>Xong</Text>
           </Pressable>
           </ScrollView>
         </Pressable>

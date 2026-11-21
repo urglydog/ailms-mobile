@@ -92,7 +92,7 @@ export default function RegisterScreen() {
           disabled={isSubmitting}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
         >
-          {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Xác thực</Text>}
+          {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Xác thực</Text>}
         </Pressable>
       </View>
     );
@@ -146,7 +146,7 @@ export default function RegisterScreen() {
         disabled={isSubmitting}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
       >
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Đăng ký</Text>}
+        {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Đăng ký</Text>}
       </Pressable>
 
       <Link href="/login" style={{ textAlign: 'center', color: COLORS.accent, marginTop: 8 }}>

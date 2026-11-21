@@ -30,7 +30,7 @@ export function ExamReview({
       <Text style={{ fontSize: 18, fontWeight: '800', color: COLORS.ink }}>Xác nhận nộp bài</Text>
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <Summary value={answered} label="Đã trả lời" color={COLORS.successInk} bg={COLORS.successTint} />
-        <Summary value={unanswered} label="Chưa trả lời" color={unanswered > 0 ? COLORS.danger : COLORS.inkMuted} bg={unanswered > 0 ? '#FEF2F2' : COLORS.lineSoft} />
+        <Summary value={unanswered} label="Chưa trả lời" color={unanswered > 0 ? COLORS.danger : COLORS.inkMuted} bg={unanswered > 0 ? COLORS.dangerTint : COLORS.lineSoft} />
         <Summary value={flaggedCount} label="Đánh dấu" color={COLORS.warning} bg={COLORS.streakBg} />
       </View>
       {unanswered > 0 ? (
@@ -46,7 +46,7 @@ export function ExamReview({
             <Pressable
               key={q.id}
               onPress={() => onJump(i)}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: done ? COLORS.line : '#FCA5A5', backgroundColor: COLORS.white, borderRadius: 8, padding: 10 }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: done ? COLORS.line : COLORS.dangerOnNight, backgroundColor: COLORS.white, borderRadius: 8, padding: 10 }}
             >
               <Text style={{ fontWeight: '800', color: COLORS.ink, width: 28 }}>{i + 1}</Text>
               <Text style={{ flex: 1, color: COLORS.inkMuted, fontSize: 12.5 }} numberOfLines={1}>{q.content}</Text>
@@ -62,7 +62,7 @@ export function ExamReview({
           <Text style={{ fontWeight: '700', color: COLORS.ink }}>Quay lại bài thi</Text>
         </Pressable>
         <Pressable onPress={onSubmit} disabled={submitting} style={{ flex: 1, backgroundColor: COLORS.accent, borderRadius: 10, padding: 14, alignItems: 'center', opacity: submitting ? 0.6 : 1 }}>
-          <Text style={{ fontWeight: '800', color: '#fff' }}>Nộp bài</Text>
+          <Text style={{ fontWeight: '800', color: COLORS.white }}>Nộp bài</Text>
         </Pressable>
       </View>
     </ScrollView>

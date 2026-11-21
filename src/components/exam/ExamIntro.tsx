@@ -68,7 +68,7 @@ export function ExamIntro({
       <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, overflow: 'hidden' }}>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.tint }}>
           <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' }}>
-            <Timer size={24} color="#fff" />
+            <Timer size={24} color={COLORS.white} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.inkMuted, letterSpacing: 0.5 }}>
@@ -87,12 +87,12 @@ export function ExamIntro({
         </View>
 
         {info.isProctored ? (
-          <View style={{ margin: 16, marginTop: 0, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#FCA5A5', backgroundColor: '#FEF2F2', gap: 6 }}>
+          <View style={{ margin: 16, marginTop: 0, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: COLORS.dangerOnNight, backgroundColor: COLORS.dangerTint, gap: 6 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <ShieldAlert size={18} color={COLORS.danger} />
               <Text style={{ fontWeight: '800', color: COLORS.danger }}>Bài thi có giám sát</Text>
             </View>
-            <Text style={{ color: '#7F1D1D', fontSize: 12.5, lineHeight: 19 }}>
+            <Text style={{ color: COLORS.dangerInk, fontSize: 12.5, lineHeight: 19 }}>
               • Cần bật Camera và Micro: hệ thống quay video suốt bài thi và chụp ảnh ngẫu nhiên để AI kiểm tra.{'\n'}
               • Không rời khỏi ứng dụng, không chuyển sang ứng dụng khác trong lúc làm bài.{'\n'}
               • Chỉ một người trong khung hình, nhìn vào màn hình.{'\n'}
@@ -126,7 +126,7 @@ export function ExamIntro({
         </View>
       ) : (
         <Pressable onPress={onStart} disabled={starting} style={{ backgroundColor: COLORS.accent, borderRadius: 10, padding: 15, alignItems: 'center', opacity: starting ? 0.6 : 1 }}>
-          <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>
+          <Text style={{ color: COLORS.white, fontWeight: '800', fontSize: 15 }}>
             {starting ? 'Đang chuẩn bị...' : ongoing ? 'Tiếp tục làm bài' : info.isProctored ? 'Bật Camera & Bắt đầu thi' : 'Bắt đầu làm bài'}
           </Text>
         </Pressable>

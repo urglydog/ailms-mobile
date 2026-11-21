@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Redirect, type Href } from 'expo-router';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { GraduationCap } from 'lucide-react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -44,8 +45,21 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
-      <Text style={{ fontSize: 24, fontWeight: '700', marginBottom: 12 }}>Đăng nhập</Text>
+    // UI v2: logo + lời chào ở trên, form nằm trong thẻ, cuộn được khi bàn phím mở trên máy nhỏ.
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: COLORS.surface }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20, gap: 20 }} keyboardShouldPersistTaps="handled">
+      <View style={{ alignItems: 'center', gap: 6 }}>
+        <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+          <GraduationCap size={30} color={COLORS.white} />
+        </View>
+        <Text style={{ fontSize: 26, fontWeight: '900', color: COLORS.accent, letterSpacing: -0.5 }}>
+          ai<Text style={{ color: COLORS.ink }}>lms.</Text>
+        </Text>
+        <Text style={{ fontSize: 15, color: COLORS.inkMuted, textAlign: 'center' }}>Học mọi khoá học bằng ngôn ngữ của bạn</Text>
+      </View>
+
+      <View style={{ backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 16, padding: 20, gap: 12 }}>
+      <Text style={{ fontSize: 22, fontWeight: '800', color: COLORS.ink }} accessibilityRole="header">Đăng nhập</Text>
 
       <Pressable
         onPress={handleGoogleSubmit}
@@ -57,22 +71,24 @@ export default function LoginScreen() {
           gap: 8,
           borderWidth: 1,
           borderColor: COLORS.line,
-          borderRadius: 8,
-          padding: 14,
-          backgroundColor: '#fff',
+          borderRadius: 10,
+          minHeight: 48,
+          backgroundColor: COLORS.surfaceRaised,
           opacity: isGoogleSubmitting ? 0.6 : 1,
         }}
       >
         {isGoogleSubmitting ? (
-          <ActivityIndicator color="#1F2937" />
+          <ActivityIndicator color={COLORS.ink} />
         ) : (
-          <Text style={{ color: '#1F2937', fontWeight: '600' }}>Đăng nhập với Google</Text>
+          <Text style={{ color: COLORS.ink, fontWeight: '700' }}>
+            <Text style={{ color: COLORS.accent, fontWeight: '900' }}>G</Text>  Tiếp tục với Google
+          </Text>
         )}
       </Pressable>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 4 }}>
         <View style={{ flex: 1, height: 1, backgroundColor: COLORS.lineSoft }} />
-        <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>hoặc</Text>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 12 }}>hoặc dùng email</Text>
         <View style={{ flex: 1, height: 1, backgroundColor: COLORS.lineSoft }} />
       </View>
 
@@ -82,32 +98,43 @@ export default function LoginScreen() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        autoComplete="email"
+        textContentType="emailAddress"
+        placeholderTextColor={COLORS.inkFaint}
+        accessibilityLabel="Email"
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingHorizontal: 14, minHeight: 48, fontSize: 16, color: COLORS.ink, backgroundColor: COLORS.surfaceRaised }}
       />
       <PasswordInput
         placeholder="Mật khẩu"
         value={password}
         onChangeText={setPassword}
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingHorizontal: 14, minHeight: 48, backgroundColor: COLORS.surfaceRaised }}
       />
       {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
       <Pressable
         onPress={handleSubmit}
         disabled={isSubmitting}
-        style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
+        accessibilityRole="button"
+        style={{ backgroundColor: COLORS.accent, borderRadius: 10, minHeight: 48, alignItems: 'center', justifyContent: 'center', opacity: isSubmitting ? 0.6 : 1 }}
       >
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Đăng nhập</Text>}
+        {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 15 }}>Đăng nhập</Text>}
       </Pressable>
 
-      <Link href={'/forgot-password' as Href} style={{ textAlign: 'center', color: COLORS.accent, marginTop: 4 }}>
+      <Link href={'/forgot-password' as Href} style={{ textAlign: 'right', color: COLORS.accent, fontWeight: '600', paddingVertical: 4 }}>
         Quên mật khẩu?
       </Link>
-      <Link href={'/help' as Href} style={{ textAlign: 'center', color: COLORS.inkMuted, marginTop: 4 }}>
-        Trợ giúp & Hỗ trợ
-      </Link>
-      <Link href={'/register' as Href} style={{ textAlign: 'center', color: COLORS.inkMuted, marginTop: 4 }}>
-        Chưa có tài khoản? Đăng ký
-      </Link>
-    </View>
+      </View>
+
+      <View style={{ alignItems: 'center', gap: 10 }}>
+        <Text style={{ color: COLORS.inkMuted, fontSize: 14 }}>
+          Chưa có tài khoản?{' '}
+          <Link href={'/register' as Href} style={{ color: COLORS.accent, fontWeight: '700' }}>Đăng ký</Link>
+        </Text>
+        <Link href={'/help' as Href} style={{ color: COLORS.inkFaint, fontSize: 13 }}>
+          Trợ giúp & Hỗ trợ
+        </Link>
+      </View>
+    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

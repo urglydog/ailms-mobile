@@ -23,7 +23,7 @@ export function RankingBanner() {
   const showMyRankPin = isAuthenticated && myRanking?.ranked && !isMeInTopList;
 
   return (
-    <View style={{ backgroundColor: '#FEF3C7', marginHorizontal: 16, marginTop: 16, borderRadius: 12, padding: 16, borderColor: '#FDE68A', borderWidth: 1 }}>
+    <View style={{ backgroundColor: COLORS.warningTint, marginHorizontal: 16, marginTop: 16, borderRadius: 12, padding: 16, borderColor: COLORS.warningTint, borderWidth: 1 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Trophy size={20} color={COLORS.star} />
@@ -53,9 +53,9 @@ export function RankingBanner() {
 }
 
 function rankStyle(rank: number) {
-  if (rank === 1) return { border: '#FDE68A', bg: '#FFFBEB', text: COLORS.star };
+  if (rank === 1) return { border: COLORS.warningTint, bg: COLORS.warningTint, text: COLORS.star };
   if (rank === 2) return { border: COLORS.lineSoft, bg: COLORS.surface, text: COLORS.inkFaint };
-  if (rank === 3) return { border: '#FED7AA', bg: '#FFF7ED', text: '#EA580C' };
+  if (rank === 3) return { border: COLORS.warningTint, bg: COLORS.warningTint, text: COLORS.streakFlame };
   return { border: COLORS.lineSoft, bg: COLORS.white, text: COLORS.lineDot };
 }
 

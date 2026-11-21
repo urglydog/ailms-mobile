@@ -102,7 +102,7 @@ function applyRate(player: { playbackRate: number }, rate: number) {
   }
 }
 
-const VIDEO_FRAME = { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' } as const;
+const VIDEO_FRAME = { width: '100%', aspectRatio: 16 / 9, backgroundColor: COLORS.black } as const;
 
 export default function LessonPlayerScreen() {
   const { id, seek } = useLocalSearchParams<{ id: string; seek?: string }>();
@@ -160,7 +160,7 @@ export default function LessonPlayerScreen() {
     height: fsH,
     left: (winW - fsW) / 2,
     top: (winH - fsH) / 2,
-    backgroundColor: '#000',
+    backgroundColor: COLORS.black,
     transform: rotateFs ? [{ rotate: '90deg' }] : [],
   };
   const [dubMuted, setDubMuted] = useState(false);
@@ -563,12 +563,12 @@ export default function LessonPlayerScreen() {
 
       {streamConflict ? (
         <View style={{ ...VIDEO_FRAME, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text style={{ color: '#F87171', fontWeight: '700', fontSize: 16 }}>Phiên xem bị giới hạn</Text>
+          <Text style={{ color: COLORS.dangerOnNight, fontWeight: '700', fontSize: 16 }}>Phiên xem bị giới hạn</Text>
           <Text style={{ color: COLORS.line, textAlign: 'center', fontSize: 13, lineHeight: 20 }}>
             Tài khoản của bạn đang mở bài giảng này ở một thiết bị khác. Vui lòng dừng ở thiết bị kia, hoặc bấm giành lại quyền phát tại đây.
           </Text>
           <Pressable onPress={handleResumeStream} style={{ backgroundColor: COLORS.accent, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, marginTop: 8 }}>
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Giành quyền phát</Text>
+            <Text style={{ color: COLORS.white, fontWeight: '600' }}>Giành quyền phát</Text>
           </Pressable>
         </View>
       ) : isDirectVideo ? (
@@ -578,11 +578,11 @@ export default function LessonPlayerScreen() {
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}
           style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}
         >
-          <Text style={{ color: '#fff' }}>Video YouTube — chạm để mở</Text>
+          <Text style={{ color: COLORS.white }}>Video YouTube — chạm để mở</Text>
         </Pressable>
       ) : (
         <View style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#fff' }}>Chưa có video cho bài này.</Text>
+          <Text style={{ color: COLORS.white }}>Chưa có video cho bài này.</Text>
         </View>
       )}
 
@@ -706,8 +706,8 @@ export default function LessonPlayerScreen() {
                   {tab.label}
                 </Text>
                 {tab.key === 'materials' && lessonMaterialCount > 0 ? (
-                  <View style={{ marginLeft: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>{lessonMaterialCount}</Text>
+                  <View style={{ marginLeft: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS.white }}>{lessonMaterialCount}</Text>
                   </View>
                 ) : null}
               </View>

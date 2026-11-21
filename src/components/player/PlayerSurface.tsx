@@ -8,6 +8,7 @@ import { usePlayerTime, useReallyPlaying } from '@/hooks/usePlayerTime';
 import type { SubtitleSegment } from '@/types/lesson';
 import type { SubtitleSettings } from '@/lib/subtitleSettings';
 
+import { COLORS } from '@/lib/theme/colors';
 export const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
 function seekTo(player: VideoPlayer, sec: number) {
@@ -122,10 +123,10 @@ export function PlayerSurface(p: Props) {
   const ratio = drag ?? (duration > 0 ? Math.min(1, sec / duration) : 0);
   const showMuted = p.dubActive ? p.dubMuted : videoMuted;
 
-  const txt = { color: '#fff', fontSize: 11.5, fontWeight: '700' } as const;
+  const txt = { color: COLORS.white, fontSize: 11.5, fontWeight: '700' } as const;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.black }}>
       <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: false }} nativeControls={false} />
       <SubtitleOverlay
         originalSubtitles={p.originalSubtitles}
@@ -145,7 +146,7 @@ export function PlayerSurface(p: Props) {
               accessibilityLabel="Phát"
               style={{ position: 'absolute', alignSelf: 'center', top: '35%', width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}
             >
-              <Play size={26} color="#fff" fill="#fff" />
+              <Play size={26} color={COLORS.white} fill={COLORS.white} />
             </Pressable>
           ) : null}
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, paddingBottom: 6, paddingTop: 14, backgroundColor: 'rgba(0,0,0,0.45)' }}>
@@ -155,19 +156,19 @@ export function PlayerSurface(p: Props) {
               style={{ height: 22, justifyContent: 'center' }}
             >
               <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)' }}>
-                <View style={{ height: 4, borderRadius: 2, width: `${ratio * 100}%`, backgroundColor: '#3B82F6' }} />
+                <View style={{ height: 4, borderRadius: 2, width: `${ratio * 100}%`, backgroundColor: COLORS.accent }} />
               </View>
-              <View style={{ position: 'absolute', left: `${ratio * 100}%`, marginLeft: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: '#fff' }} />
+              <View style={{ position: 'absolute', left: `${ratio * 100}%`, marginLeft: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.white }} />
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
               <Btn label={isPlaying ? 'Tạm dừng' : 'Phát'} onPress={() => togglePlay(player, isPlaying)}>
-                {isPlaying ? <Pause size={18} color="#fff" fill="#fff" /> : <Play size={18} color="#fff" fill="#fff" />}
+                {isPlaying ? <Pause size={18} color={COLORS.white} fill={COLORS.white} /> : <Play size={18} color={COLORS.white} fill={COLORS.white} />}
               </Btn>
               <Btn label="Lùi 5 giây" onPress={() => seekTo(player, player.currentTime - 5)}>
-                <RotateCcw size={16} color="#fff" />
+                <RotateCcw size={16} color={COLORS.white} />
               </Btn>
               <Btn label="Tua tới 5 giây" onPress={() => seekTo(player, player.currentTime + 5)}>
-                <RotateCw size={16} color="#fff" />
+                <RotateCw size={16} color={COLORS.white} />
               </Btn>
               <Btn label="Tốc độ phát" active={p.rate !== 1} onPress={() => p.onRateChange(SPEEDS[(SPEEDS.indexOf(p.rate) + 1) % SPEEDS.length] ?? 1)}>
                 <Text style={txt}>{p.rate}×</Text>
@@ -184,7 +185,7 @@ export function PlayerSurface(p: Props) {
                   else toggleVideoMute(player);
                 }}
               >
-                {showMuted ? <VolumeX size={17} color="#fff" /> : <Volume2 size={17} color="#fff" />}
+                {showMuted ? <VolumeX size={17} color={COLORS.white} /> : <Volume2 size={17} color={COLORS.white} />}
               </Btn>
               <Btn label="Phụ đề gốc" active={p.settings.showOriginal} disabled={p.originalSubtitles.length === 0} onPress={() => p.onSettingsChange({ ...p.settings, showOriginal: !p.settings.showOriginal })}>
                 <Text style={txt}>Gốc</Text>
@@ -193,13 +194,13 @@ export function PlayerSurface(p: Props) {
                 <Text style={txt}>Dịch</Text>
               </Btn>
               <Btn label="Bản ghi lời thoại" onPress={p.onToggleTranscript}>
-                <FileText size={16} color="#fff" />
+                <FileText size={16} color={COLORS.white} />
               </Btn>
               <Btn label="Cài đặt" onPress={p.onOpenSettings}>
-                <Settings size={16} color="#fff" />
+                <Settings size={16} color={COLORS.white} />
               </Btn>
               <Btn label={p.isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'} onPress={p.onToggleFullscreen}>
-                {p.isFullscreen ? <Minimize2 size={16} color="#fff" /> : <Maximize2 size={16} color="#fff" />}
+                {p.isFullscreen ? <Minimize2 size={16} color={COLORS.white} /> : <Maximize2 size={16} color={COLORS.white} />}
               </Btn>
             </View>
           </View>
@@ -215,7 +216,7 @@ function Btn({ onPress, children, label, active, disabled }: { onPress: () => vo
       disabled={disabled}
       accessibilityLabel={label}
       hitSlop={6}
-      style={{ minWidth: 30, height: 30, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center', borderRadius: 6, borderWidth: active !== undefined ? 1 : 0, borderColor: active ? '#fff' : 'rgba(255,255,255,0.35)', opacity: disabled ? 0.4 : 1 }}
+      style={{ minWidth: 30, height: 30, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center', borderRadius: 6, borderWidth: active !== undefined ? 1 : 0, borderColor: active ? COLORS.white : 'rgba(255,255,255,0.35)', opacity: disabled ? 0.4 : 1 }}
     >
       {children}
     </Pressable>

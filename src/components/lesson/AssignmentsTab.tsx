@@ -150,7 +150,7 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
               opacity: (!textContent.trim() && !file) || submit.isPending ? 0.5 : 1,
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>
+            <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>
               {submit.isPending ? 'Đang nộp...' : 'Nộp bài'}
             </Text>
           </Pressable>

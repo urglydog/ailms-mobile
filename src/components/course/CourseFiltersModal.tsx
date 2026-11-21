@@ -50,9 +50,9 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
   return (
     <Pressable
       onPress={onPress}
-      style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.line, backgroundColor: active ? COLORS.accent : '#fff' }}
+      style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.line, backgroundColor: active ? COLORS.accent : COLORS.white }}
     >
-      <Text style={{ fontSize: 13, fontWeight: '600', color: active ? '#fff' : COLORS.inkMuted }}>{label}</Text>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: active ? COLORS.white : COLORS.inkMuted }}>{label}</Text>
     </Pressable>
   );
 }
@@ -86,7 +86,7 @@ export function CourseFiltersModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 48, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 48, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
           <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.ink }}>Bộ lọc</Text>
           <Pressable onPress={() => onChange(EMPTY_FILTERS)}>
             <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Xóa bộ lọc</Text>
@@ -124,9 +124,9 @@ export function CourseFiltersModal({
             ))}
           </Section>
         </ScrollView>
-        <View style={{ padding: 16, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
+        <View style={{ padding: 16, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
           <Pressable onPress={onClose} style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center' }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>Xem kết quả</Text>
+            <Text style={{ color: COLORS.white, fontWeight: '700' }}>Xem kết quả</Text>
           </Pressable>
         </View>
       </View>

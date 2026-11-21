@@ -51,6 +51,10 @@ const EXAM_TAKING_PATH = /^\/exam\/[^/]+\/?$/;
  * Discovery", trước đây mobile hoàn toàn chưa có. Tin nhắn AI dùng `MarkdownRenderer` (tin nhắn
  * của user giữ `Text` thuần, không parse markdown — khớp `fe`'s cách phân nhánh `msg.role ===
  * 'user' ? msg.text : <MarkdownRenderer .../>`). */
+const TAB_PATHS = new Set(['/courses', '/my-courses', '/profile']);
+/** Chiều cao thanh điều hướng dưới (icon 24 + nhãn + padding) — nút nổi nằm ngay trên nó. */
+const BOTTOM_NAV_HEIGHT = 64;
+
 export function DiscoveryChat() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -61,6 +65,9 @@ export function DiscoveryChat() {
   const insets = useSafeAreaInsets();
 
   if (EXAM_TAKING_PATH.test(pathname)) return null;
+  // UI v2 (21/11/2026): nút nổi CHỈ hiện ở 3 màn có thanh điều hướng dưới, đặt ngay trên thanh đó.
+  // Bản cũ hiện ở mọi màn với bottom cố định 90 nên đè thẻ khóa học, nút học, thanh nộp bài...
+  const showFab = TAB_PATHS.has(pathname);
 
   const sendMessage = async () => {
     const trimmed = input.trim();
@@ -86,21 +93,26 @@ export function DiscoveryChat() {
 
   return (
     <>
+      {showFab && (
       <Pressable
         onPress={() => setIsOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Mở trợ lý AI tìm khóa học"
+        hitSlop={8}
         style={{
           // (12/10/2026, sửa theo phản hồi) — bản cũ 56x56 + bottom:28 đè lên nút cuối trong hàng
           // nút đánh giá flashcard (và nhiều control đáy màn khác). Thu nhỏ còn 44x44, nhích cao
           // hơn hẳn (bottom: 90) để hầu hết nội dung đáy màn hình (hàng nút, thanh nộp bài...)
           // không bị che — vẫn không có cách nào loại trừ HOÀN TOÀN đè UI trên mọi màn hình với 1
           // nút nổi cố định vị trí toàn cục, đây là đánh đổi hợp lý thay vì làm riêng từng màn.
-          position: 'absolute', bottom: 90, right: 16, width: 44, height: 44, borderRadius: 22,
-          backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', opacity: 0.92,
-          shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 5,
+          position: 'absolute', bottom: insets.bottom + BOTTOM_NAV_HEIGHT + 12, right: 16, width: 48, height: 48, borderRadius: 24,
+          backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center',
+          shadowColor: COLORS.black, shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 5,
         }}
       >
-        <MessageCircle size={20} color="#fff" />
+        <MessageCircle size={22} color={COLORS.white} />
       </Pressable>
+      )}
 
       {/* `presentationStyle="overFullScreen"` — bug thật (16/10/2026, user báo): mặc định
           `transparent` Modal trên iOS không phủ hết status bar/vùng trên cùng, để lộ `TopNav`
@@ -120,14 +132,14 @@ export function DiscoveryChat() {
           style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15,23,42,0.5)' }}
         >
           <Pressable style={{ flex: 1 }} onPress={() => setIsOpen(false)} />
-          <View style={{ height: '70%', backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
+          <View style={{ height: '70%', backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
             <View style={{ backgroundColor: COLORS.accent, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>AI Course Discovery</Text>
+                <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 15 }}>AI Course Discovery</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11.5, marginTop: 2 }}>Tìm kiếm khóa học bằng ngôn ngữ tự nhiên</Text>
               </View>
               <Pressable onPress={() => setIsOpen(false)} hitSlop={8}>
-                <X size={22} color="#fff" />
+                <X size={22} color={COLORS.white} />
               </Pressable>
             </View>
 
@@ -158,7 +170,7 @@ export function DiscoveryChat() {
                     }}
                   >
                     {item.role === 'user' ? (
-                      <Text style={{ color: '#fff', fontSize: 13.5, lineHeight: 19 }}>{item.text}</Text>
+                      <Text style={{ color: COLORS.white, fontSize: 13.5, lineHeight: 19 }}>{item.text}</Text>
                     ) : (
                       <MarkdownRenderer content={item.text} />
                     )}
@@ -208,7 +220,7 @@ export function DiscoveryChat() {
                   backgroundColor: COLORS.accent, opacity: loading || !input.trim() ? 0.5 : 1,
                 }}
               >
-                <Send size={17} color="#fff" />
+                <Send size={17} color={COLORS.white} />
               </Pressable>
             </View>
           </View>

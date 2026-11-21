@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { ArrowUpDown, Award, Flame, GraduationCap, LayoutGrid, List as ListIcon, Play, Search } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';
@@ -25,6 +25,7 @@ import {
 } from '@/lib/myCourses';
 import type { Enrollment } from '@/types/enrollment';
 import { COLORS } from '@/lib/theme/colors';
+import { CourseThumb } from '@/components/ui/CourseThumb';
 
 const STATUS_LABEL: Record<StatusFilter, string> = { all: 'Tất cả', 'in-progress': 'Đang học', completed: 'Hoàn thành' };
 const SORTS: { value: SortOption; label: string }[] = [
@@ -103,7 +104,7 @@ export default function MyCoursesScreen() {
           </View>
           <View style={{ flex: 1, padding: 12, gap: 5, justifyContent: 'center' }}>
             <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 }}>TIẾP TỤC HỌC</Text>
-            <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }} numberOfLines={2}>{featured.courseTitle}</Text>
+            <Text style={{ color: COLORS.white, fontSize: 14, fontWeight: '700' }} numberOfLines={2}>{featured.courseTitle}</Text>
             <View style={{ height: 5, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 3, overflow: 'hidden' }}>
               <View style={{ height: 5, width: `${Math.min(100, featured.progressPct)}%`, backgroundColor: COLORS.highlight }} />
             </View>
@@ -187,7 +188,7 @@ export default function MyCoursesScreen() {
                 <GraduationCap size={34} color={COLORS.accent} />
                 <Text style={{ fontWeight: '700', fontSize: 16, color: COLORS.ink }}>Bạn chưa ghi danh khoá học nào</Text>
                 <Pressable onPress={() => router.push('/courses' as Href)} style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 }}>
-                  <Text style={{ color: '#fff', fontWeight: '700' }}>Khám phá khoá học</Text>
+                  <Text style={{ color: COLORS.white, fontWeight: '700' }}>Khám phá khoá học</Text>
                 </Pressable>
               </View>
             ) : (
@@ -238,11 +239,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 }
 
 function Thumb({ url, height }: { url: string | null; height: number }) {
-  return url ? (
-    <Image source={{ uri: url }} style={{ width: '100%', height }} resizeMode="cover" />
-  ) : (
-    <View style={{ width: '100%', height, backgroundColor: COLORS.lineSoft }} />
-  );
+  return <CourseThumb url={url} height={height} />;
 }
 
 function Progress({ pct }: { pct: number }) {

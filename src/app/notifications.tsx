@@ -74,7 +74,7 @@ export default function NotificationsScreen() {
         </View>
       ) : (
         <>
-          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: '#fff' }}>
+          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.white }}>
             <Pressable
               onPress={() => setActiveTab('all')}
               style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'all' ? COLORS.accent : 'transparent' }}
@@ -118,7 +118,7 @@ function NotificationRow({ item, onPress }: { item: Notification; onPress: () =>
         padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.lineSoft,
-        backgroundColor: item.isRead ? '#fff' : COLORS.tint,
+        backgroundColor: item.isRead ? COLORS.white : COLORS.tint,
       }}
     >
       {!item.isRead ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent, marginTop: 6 }} /> : <View style={{ width: 8 }} />}

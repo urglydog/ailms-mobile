@@ -27,7 +27,7 @@ interface MindmapToolbarProps {
 export function MindmapToolbar({ direction, onDirectionChange, onCopyCode, onDownload, downloadDisabled }: MindmapToolbarProps) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 8, backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
-      <View style={{ flexDirection: 'row', gap: 4, backgroundColor: '#fff', padding: 4, borderRadius: 10, borderWidth: 1, borderColor: COLORS.lineSoft }}>
+      <View style={{ flexDirection: 'row', gap: 4, backgroundColor: COLORS.white, padding: 4, borderRadius: 10, borderWidth: 1, borderColor: COLORS.lineSoft }}>
         {DIRECTIONS.map(({ id, label, Icon }) => {
           const active = direction === id;
           return (
@@ -38,7 +38,7 @@ export function MindmapToolbar({ direction, onDirectionChange, onCopyCode, onDow
               style={{ padding: 8, borderRadius: 8, backgroundColor: active ? COLORS.accent : 'transparent' }}
               accessibilityLabel={`Xoay sơ đồ hướng ${label}`}
             >
-              <Icon size={16} color={active ? '#fff' : COLORS.inkFaint} strokeWidth={2} />
+              <Icon size={16} color={active ? COLORS.white : COLORS.inkFaint} strokeWidth={2} />
             </Pressable>
           );
         })}

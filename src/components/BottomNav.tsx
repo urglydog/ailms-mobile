@@ -15,7 +15,7 @@ export function BottomNav() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: COLORS.lineSoft, backgroundColor: COLORS.white, paddingBottom: Math.max(insets.bottom, 8), paddingTop: 8 }}>
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: COLORS.line, backgroundColor: COLORS.surfaceRaised, paddingBottom: Math.max(insets.bottom, 8), paddingTop: 6 }}>
       {TABS.map((tab) => {
         const active = pathname === tab.href;
         const { Icon } = tab;
@@ -23,9 +23,15 @@ export function BottomNav() {
           <Pressable
             key={tab.href}
             onPress={() => router.push(tab.href as Href)}
-            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={tab.label}
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: 48 }}
           >
-            <Icon size={24} color={active ? COLORS.accent : COLORS.inkFaint} strokeWidth={active ? 2.5 : 2} />
+            {/* UI v2: mục đang chọn có nền "pill" nhạt quanh icon (kiểu Material 3) để dễ nhận ra hơn chỉ đổi màu. */}
+            <View style={{ paddingHorizontal: 18, paddingVertical: 4, borderRadius: 999, backgroundColor: active ? COLORS.tint : 'transparent' }}>
+              <Icon size={22} color={active ? COLORS.accent : COLORS.inkFaint} strokeWidth={active ? 2.4 : 2} />
+            </View>
             <Text style={{ color: active ? COLORS.accent : COLORS.inkFaint, fontWeight: active ? '600' : '500', fontSize: 11 }}>{tab.label}</Text>
           </Pressable>
         );

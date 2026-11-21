@@ -28,8 +28,8 @@ export function ExamResultView({ result, elapsedSec, submittedAt }: { result: Qu
           style={{
             gap: 6,
             borderWidth: 1,
-            borderColor: d.isCorrect ? '#86EFAC' : '#FCA5A5',
-            backgroundColor: d.isCorrect ? '#F0FDF4' : '#FEF2F2',
+            borderColor: d.isCorrect ? COLORS.success : COLORS.dangerOnNight,
+            backgroundColor: d.isCorrect ? COLORS.successTint : COLORS.dangerTint,
             borderRadius: 8,
             padding: 12,
           }}

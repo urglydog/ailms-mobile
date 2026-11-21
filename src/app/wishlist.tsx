@@ -138,11 +138,11 @@ function WishlistCard({ item, inCart, enrolled, busy, onRemove, onAddCart, onEnr
           <Text style={{ color: COLORS.successInk, fontSize: 12, fontWeight: '600' }}>✓ Đã ghi danh</Text>
         ) : item.isFree ? (
           <Pressable onPress={onEnroll} disabled={busy} style={{ alignSelf: 'flex-start', backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 5 }}>
-            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Đăng ký</Text>
+            <Text style={{ color: COLORS.white, fontSize: 12, fontWeight: '700' }}>Đăng ký</Text>
           </Pressable>
         ) : (
           <Pressable onPress={() => !inCart && onAddCart()} disabled={inCart || busy} style={{ alignSelf: 'flex-start', backgroundColor: inCart ? COLORS.successTint : COLORS.accent, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 5 }}>
-            <Text style={{ color: inCart ? COLORS.successInk : '#fff', fontSize: 12, fontWeight: '700' }}>{inCart ? '✓ Đã có trong giỏ' : 'Thêm vào giỏ'}</Text>
+            <Text style={{ color: inCart ? COLORS.successInk : COLORS.white, fontSize: 12, fontWeight: '700' }}>{inCart ? '✓ Đã có trong giỏ' : 'Thêm vào giỏ'}</Text>
           </Pressable>
         )}
       </View>

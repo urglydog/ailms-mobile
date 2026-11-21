@@ -180,11 +180,11 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
       </View>
 
       {isBehindSchedule ? (
-        <View style={{ flexDirection: 'row', gap: 10, backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FED7AA', borderRadius: 10, padding: 12 }}>
+        <View style={{ flexDirection: 'row', gap: 10, backgroundColor: COLORS.warningTint, borderWidth: 1, borderColor: COLORS.warningTint, borderRadius: 10, padding: 12 }}>
           <Text style={{ fontSize: 18 }}>⚠️</Text>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#9A3412' }}>Bạn đang trễ tiến độ!</Text>
-            <Text style={{ fontSize: 12, color: '#C2410C', marginTop: 2 }}>
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.warningInk }}>Bạn đang trễ tiến độ!</Text>
+            <Text style={{ fontSize: 12, color: COLORS.streakFlame, marginTop: 2 }}>
               Có bài học trong quá khứ chưa hoàn thành. Bấm &quot;Cập nhật tiến độ&quot; để dời các bài chưa học vào lịch còn lại.
             </Text>
           </View>
@@ -205,11 +205,11 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
           onPress={() => (isBehindSchedule ? setShowRescheduleModal(true) : setShowGenerateModal(true))}
           style={{
             flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-            backgroundColor: isBehindSchedule ? '#F97316' : COLORS.accent, borderRadius: 8, paddingVertical: 10,
+            backgroundColor: isBehindSchedule ? COLORS.streakFlame : COLORS.accent, borderRadius: 8, paddingVertical: 10,
           }}
         >
-          {isBehindSchedule ? <Clock size={16} color="#fff" /> : <Sparkles size={16} color="#fff" />}
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>
+          {isBehindSchedule ? <Clock size={16} color={COLORS.white} /> : <Sparkles size={16} color={COLORS.white} />}
+          <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 13 }}>
             {!hasPlan ? 'Tạo lộ trình ngay' : isBehindSchedule ? 'Cập nhật tiến độ' : 'Điều chỉnh lộ trình'}
           </Text>
         </Pressable>
@@ -254,8 +254,8 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
                           style={{
                             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                             borderWidth: 1, borderRadius: 8, padding: 10,
-                            borderColor: isCompleted ? '#BBF7D0' : COLORS.lineSoft,
-                            backgroundColor: isCompleted ? '#F0FDF4' : '#fff',
+                            borderColor: isCompleted ? COLORS.successTint : COLORS.lineSoft,
+                            backgroundColor: isCompleted ? COLORS.successTint : COLORS.white,
                           }}
                         >
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
@@ -293,7 +293,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
 
       <Modal visible={showGenerateModal} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setShowGenerateModal(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, gap: 14 }}>
+          <View style={{ backgroundColor: COLORS.white, borderRadius: 16, padding: 20, gap: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: COLORS.ink }}>Cấu hình lộ trình học AI</Text>
               <Pressable onPress={() => setShowGenerateModal(false)} hitSlop={8}>
@@ -333,7 +333,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
               onPress={() => generate.mutate()}
               style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 12, alignItems: 'center', opacity: generate.isPending ? 0.6 : 1 }}
             >
-              {generate.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>Tạo lộ trình</Text>}
+              {generate.isPending ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700' }}>Tạo lộ trình</Text>}
             </Pressable>
           </View>
         </View>
@@ -341,7 +341,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
 
       <Modal visible={showRescheduleModal} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setShowRescheduleModal(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 20, gap: 14 }}>
+          <View style={{ backgroundColor: COLORS.white, borderRadius: 16, padding: 20, gap: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: COLORS.ink }}>Cập nhật tiến độ</Text>
               <Pressable onPress={() => setShowRescheduleModal(false)} hitSlop={8}>
@@ -383,7 +383,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
                   style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
                 />
                 {isOverloaded && !isDeadlinePassed && isValidTarget ? (
-                  <Text style={{ fontSize: 11, color: '#EA580C' }}>Khối lượng bài học quá nặng. Vui lòng dời deadline để giảm tải.</Text>
+                  <Text style={{ fontSize: 11, color: COLORS.streakFlame }}>Khối lượng bài học quá nặng. Vui lòng dời deadline để giảm tải.</Text>
                 ) : null}
                 {isDeadlinePassed || !isValidTarget ? (
                   <Text style={{ fontSize: 11, color: COLORS.danger }}>Deadline đã qua hoặc không hợp lệ. Bạn bắt buộc phải chọn ngày mới.</Text>
@@ -400,9 +400,9 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
             <Pressable
               disabled={reschedule.isPending || !isValidTarget || isDeadlinePassed}
               onPress={() => reschedule.mutate()}
-              style={{ backgroundColor: '#F97316', borderRadius: 8, padding: 12, alignItems: 'center', opacity: reschedule.isPending || !isValidTarget || isDeadlinePassed ? 0.5 : 1 }}
+              style={{ backgroundColor: COLORS.streakFlame, borderRadius: 8, padding: 12, alignItems: 'center', opacity: reschedule.isPending || !isValidTarget || isDeadlinePassed ? 0.5 : 1 }}
             >
-              {reschedule.isPending ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>Xác nhận cập nhật</Text>}
+              {reschedule.isPending ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700' }}>Xác nhận cập nhật</Text>}
             </Pressable>
           </View>
         </View>

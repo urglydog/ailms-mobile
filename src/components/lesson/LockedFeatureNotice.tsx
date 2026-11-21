@@ -15,7 +15,7 @@ export function LockedFeatureNotice({ feature, courseSlug }: { feature: string; 
         onPress={() => router.push(`/courses/${courseSlug}` as Href)}
         style={{ backgroundColor: COLORS.accent, borderRadius: 999, paddingVertical: 10, paddingHorizontal: 20, marginTop: 4 }}
       >
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Mua khóa học ngay</Text>
+        <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 13 }}>Mua khóa học ngay</Text>
       </Pressable>
     </View>
   );

@@ -30,7 +30,7 @@ export function CouponSection(p: Props) {
     padding: 10,
     borderWidth: 1,
     borderColor: active ? COLORS.accent : COLORS.line,
-    backgroundColor: active ? COLORS.tint : '#fff',
+    backgroundColor: active ? COLORS.tint : COLORS.white,
     borderRadius: 8,
   });
   const dot = (active: boolean) => ({
@@ -39,7 +39,7 @@ export function CouponSection(p: Props) {
     borderRadius: 9,
     borderWidth: 2,
     borderColor: active ? COLORS.accent : COLORS.lineDot,
-    backgroundColor: active ? COLORS.accent : '#fff',
+    backgroundColor: active ? COLORS.accent : COLORS.white,
     marginTop: 2,
   });
 
@@ -95,7 +95,7 @@ export function CouponSection(p: Props) {
               onPress={() => p.onApplyCode(code)}
               style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingHorizontal: 16, justifyContent: 'center', opacity: p.applying || !code.trim() ? 0.5 : 1 }}
             >
-              <Text style={{ color: '#fff', fontWeight: '700' }}>{p.applying ? '...' : 'Áp dụng'}</Text>
+              <Text style={{ color: COLORS.white, fontWeight: '700' }}>{p.applying ? '...' : 'Áp dụng'}</Text>
             </Pressable>
           </View>
           {p.codeError ? <Text style={{ color: COLORS.danger, fontSize: 12 }}>{p.codeError}</Text> : null}

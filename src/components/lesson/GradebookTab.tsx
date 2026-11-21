@@ -96,7 +96,7 @@ function QuizGradeRow({ quiz }: { quiz: QuizGrade }) {
       <Text style={{ fontSize: 12, color: COLORS.inkFaint }}>{quiz.location}</Text>
 
       {quiz.isDeleted ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 6, marginTop: 2, alignSelf: 'flex-start' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.warningTint, borderWidth: 1, borderColor: COLORS.warningTint, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 6, marginTop: 2, alignSelf: 'flex-start' }}>
           <AlertTriangle size={13} color={COLORS.warning} />
           <Text style={{ fontSize: 11, color: COLORS.warning }}>Bài tập/bài thi này đã được giảng viên lưu trữ.</Text>
         </View>

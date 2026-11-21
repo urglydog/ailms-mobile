@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { View, Text } from 'react-native';
-import { AlertTriangle, Info, ShieldAlert } from 'lucide-react-native';
+import { useState } from 'react';
+import { Pressable, View, Text } from 'react-native';
+import { AlertTriangle, Info, ShieldAlert, X } from 'lucide-react-native';
 
 import { systemAnnouncementsApi } from '@/lib/api/systemAnnouncements';
 import type { AnnouncementSeverity } from '@/types/systemAnnouncement';
@@ -12,18 +13,32 @@ export function SystemAnnouncementBanner() {
     queryFn: () => systemAnnouncementsApi.getActiveBanner(),
   });
 
-  if (!banner) return null;
+  // UI v2: cho phép đóng banner trong phiên (thông báo dài chiếm gần 1/5 màn hình đầu trang).
+  const [dismissedId, setDismissedId] = useState<string | number | null>(null);
+
+  if (!banner || dismissedId === banner.id) return null;
 
   const style = getSeverityStyle(banner.severity);
-  const Icon = getSeverityIcon(banner.severity);
 
   return (
-    <View style={{ backgroundColor: style.bg, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-      <Icon size={20} color={style.icon} style={{ marginTop: 2 }} />
+    <View
+      accessibilityRole="alert"
+      style={{ backgroundColor: style.bg, marginHorizontal: 16, marginTop: 12, borderRadius: 12, paddingVertical: 10, paddingLeft: 12, paddingRight: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}
+    >
+      {renderSeverityIcon(banner.severity, style.icon)}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: style.text }}>{banner.title}</Text>
-        <Text style={{ fontSize: 13, color: style.text, marginTop: 4, lineHeight: 18 }}>{banner.content}</Text>
+        <Text style={{ fontSize: 13.5, fontWeight: '700', color: style.text }}>{banner.title}</Text>
+        <Text style={{ fontSize: 13, color: style.text, marginTop: 2, lineHeight: 18 }} numberOfLines={2}>{banner.content}</Text>
       </View>
+      <Pressable
+        onPress={() => setDismissedId(banner.id)}
+        accessibilityRole="button"
+        accessibilityLabel="Đóng thông báo"
+        hitSlop={8}
+        style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}
+      >
+        <X size={16} color={style.text} />
+      </Pressable>
     </View>
   );
 }
@@ -31,23 +46,24 @@ export function SystemAnnouncementBanner() {
 function getSeverityStyle(severity: AnnouncementSeverity) {
   switch (severity) {
     case 'HIGH':
-      return { bg: '#FEF2F2', text: '#991B1B', icon: COLORS.danger };
+      return { bg: COLORS.dangerTint, text: COLORS.dangerInk, icon: COLORS.danger };
     case 'MEDIUM':
-      return { bg: '#FFFBEB', text: '#92400E', icon: COLORS.warning };
+      return { bg: COLORS.warningTint, text: COLORS.warningInk, icon: COLORS.warning };
     case 'LOW':
     default:
-      return { bg: COLORS.tint, text: '#1E40AF', icon: COLORS.accent };
+      return { bg: COLORS.tint, text: COLORS.accent, icon: COLORS.accent };
   }
 }
 
-function getSeverityIcon(severity: AnnouncementSeverity) {
+function renderSeverityIcon(severity: AnnouncementSeverity, color: string) {
+  const props = { size: 18, color, style: { marginTop: 1 } };
   switch (severity) {
     case 'HIGH':
-      return ShieldAlert;
+      return <ShieldAlert {...props} />;
     case 'MEDIUM':
-      return AlertTriangle;
+      return <AlertTriangle {...props} />;
     case 'LOW':
     default:
-      return Info;
+      return <Info {...props} />;
   }
 }

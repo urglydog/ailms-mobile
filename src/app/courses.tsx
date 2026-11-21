@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
@@ -16,6 +16,7 @@ import { RankingBanner } from '@/components/ranking/RankingBanner';
 import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
 import type { CourseSummary, Page } from '@/types/course';
 import { COLORS } from '@/lib/theme/colors';
+import { CourseThumb } from '@/components/ui/CourseThumb';
 
 export default function CoursesScreen() {
   const { isAuthenticated } = useAuth();
@@ -82,7 +83,7 @@ export default function CoursesScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
       <TopNav />
       <FlatList
         data={data?.pages.flatMap((p) => p.content) ?? []}
@@ -104,7 +105,7 @@ export default function CoursesScreen() {
             {!keyword && activeFilterCount === 0 ? <HomeShelves /> : null}
             <RankingBanner />
             <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>
-              <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.ink }}>Tất cả khoá học</Text>
               {data && (keyword || activeFilterCount > 0) ? (
                 <Text style={{ fontSize: 12.5, color: COLORS.inkMuted }}>Tìm thấy {data.pages[0]?.totalElements ?? 0} khoá học</Text>
               ) : null}
@@ -112,14 +113,16 @@ export default function CoursesScreen() {
                 placeholder="Tìm khoá học..."
                 value={searchInput}
                 onChangeText={setSearchInput}
-                style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10 }}
+                placeholderTextColor={COLORS.inkFaint}
+                accessibilityLabel="Tìm khoá học"
+                style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: COLORS.ink, backgroundColor: COLORS.surfaceRaised }}
               />
               <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingVertical: 4 }}>
                 <Pressable
                   onPress={() => setShowFilters(true)}
                   style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: activeFilterCount > 0 ? COLORS.accent : COLORS.surface }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: activeFilterCount > 0 ? '#FFF' : COLORS.inkMuted }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: activeFilterCount > 0 ? COLORS.white : COLORS.inkMuted }}>
                     Bộ lọc{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                   </Text>
                 </Pressable>
@@ -201,11 +204,9 @@ export default function CoursesScreen() {
 function CourseCard({ course, list }: { course: CourseSummary; list: boolean }) {
   const { width } = useWindowDimensions();
   const cardWidth = list ? width - 32 : (width - 32 - 12) / 2;
-  const thumb = course.thumbnailUrl ? (
-    <Image source={{ uri: course.thumbnailUrl }} style={list ? { width: 120, height: '100%', minHeight: 96 } : { width: '100%', height: 100 }} resizeMode="cover" />
-  ) : (
-    <View style={list ? { width: 120, minHeight: 96, backgroundColor: COLORS.lineSoft } : { width: '100%', height: 100, backgroundColor: COLORS.lineSoft }} />
-  );
+  const thumb = list
+    ? <CourseThumb url={course.thumbnailUrl} title={course.title} width={120} height="100%" />
+    : <CourseThumb url={course.thumbnailUrl} title={course.title} height={(cardWidth * 9) / 16} />;
 
   return (
     <Pressable
@@ -216,19 +217,25 @@ function CourseCard({ course, list }: { course: CourseSummary; list: boolean }) 
         flexDirection: list ? 'row' : 'column',
         borderWidth: 1,
         borderColor: COLORS.line,
-        borderRadius: 8,
+        borderRadius: 12,
         overflow: 'hidden',
-        backgroundColor: '#FFF',
+        backgroundColor: COLORS.surfaceRaised,
+        minHeight: list ? 96 : undefined,
       }}
+      accessibilityRole="button"
+      accessibilityLabel={course.title}
     >
       {thumb}
       <View style={{ padding: 10, gap: 4, flex: list ? 1 : undefined }}>
-        <Text style={{ fontWeight: '700', fontSize: 13, color: '#1E293B' }} numberOfLines={2}>{course.title}</Text>
-        <Text style={{ color: COLORS.inkFaint, fontSize: 11 }} numberOfLines={1}>{course.instructorName}</Text>
+        <Text style={{ fontWeight: '700', fontSize: 14, lineHeight: 19, color: COLORS.ink }} numberOfLines={2}>{course.title}</Text>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 12 }} numberOfLines={1}>{course.instructorName}</Text>
         {course.avgRating ? (
-          <Text style={{ color: COLORS.inkMuted, fontSize: 11 }}>★ {course.avgRating.toFixed(1)} ({course.reviewCount})</Text>
+          <Text style={{ color: COLORS.inkMuted, fontSize: 12 }}>
+            <Text style={{ color: COLORS.star }}>★ </Text>
+            <Text style={{ fontWeight: '700', color: COLORS.ink }}>{course.avgRating.toFixed(1)}</Text> ({course.reviewCount})
+          </Text>
         ) : null}
-        <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13, marginTop: 4 }}>
+        <Text style={{ color: course.isFree ? COLORS.success : COLORS.ink, fontWeight: '800', fontSize: 14, marginTop: 2 }}>
           {course.isFree ? 'Miễn phí' : `${course.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>
       </View>

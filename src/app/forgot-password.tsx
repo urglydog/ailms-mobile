@@ -97,7 +97,7 @@ export default function ForgotPasswordScreen() {
           disabled={isSubmitting}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
         >
-          {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Đặt lại mật khẩu</Text>}
+          {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Đặt lại mật khẩu</Text>}
         </Pressable>
       </View>
     );
@@ -120,7 +120,7 @@ export default function ForgotPasswordScreen() {
         disabled={isSubmitting}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
       >
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Gửi OTP</Text>}
+        {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Gửi OTP</Text>}
       </Pressable>
     </View>
   );

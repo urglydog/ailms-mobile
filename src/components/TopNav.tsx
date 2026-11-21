@@ -61,7 +61,7 @@ export function TopNav() {
             <View>
               <Bell size={24} color={COLORS.inkMuted} />
               {unreadCount > 0 && (
-                <View style={{ position: 'absolute', top: -4, right: -6, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ position: 'absolute', top: -4, right: -6, backgroundColor: COLORS.danger, borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                 </View>
               )}
@@ -74,7 +74,7 @@ export function TopNav() {
             <View>
               <ShoppingCart size={24} color={COLORS.inkMuted} />
               {cart && cart.length > 0 && (
-                <View style={{ position: 'absolute', top: -6, right: -8, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ position: 'absolute', top: -6, right: -8, backgroundColor: COLORS.danger, borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: 'white', fontSize: 11, fontWeight: 'bold' }}>{cart.length}</Text>
                 </View>
               )}

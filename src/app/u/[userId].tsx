@@ -107,8 +107,8 @@ export default function PublicProfileScreen() {
             onPress={shareProfile}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.accent, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 16 }}
           >
-            <Share2 size={14} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>Chia sẻ</Text>
+            <Share2 size={14} color={COLORS.white} />
+            <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>Chia sẻ</Text>
           </Pressable>
         {isOwnProfile ? (
           <Pressable

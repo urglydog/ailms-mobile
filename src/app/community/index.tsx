@@ -34,7 +34,7 @@ export default function CommunityScreen() {
   const showMyRankCard = isAuthenticated && !!myRanking?.ranked && !isMeInList;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
       <Stack.Screen options={{ headerShown: true, title: 'Cộng đồng', headerLeft: () => <BackButton /> }} />
 
       <FlatList
@@ -43,7 +43,7 @@ export default function CommunityScreen() {
         contentContainerStyle={{ paddingBottom: 24 }}
         ListHeaderComponent={
           <View style={{ alignItems: 'center', gap: 8, paddingVertical: 24, paddingHorizontal: 16 }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.warningTint, alignItems: 'center', justifyContent: 'center' }}>
               <Trophy size={28} color={COLORS.star} />
             </View>
             <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.ink }}>Bảng xếp hạng cộng đồng</Text>
@@ -52,7 +52,7 @@ export default function CommunityScreen() {
             </Text>
 
             {showMyRankCard && myRanking ? (
-              <View style={{ width: '100%', borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: '#93C5FD', padding: 14, marginTop: 8, gap: 2 }}>
+              <View style={{ width: '100%', borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.tint, padding: 14, marginTop: 8, gap: 2 }}>
                 <Text style={{ fontSize: 11.5, fontWeight: '600', color: COLORS.inkFaint }}>Vị trí của bạn</Text>
                 <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.accent }}>#{myRanking.rank}</Text>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.ink }}>{myRanking.totalXp} XP</Text>
@@ -75,7 +75,7 @@ export default function CommunityScreen() {
                   onPress={() => router.push('/login' as Href)}
                   style={{ borderRadius: 999, backgroundColor: COLORS.accent, paddingHorizontal: 18, paddingVertical: 10 }}
                 >
-                  <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 13 }}>Đăng nhập</Text>
+                  <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 13 }}>Đăng nhập</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -101,7 +101,7 @@ export default function CommunityScreen() {
 function rankStyle(rank: number): string {
   if (rank === 1) return COLORS.star;
   if (rank === 2) return COLORS.inkFaint;
-  if (rank === 3) return '#EA580C';
+  if (rank === 3) return COLORS.streakFlame;
   return COLORS.lineDot;
 }
 
@@ -117,7 +117,7 @@ function RankRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
         paddingVertical: 12,
         borderTopWidth: 1,
         borderTopColor: COLORS.surface,
-        backgroundColor: isMe ? COLORS.tint : '#FFF',
+        backgroundColor: isMe ? COLORS.tint : COLORS.white,
       }}
     >
       <Text style={{ width: 32, textAlign: 'center', fontSize: 15, fontWeight: '700', color: rankStyle(entry.rank) }}>

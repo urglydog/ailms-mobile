@@ -15,8 +15,8 @@ export function PipelineProgress({ steps, percent, onWatchOriginal, onCancel, is
     <View style={{ gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#4F46E5' }} />
-          <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: '#4F46E5' }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent }} />
+          <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: COLORS.accent }}>
             ĐANG XỬ LÝ LỒNG TIẾNG AI
           </Text>
         </View>
@@ -27,7 +27,7 @@ export function PipelineProgress({ steps, percent, onWatchOriginal, onCancel, is
 
       {percent !== undefined && (
         <View style={{ height: 6, width: '100%', backgroundColor: COLORS.surface, borderRadius: 3, overflow: 'hidden' }}>
-          <View style={{ height: '100%', backgroundColor: '#4F46E5', width: `${percent}%` }} />
+          <View style={{ height: '100%', backgroundColor: COLORS.accent, width: `${percent}%` }} />
         </View>
       )}
 
@@ -41,15 +41,15 @@ export function PipelineProgress({ steps, percent, onWatchOriginal, onCancel, is
                 borderRadius: 10,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: step.failed ? '#EF4444' : step.done ? '#22C55E' : 'transparent',
+                backgroundColor: step.failed ? COLORS.danger : step.done ? COLORS.success : 'transparent',
                 borderWidth: step.failed || step.done ? 0 : step.active ? 2 : 1,
-                borderColor: step.active ? '#4F46E5' : COLORS.lineSoft,
+                borderColor: step.active ? COLORS.accent : COLORS.lineSoft,
               }}
             >
-              {step.failed && <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>✕</Text>}
-              {!step.failed && step.done && <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>✓</Text>}
+              {step.failed && <Text style={{ color: COLORS.white, fontSize: 10, fontWeight: '700' }}>✕</Text>}
+              {!step.failed && step.done && <Text style={{ color: COLORS.white, fontSize: 10, fontWeight: '700' }}>✓</Text>}
               {!step.failed && step.active && !step.done && (
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#4F46E5' }} />
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.accent }} />
               )}
             </View>
             <Text

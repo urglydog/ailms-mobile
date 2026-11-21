@@ -51,10 +51,10 @@ export function ExplainWrongAnswer({ questionId, selectedOptionId, referenceLess
       </View>
 
       {state ? (
-        <View style={{ backgroundColor: COLORS.tint, borderWidth: 1, borderColor: '#DBEAFE', borderRadius: 8, padding: 10 }}>
+        <View style={{ backgroundColor: COLORS.tint, borderWidth: 1, borderColor: COLORS.tint, borderRadius: 8, padding: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1D4ED8' }}>Gia sư AI giải thích:</Text>
-            {state.loading ? <Text style={{ fontSize: 11.5, color: '#3B82F6' }}>Đang suy nghĩ...</Text> : null}
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accent }}>Gia sư AI giải thích:</Text>
+            {state.loading ? <Text style={{ fontSize: 11.5, color: COLORS.accent }}>Đang suy nghĩ...</Text> : null}
           </View>
           {state.text ? <MarkdownRenderer content={state.text} /> : null}
         </View>

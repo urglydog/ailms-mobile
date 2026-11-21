@@ -42,7 +42,7 @@ const inputStyle = {
   borderColor: COLORS.line,
   borderRadius: 8,
   padding: 12,
-  backgroundColor: '#fff',
+  backgroundColor: COLORS.white,
   color: COLORS.ink,
 } as const;
 
@@ -169,7 +169,7 @@ export default function DisputesScreen() {
                       disabled={disabled}
                       onPress={() => setSelectedRef(p.txnRef)}
                       style={{
-                        backgroundColor: '#fff',
+                        backgroundColor: COLORS.white,
                         borderWidth: 1,
                         borderColor: COLORS.line,
                         borderRadius: 12,
@@ -192,7 +192,7 @@ export default function DisputesScreen() {
               )}
             </View>
           ) : (
-            <View style={{ backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
+            <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontWeight: '600', color: COLORS.ink }}>{selected.courseTitle}</Text>
@@ -223,7 +223,7 @@ export default function DisputesScreen() {
                       style={{
                         borderWidth: 1,
                         borderColor: category === c ? COLORS.accent : COLORS.line,
-                        backgroundColor: category === c ? '#DBEAFE' : '#fff',
+                        backgroundColor: category === c ? COLORS.tint : COLORS.white,
                         borderRadius: 999,
                         paddingVertical: 6,
                         paddingHorizontal: 12,
@@ -295,7 +295,7 @@ export default function DisputesScreen() {
                   opacity: fileMutation.isPending || !reason.trim() || !accepted ? 0.5 : 1,
                 }}
               >
-                <Text style={{ color: '#fff', fontWeight: '700' }}>
+                <Text style={{ color: COLORS.white, fontWeight: '700' }}>
                   {fileMutation.isPending ? 'Đang gửi...' : 'Gửi khiếu nại'}
                 </Text>
               </Pressable>
@@ -306,7 +306,7 @@ export default function DisputesScreen() {
             <View style={{ gap: 8 }}>
               <Text style={{ fontWeight: '700', fontSize: 16, color: COLORS.ink }}>Khiếu nại của tôi</Text>
               {(disputes.data ?? []).map((d) => (
-                <View key={d.id} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, padding: 14, gap: 8 }}>
+                <View key={d.id} style={{ backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, padding: 14, gap: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontWeight: '600', color: COLORS.ink }}>{d.courseTitle}</Text>
@@ -357,7 +357,7 @@ export default function DisputesScreen() {
                           onPress={() => reopenMutation.mutate(d.id)}
                           style={{ backgroundColor: COLORS.danger, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 14, opacity: reopenMutation.isPending || !reopenReason.trim() ? 0.5 : 1 }}
                         >
-                          <Text style={{ color: '#fff', fontWeight: '700' }}>Gửi yêu cầu</Text>
+                          <Text style={{ color: COLORS.white, fontWeight: '700' }}>Gửi yêu cầu</Text>
                         </Pressable>
                         <Pressable onPress={() => setReopeningId(null)} style={{ paddingVertical: 10, paddingHorizontal: 14 }}>
                           <Text style={{ color: COLORS.inkMuted, fontWeight: '600' }}>Hủy</Text>

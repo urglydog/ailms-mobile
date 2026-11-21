@@ -52,11 +52,11 @@ function PaymentCard({ payment }: { payment: PaymentRecord }) {
   const isRefunded = payment.status === 'REFUNDED';
 
   const statusColor = isPaid ? COLORS.success : isPending ? COLORS.warning : isRefunded ? COLORS.accent : COLORS.danger;
-  const statusBg = isPaid ? '#DCFCE7' : isPending ? '#FEF3C7' : isRefunded ? '#DBEAFE' : '#FEE2E2';
+  const statusBg = isPaid ? COLORS.successTint : isPending ? COLORS.warningTint : isRefunded ? COLORS.tint : COLORS.dangerTint;
   const statusText = isPaid ? 'Thành công' : isPending ? 'Đang chờ' : isRefunded ? 'Đã hoàn tiền' : 'Thất bại/Hết hạn';
 
   return (
-    <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 8 }}>
+    <View style={{ backgroundColor: COLORS.white, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Text style={{ fontWeight: '700', fontSize: 15, color: COLORS.ink, flex: 1, marginRight: 8 }}>
           {payment.courseTitle}

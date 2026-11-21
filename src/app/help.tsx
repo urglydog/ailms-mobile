@@ -23,7 +23,7 @@ const inputStyle = {
   borderColor: COLORS.line,
   borderRadius: 8,
   padding: 12,
-  backgroundColor: '#fff',
+  backgroundColor: COLORS.white,
   color: COLORS.ink,
 } as const;
 
@@ -68,7 +68,7 @@ export default function HelpScreen() {
               key={id}
               onPress={() => { setSelected(id); setTopic(null); setOpenFaq(null); }}
               style={{
-                backgroundColor: selected === id ? COLORS.tint : '#fff',
+                backgroundColor: selected === id ? COLORS.tint : COLORS.white,
                 borderWidth: 1,
                 borderColor: selected === id ? COLORS.accent : COLORS.line,
                 borderRadius: 12,
@@ -84,7 +84,7 @@ export default function HelpScreen() {
         {selected ? (
           <View style={{ gap: 8 }}>
             <Text style={{ fontWeight: '700', fontSize: 16, color: COLORS.ink }}>Câu hỏi thường gặp</Text>
-            <View style={{ backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: COLORS.line }}>
+            <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line }}>
               {FAQS[selected].map((faq, i) => {
                 const open = openFaq === faq.q;
                 return (
@@ -132,7 +132,7 @@ export default function HelpScreen() {
                 onPress={() => setTopic({ category: selected ?? 'OTHER' })}
                 style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 14 }}
               >
-                <Text style={{ color: '#fff', fontWeight: '700' }}>Gửi yêu cầu hỗ trợ</Text>
+                <Text style={{ color: COLORS.white, fontWeight: '700' }}>Gửi yêu cầu hỗ trợ</Text>
               </Pressable>
             )}
           </View>
@@ -209,7 +209,7 @@ function TicketForm({ initialCategory, initialEmail, lockedSubject, hint }: {
   }
 
   return (
-    <View style={{ backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
+    <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
       {error ? (
         <Text style={{ color: COLORS.danger, borderWidth: 1, borderColor: COLORS.danger, borderRadius: 8, padding: 8 }}>{error}</Text>
       ) : null}
@@ -245,7 +245,7 @@ function TicketForm({ initialCategory, initialEmail, lockedSubject, hint }: {
                     borderRadius: 999,
                     borderWidth: 1,
                     borderColor: category === c ? COLORS.accent : COLORS.line,
-                    backgroundColor: category === c ? COLORS.tint : '#fff',
+                    backgroundColor: category === c ? COLORS.tint : COLORS.white,
                   }}
                 >
                   <Text style={{ color: COLORS.ink, fontSize: 12 }}>{CATEGORY_INFO[c].title}</Text>
@@ -296,7 +296,7 @@ function TicketForm({ initialCategory, initialEmail, lockedSubject, hint }: {
         onPress={() => submit.mutate()}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 12, alignItems: 'center', opacity: !valid || submit.isPending ? 0.5 : 1 }}
       >
-        <Text style={{ color: '#fff', fontWeight: '700' }}>{submit.isPending ? 'Đang gửi...' : 'Gửi yêu cầu'}</Text>
+        <Text style={{ color: COLORS.white, fontWeight: '700' }}>{submit.isPending ? 'Đang gửi...' : 'Gửi yêu cầu'}</Text>
       </Pressable>
     </View>
   );

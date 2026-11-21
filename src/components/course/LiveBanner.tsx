@@ -35,8 +35,8 @@ export function LiveBanner({ courseId }: { courseId: number }) {
         alignItems: 'center',
         gap: 10,
         borderWidth: 1,
-        borderColor: '#FECACA',
-        backgroundColor: '#FEF2F2',
+        borderColor: COLORS.dangerTint,
+        backgroundColor: COLORS.dangerTint,
         borderRadius: 10,
         padding: 14,
       }}

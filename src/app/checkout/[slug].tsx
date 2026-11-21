@@ -96,7 +96,7 @@ export default function CheckoutScreen() {
           onPress={() => (result.status === 'PAID' ? router.replace('/my-courses' as Href) : router.back())}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, paddingHorizontal: 24 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>{result.status === 'PAID' ? 'Vào khoá học của tôi' : 'Quay lại'}</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '600' }}>{result.status === 'PAID' ? 'Vào khoá học của tôi' : 'Quay lại'}</Text>
         </Pressable>
       </View>
     );
@@ -174,7 +174,7 @@ export default function CheckoutScreen() {
         onPress={() => checkoutMutation.mutate()}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center' }}
       >
-        <Text style={{ color: '#fff', fontWeight: '600' }}>Thanh toán qua PayOS</Text>
+        <Text style={{ color: COLORS.white, fontWeight: '600' }}>Thanh toán qua PayOS</Text>
       </Pressable>
     </ScrollView>
   );

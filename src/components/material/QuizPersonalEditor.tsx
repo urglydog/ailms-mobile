@@ -85,7 +85,7 @@ export function QuizPersonalEditor({ questions, quizId, materialId }: Props) {
         <View key={q.id} style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
             <Text style={{ flex: 1, fontWeight: '700', fontSize: 13.5, color: COLORS.ink }}>
-              <Text style={{ color: COLORS.accent }}>Câu {idx + 1}: </Text>
+              <Text style={{ color: COLORS.accentDark }}>Câu {idx + 1}: </Text>
               {q.content}
             </Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -166,12 +166,12 @@ function QuestionForm({
 
       <View style={{ gap: 6 }}>
         <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.inkMuted }}>Nội dung câu hỏi</Text>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           value={content}
           onChangeText={setContent}
           multiline
           numberOfLines={3}
-          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5, textAlignVertical: 'top', minHeight: 70 }}
+          style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5, textAlignVertical: 'top', minHeight: 70 }}
         />
       </View>
 
@@ -207,11 +207,11 @@ function QuestionForm({
             >
               {opt.isCorrect ? <CheckCircle2 size={14} color={COLORS.white} /> : null}
             </Pressable>
-            <TextInput
+            <TextInput placeholderTextColor={COLORS.inkFaint}
               value={opt.content}
               onChangeText={(text) => setOptions((prev) => prev.map((o, i) => (i === idx ? { ...o, content: text } : o)))}
               placeholder={`Đáp án ${idx + 1}`}
-              style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
+              style={{ color: COLORS.ink, flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
             />
             <Pressable onPress={() => setOptions((prev) => prev.filter((_, i) => i !== idx))} hitSlop={6}>
               <X size={18} color={COLORS.danger} />
@@ -219,7 +219,7 @@ function QuestionForm({
           </View>
         ))}
         <Pressable onPress={() => setOptions((prev) => [...prev, { content: '', isCorrect: false }])}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.accent }}>+ Thêm lựa chọn</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.accentDark }}>+ Thêm lựa chọn</Text>
         </Pressable>
       </View>
 

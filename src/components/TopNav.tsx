@@ -36,8 +36,8 @@ export function TopNav() {
   const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.white }}>
-      <Text style={{ fontSize: 20, fontWeight: '900', color: COLORS.accent, letterSpacing: -0.5 }}>ai<Text style={{ color: COLORS.ink }}>lms.</Text></Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.surfaceRaised }}>
+      <Text style={{ fontSize: 20, fontWeight: '900', color: COLORS.accentDark, letterSpacing: -0.5 }}>ai<Text style={{ color: COLORS.ink }}>lms.</Text></Text>
       
       {isAuthenticated && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>

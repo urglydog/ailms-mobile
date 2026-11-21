@@ -32,7 +32,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
         borderRadius: 16,
         borderWidth: 1,
         borderColor: active ? COLORS.accent : COLORS.line,
-        backgroundColor: active ? COLORS.tint : COLORS.white,
+        backgroundColor: active ? COLORS.tint : COLORS.surfaceRaised,
       }}
     >
       <Text style={{ color: active ? COLORS.accent : COLORS.inkMuted, fontWeight: '600', fontSize: 13 }}>{label}</Text>
@@ -54,7 +54,7 @@ export function SubtitleSettingsModal({ visible, settings, hasTranslated, onChan
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
-        <Pressable onPress={() => {}} style={{ backgroundColor: COLORS.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '88%' }}>
+        <Pressable onPress={() => {}} style={{ backgroundColor: COLORS.surfaceRaised, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '88%' }}>
           <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 18 }}>
           <Text style={{ fontSize: 16, fontWeight: '800', color: COLORS.ink }}>Cài đặt</Text>
 

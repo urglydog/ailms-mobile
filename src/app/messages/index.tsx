@@ -38,11 +38,11 @@ export default function MessagesScreen() {
     <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
       <Stack.Screen options={{ headerShown: true, title: 'Tin nhắn', headerLeft: () => <BackButton /> }} />
       <View style={{ padding: 12 }}>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           placeholder="Tìm theo tên, nội dung..."
           value={search}
           onChangeText={setSearch}
-          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, backgroundColor: COLORS.white, color: COLORS.ink }}
+          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, backgroundColor: COLORS.surfaceRaised, color: COLORS.ink }}
         />
       </View>
       {isLoading ? (
@@ -51,9 +51,9 @@ export default function MessagesScreen() {
         </View>
       ) : error ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được tin nhắn.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được tin nhắn.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : (
@@ -68,7 +68,7 @@ export default function MessagesScreen() {
           renderItem={({ item: c }) => (
             <Pressable
               onPress={() => router.push(`/messages/${c.id}` as Href)}
-              style={{ flexDirection: 'row', gap: 12, padding: 14, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}
+              style={{ flexDirection: 'row', gap: 12, padding: 14, backgroundColor: COLORS.surfaceRaised, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}
             >
               <Avatar name={c.otherUserName} url={c.otherUserAvatarUrl} size={44} />
               <View style={{ flex: 1 }}>

@@ -93,30 +93,30 @@ function EditProfileForm({ me }: { me: UserProfile }) {
             <Text style={{ color: COLORS.inkMuted, fontSize: 28 }}>{fullName.charAt(0).toUpperCase()}</Text>
           </View>
         )}
-        <Text style={{ textAlign: 'center', color: COLORS.accent, marginTop: 6 }}>
+        <Text style={{ textAlign: 'center', color: COLORS.accentDark, marginTop: 6 }}>
           {avatarMutation.isPending ? 'Đang tải...' : 'Đổi ảnh'}
         </Text>
       </Pressable>
 
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Họ tên"
         value={fullName}
         onChangeText={setFullName}
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Chức danh (vd: Sinh viên năm 3)"
         value={headline}
         onChangeText={setHeadline}
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Giới thiệu bản thân"
         value={bio}
         onChangeText={setBio}
         multiline
         numberOfLines={4}
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, minHeight: 90, textAlignVertical: 'top' }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, minHeight: 90, textAlignVertical: 'top' }}
       />
 
       {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}

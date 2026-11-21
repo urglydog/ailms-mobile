@@ -43,11 +43,11 @@ export function QnaTab({ lessonId, enrolled, courseSlug }: { lessonId: number; e
         }
       />
       <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           value={input}
           onChangeText={setInput}
           placeholder="Đặt câu hỏi về bài học..."
-          style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
+          style={{ color: COLORS.ink, flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
           onSubmitEditing={handleSend}
         />
         <Pressable

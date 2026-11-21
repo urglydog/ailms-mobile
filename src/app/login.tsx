@@ -52,7 +52,7 @@ export default function LoginScreen() {
         <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
           <GraduationCap size={30} color={COLORS.white} />
         </View>
-        <Text style={{ fontSize: 26, fontWeight: '900', color: COLORS.accent, letterSpacing: -0.5 }}>
+        <Text style={{ fontSize: 26, fontWeight: '900', color: COLORS.accentDark, letterSpacing: -0.5 }}>
           ai<Text style={{ color: COLORS.ink }}>lms.</Text>
         </Text>
         <Text style={{ fontSize: 15, color: COLORS.inkMuted, textAlign: 'center' }}>Học mọi khoá học bằng ngôn ngữ của bạn</Text>
@@ -81,7 +81,7 @@ export default function LoginScreen() {
           <ActivityIndicator color={COLORS.ink} />
         ) : (
           <Text style={{ color: COLORS.ink, fontWeight: '700' }}>
-            <Text style={{ color: COLORS.accent, fontWeight: '900' }}>G</Text>  Tiếp tục với Google
+            <Text style={{ color: COLORS.accentDark, fontWeight: '900' }}>G</Text>  Tiếp tục với Google
           </Text>
         )}
       </Pressable>
@@ -120,7 +120,7 @@ export default function LoginScreen() {
         {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 15 }}>Đăng nhập</Text>}
       </Pressable>
 
-      <Link href={'/forgot-password' as Href} style={{ textAlign: 'right', color: COLORS.accent, fontWeight: '600', paddingVertical: 4 }}>
+      <Link href={'/forgot-password' as Href} style={{ textAlign: 'right', color: COLORS.accentDark, fontWeight: '600', paddingVertical: 4 }}>
         Quên mật khẩu?
       </Link>
       </View>
@@ -128,7 +128,7 @@ export default function LoginScreen() {
       <View style={{ alignItems: 'center', gap: 10 }}>
         <Text style={{ color: COLORS.inkMuted, fontSize: 14 }}>
           Chưa có tài khoản?{' '}
-          <Link href={'/register' as Href} style={{ color: COLORS.accent, fontWeight: '700' }}>Đăng ký</Link>
+          <Link href={'/register' as Href} style={{ color: COLORS.accentDark, fontWeight: '700' }}>Đăng ký</Link>
         </Text>
         <Link href={'/help' as Href} style={{ color: COLORS.inkFaint, fontSize: 13 }}>
           Trợ giúp & Hỗ trợ

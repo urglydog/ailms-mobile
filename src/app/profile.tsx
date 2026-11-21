@@ -39,7 +39,7 @@ export default function ProfileScreen() {
       <TopNav />
       <ScrollView style={{ flex: 1 }}>
         <View style={{ padding: 16 }}>
-          <Text style={{ fontSize: 20, fontWeight: '700' }}>Hồ sơ</Text>
+          <Text style={{ color: COLORS.ink, fontSize: 20, fontWeight: '700' }}>Hồ sơ</Text>
         </View>
 
       {isLoading ? (
@@ -48,9 +48,9 @@ export default function ProfileScreen() {
         </View>
       ) : error || !me ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được hồ sơ.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được hồ sơ.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : (
@@ -213,7 +213,7 @@ function SecuritySection() {
           ))}
           {sessions.length > 3 && (
             <Pressable onPress={() => setExpanded(!expanded)} style={{ paddingVertical: 8, alignItems: 'center' }}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600', fontSize: 13 }}>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '600', fontSize: 13 }}>
                 {expanded ? 'Thu gọn' : `Xem thêm ${sessions.length - 3} thiết bị`}
               </Text>
             </Pressable>

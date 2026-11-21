@@ -29,9 +29,9 @@ export default function GradebookScreen() {
   if (error || !data) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text>{error instanceof ApiError ? error.message : 'Không tải được bảng điểm.'}</Text>
+        <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được bảng điểm.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -61,7 +61,7 @@ function QuizGradeCard({ quiz }: { quiz: QuizGrade }) {
 
   return (
     <View style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 14, gap: 6 }}>
-      <Text style={{ fontWeight: '700' }}>{quiz.quizTitle}</Text>
+      <Text style={{ color: COLORS.ink, fontWeight: '700' }}>{quiz.quizTitle}</Text>
       <Text style={{ color: COLORS.inkMuted, fontSize: 12 }}>{quiz.location}</Text>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
         <Text style={{ color: quiz.passed ? COLORS.success : COLORS.danger, fontWeight: '700', fontSize: 18 }}>
@@ -76,11 +76,11 @@ function QuizGradeCard({ quiz }: { quiz: QuizGrade }) {
       ) : (
         <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
           <Pressable onPress={() => router.push(`/exam/${quiz.quizId}/history` as Href)}>
-            <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Xem lịch sử</Text>
+            <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Xem lịch sử</Text>
           </Pressable>
           {canRetry ? (
             <Pressable onPress={() => router.push(`/exam/${quiz.quizId}` as Href)}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Làm lại</Text>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Làm lại</Text>
             </Pressable>
           ) : null}
         </View>

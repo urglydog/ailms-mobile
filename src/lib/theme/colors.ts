@@ -2,9 +2,15 @@
  * Bảng màu app — đồng bộ với web (`fe/lib/theme/colors.ts`, bản UI v2 21/11/2026) qua
  * `doc/feat/uiux/design-tokens.json`. Nền/viền trung tính hơi ngả xanh; xanh lam CHỈ cho hành động
  * chính, liên kết, trạng thái chọn. Không ghi cứng mã hex ở nơi khác — luôn import COLORS từ đây.
- * Mọi cặp chữ/nền đạt tương phản WCAG AA (kiểm tra ở web: `lib/theme/colors.test.ts`).
+ *
+ * Chế độ tối (UI v2): `COLORS` là MỘT object dùng chung, `applyColorScheme()` ghi đè giá trị theo
+ * chế độ hệ thống. Root layout gọi hàm này trước khi vẽ và vẽ lại cây màn hình khi chế độ đổi, nên
+ * mọi `style={{ color: COLORS.ink }}` trong lúc render tự lấy đúng màu. Vì vậy KHÔNG lưu màu vào
+ * hằng số cấp module (`const X = { color: COLORS.ink }`) — viết thành hàm để đọc lại mỗi lần render.
+ *
+ * `white`/`black` giữ nguyên ở cả 2 chế độ (chữ trên nút xanh, nền video). Nền thẻ dùng `surfaceRaised`.
  */
-export const COLORS = {
+const LIGHT = {
   white: '#FFFFFF',
   black: '#000000',
   accent: '#1D62D6',
@@ -46,6 +52,57 @@ export const COLORS = {
   /** Chữ báo lỗi trên nền `night`. */
   dangerOnNight: '#FF8A8A',
   overlay: 'rgba(14, 26, 43, 0.55)',
-} as const;
+};
 
-export type ColorToken = keyof typeof COLORS;
+export type ColorToken = keyof typeof LIGHT;
+
+/** Chế độ tối: nền sáng dần theo độ cao (surface < surfaceRaised < tint), nút xanh sáng hơn, chữ trắng trên nút. */
+const DARK: Record<ColorToken, string> = {
+  ...LIGHT,
+  accent: '#2F64D0',
+  accentDark: '#8AB5FF', // dùng làm CHỮ xanh trên nền tối (tab chọn, chip, link)
+  ink: '#E7ECF3',
+  inkMuted: '#A6B1C1',
+  inkFaint: '#8592A5',
+  line: '#283444',
+  lineSoft: '#1A2330',
+  lineDot: '#4A5870',
+  surface: '#0C121B',
+  surfaceRaised: '#131B26',
+  tint: '#1A2840',
+  success: '#2E9E5B',
+  successInk: '#5FD08F',
+  successTint: '#10301F',
+  warning: '#E08A1A',
+  warningInk: '#FFC66B',
+  warningTint: '#3A2A0C',
+  danger: '#E5484D',
+  dangerInk: '#FF8A8A',
+  dangerTint: '#3A1416',
+  info: '#8AB5FF',
+  infoTint: '#1A2840',
+  ai: '#5DD3E2',
+  aiTint: '#0E2C34',
+  streakBg: '#3A2A0C',
+  streakInk: '#FFC66B',
+  streakFlame: '#FB923C',
+  night: '#05080D',
+  overlay: 'rgba(3, 7, 13, 0.7)',
+};
+
+export type ColorScheme = 'light' | 'dark';
+
+/** Màu hiện hành — đọc trong lúc render. */
+export const COLORS: Record<ColorToken, string> = { ...LIGHT };
+
+let current: ColorScheme = 'light';
+
+/** Đổi bộ màu theo chế độ. Trả về true nếu có thay đổi (để root layout vẽ lại cây màn hình). */
+export function applyColorScheme(scheme: ColorScheme): boolean {
+  if (scheme === current) return false;
+  Object.assign(COLORS, scheme === 'dark' ? DARK : LIGHT);
+  current = scheme;
+  return true;
+}
+
+export const currentColorScheme = () => current;

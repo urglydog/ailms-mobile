@@ -65,7 +65,7 @@ export function ExamIntro({
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: COLORS.surface }} contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, overflow: 'hidden' }}>
+      <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, overflow: 'hidden' }}>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.tint }}>
           <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' }}>
             <Timer size={24} color={COLORS.white} />
@@ -114,7 +114,7 @@ export function ExamIntro({
 
       {completed.length > 0 ? (
         <Pressable onPress={() => router.push(`/exam/${quizId}/history` as Href)} style={{ borderWidth: 1, borderColor: COLORS.accent, borderRadius: 10, padding: 12, alignItems: 'center' }}>
-          <Text style={{ color: COLORS.accent, fontWeight: '700' }}>Xem lịch sử {completed.length} lần làm bài</Text>
+          <Text style={{ color: COLORS.accentDark, fontWeight: '700' }}>Xem lịch sử {completed.length} lần làm bài</Text>
         </Pressable>
       ) : null}
 

@@ -18,12 +18,12 @@ const STATUS_LABEL: Record<DisputeRes['status'], string> = {
   RESOLVED_REJECTED: 'Đã từ chối',
   REOPENED: 'Đang chờ xử lý lại',
 };
-const STATUS_COLOR: Record<DisputeRes['status'], string> = {
+const statusColor = (): Record<DisputeRes['status'], string> => ({
   OPEN: COLORS.warning,
   RESOLVED_REFUNDED: COLORS.success,
   RESOLVED_REJECTED: COLORS.inkMuted,
   REOPENED: COLORS.danger,
-};
+});
 const CATEGORY_LABEL: Record<DisputeCategory, string> = {
   CHANGED_MIND: 'Tôi đổi ý / không phù hợp',
   CONTENT_MISMATCH: 'Nội dung khác mô tả',
@@ -37,14 +37,15 @@ const MAX_FILES = 5;
 /** Phải khớp `lms.rules.dispute-reopen-window-days` ở BE — chỉ để ẩn/hiện nút, BE vẫn validate thật. */
 const REOPEN_WINDOW_DAYS = 7;
 
-const inputStyle = {
+// Hàm (không phải hằng) để đọc màu theo chế độ sáng/tối hiện tại mỗi lần render.
+const inputStyle = () => ({
   borderWidth: 1,
   borderColor: COLORS.line,
   borderRadius: 8,
   padding: 12,
-  backgroundColor: COLORS.white,
+  backgroundColor: COLORS.surfaceRaised,
   color: COLORS.ink,
-} as const;
+});
 
 const money = (v: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v);
 
@@ -169,7 +170,7 @@ export default function DisputesScreen() {
                       disabled={disabled}
                       onPress={() => setSelectedRef(p.txnRef)}
                       style={{
-                        backgroundColor: COLORS.white,
+                        backgroundColor: COLORS.surfaceRaised,
                         borderWidth: 1,
                         borderColor: COLORS.line,
                         borderRadius: 12,
@@ -192,7 +193,7 @@ export default function DisputesScreen() {
               )}
             </View>
           ) : (
-            <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
+            <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontWeight: '600', color: COLORS.ink }}>{selected.courseTitle}</Text>
@@ -201,7 +202,7 @@ export default function DisputesScreen() {
                   </Text>
                 </View>
                 <Pressable onPress={() => setSelectedRef(null)}>
-                  <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Đổi</Text>
+                  <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Đổi</Text>
                 </Pressable>
               </View>
 
@@ -223,7 +224,7 @@ export default function DisputesScreen() {
                       style={{
                         borderWidth: 1,
                         borderColor: category === c ? COLORS.accent : COLORS.line,
-                        backgroundColor: category === c ? COLORS.tint : COLORS.white,
+                        backgroundColor: category === c ? COLORS.tint : COLORS.surfaceRaised,
                         borderRadius: 999,
                         paddingVertical: 6,
                         paddingHorizontal: 12,
@@ -240,25 +241,25 @@ export default function DisputesScreen() {
                 </Text>
               </View>
 
-              <TextInput
+              <TextInput placeholderTextColor={COLORS.inkFaint}
                 placeholder="Lý do * (vd: Bị trừ tiền nhưng không ghi danh được)"
                 value={reason}
                 onChangeText={setReason}
-                style={inputStyle}
+                style={inputStyle()}
               />
-              <TextInput
+              <TextInput placeholderTextColor={COLORS.inkFaint}
                 placeholder="Mô tả chi tiết"
                 value={description}
                 onChangeText={setDescription}
                 multiline
                 numberOfLines={4}
-                style={[inputStyle, { minHeight: 90, textAlignVertical: 'top' }]}
+                style={[inputStyle(), { minHeight: 90, textAlignVertical: 'top' }]}
               />
-              <TextInput
+              <TextInput placeholderTextColor={COLORS.inkFaint}
                 placeholder="Tài khoản nhận hoàn tiền (vd: Vietcombank - 0123456789 - Nguyễn Văn A)"
                 value={bank}
                 onChangeText={setBank}
-                style={inputStyle}
+                style={inputStyle()}
               />
 
               <View style={{ gap: 6 }}>
@@ -266,7 +267,7 @@ export default function DisputesScreen() {
                   onPress={() => void pickEvidence()}
                   style={{ borderWidth: 1, borderColor: COLORS.accent, borderRadius: 8, padding: 10, alignItems: 'center' }}
                 >
-                  <Text style={{ color: COLORS.accent, fontWeight: '600' }}>
+                  <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>
                     Đính kèm minh chứng (ảnh/video, tối đa {MAX_FILES})
                   </Text>
                 </Pressable>
@@ -306,7 +307,7 @@ export default function DisputesScreen() {
             <View style={{ gap: 8 }}>
               <Text style={{ fontWeight: '700', fontSize: 16, color: COLORS.ink }}>Khiếu nại của tôi</Text>
               {(disputes.data ?? []).map((d) => (
-                <View key={d.id} style={{ backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, padding: 14, gap: 8 }}>
+                <View key={d.id} style={{ backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, padding: 14, gap: 8 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontWeight: '600', color: COLORS.ink }}>{d.courseTitle}</Text>
@@ -314,7 +315,7 @@ export default function DisputesScreen() {
                         Mã GD: {d.paymentTxnRef} — {d.reason}
                       </Text>
                     </View>
-                    <Text style={{ color: STATUS_COLOR[d.status], fontWeight: '700', fontSize: 12 }}>
+                    <Text style={{ color: statusColor()[d.status], fontWeight: '700', fontSize: 12 }}>
                       {STATUS_LABEL[d.status]}
                     </Text>
                   </View>
@@ -344,12 +345,12 @@ export default function DisputesScreen() {
 
                   {reopeningId === d.id ? (
                     <View style={{ gap: 8, borderWidth: 1, borderColor: COLORS.danger, borderRadius: 8, padding: 10 }}>
-                      <TextInput
+                      <TextInput placeholderTextColor={COLORS.inkFaint}
                         placeholder="Mô tả rõ hơn (ngân hàng, thời điểm kiểm tra...)"
                         value={reopenReason}
                         onChangeText={setReopenReason}
                         multiline
-                        style={[inputStyle, { minHeight: 70, textAlignVertical: 'top' }]}
+                        style={[inputStyle(), { minHeight: 70, textAlignVertical: 'top' }]}
                       />
                       <View style={{ flexDirection: 'row', gap: 8 }}>
                         <Pressable

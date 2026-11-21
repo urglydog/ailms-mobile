@@ -39,7 +39,7 @@ export function KnowledgeGapsWidget({ courseId }: { courseId: number }) {
 
   if (isLoading) {
     return (
-      <View style={{ padding: 16, backgroundColor: COLORS.white, borderRadius: 8, borderWidth: 1, borderColor: COLORS.lineSoft, marginBottom: 16, marginHorizontal: 16 }}>
+      <View style={{ padding: 16, backgroundColor: COLORS.surfaceRaised, borderRadius: 8, borderWidth: 1, borderColor: COLORS.lineSoft, marginBottom: 16, marginHorizontal: 16 }}>
         <ActivityIndicator />
       </View>
     );
@@ -66,7 +66,7 @@ export function KnowledgeGapsWidget({ courseId }: { courseId: number }) {
   }
 
   return (
-    <View style={{ padding: 16, backgroundColor: COLORS.white, borderRadius: 8, borderWidth: 1, borderColor: COLORS.lineSoft, marginBottom: 16, marginHorizontal: 16 }}>
+    <View style={{ padding: 16, backgroundColor: COLORS.surfaceRaised, borderRadius: 8, borderWidth: 1, borderColor: COLORS.lineSoft, marginBottom: 16, marginHorizontal: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <AlertTriangle size={20} color={COLORS.accent} />
         <Text style={{ fontWeight: '700', fontSize: 16, color: COLORS.ink }}>Phân tích lỗ hổng kiến thức</Text>
@@ -96,7 +96,7 @@ export function KnowledgeGapsWidget({ courseId }: { courseId: number }) {
               {gap.referenceLessonId ? (
                 <Pressable
                   onPress={() => router.push(`/lessons/${gap.referenceLessonId}${gap.videoTimestamp ? `?seek=${gap.videoTimestamp}` : ''}` as Href)}
-                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 10, backgroundColor: COLORS.white, borderRadius: 999, borderWidth: 1, borderColor: COLORS.lineSoft }}
+                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 10, backgroundColor: COLORS.surfaceRaised, borderRadius: 999, borderWidth: 1, borderColor: COLORS.lineSoft }}
                 >
                   <PlayCircle size={16} color={COLORS.ink} />
                   <Text style={{ fontWeight: '600', fontSize: 13, color: COLORS.ink }}>Ôn tập lý thuyết</Text>
@@ -104,7 +104,7 @@ export function KnowledgeGapsWidget({ courseId }: { courseId: number }) {
               ) : (
                 <Pressable
                   onPress={() => router.push(`/materials/${courseId}` as Href)}
-                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 10, backgroundColor: COLORS.white, borderRadius: 999, borderWidth: 1, borderColor: COLORS.lineSoft }}
+                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 10, backgroundColor: COLORS.surfaceRaised, borderRadius: 999, borderWidth: 1, borderColor: COLORS.lineSoft }}
                 >
                   <Lightbulb size={16} color={COLORS.inkFaint} />
                   <Text style={{ fontWeight: '600', fontSize: 13, color: COLORS.inkFaint }}>Kiến thức tổng hợp</Text>

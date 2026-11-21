@@ -181,7 +181,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
 
       {isBehindSchedule ? (
         <View style={{ flexDirection: 'row', gap: 10, backgroundColor: COLORS.warningTint, borderWidth: 1, borderColor: COLORS.warningTint, borderRadius: 10, padding: 12 }}>
-          <Text style={{ fontSize: 18 }}>⚠️</Text>
+          <Text style={{ color: COLORS.ink, fontSize: 18 }}>⚠️</Text>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.warningInk }}>Bạn đang trễ tiến độ!</Text>
             <Text style={{ fontSize: 12, color: COLORS.streakFlame, marginTop: 2 }}>
@@ -227,10 +227,10 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
         <View style={{ gap: 10 }}>
           <View style={{ flexDirection: 'row', gap: 16, backgroundColor: COLORS.surface, borderRadius: 10, padding: 12 }}>
             <Text style={{ fontSize: 12.5, color: COLORS.ink }}>
-              Mục tiêu: <Text style={{ fontWeight: '700' }}>{new Date(plan!.targetDate).toLocaleDateString('vi-VN')}</Text>
+              Mục tiêu: <Text style={{ color: COLORS.ink, fontWeight: '700' }}>{new Date(plan!.targetDate).toLocaleDateString('vi-VN')}</Text>
             </Text>
             <Text style={{ fontSize: 12.5, color: COLORS.ink }}>
-              Cam kết: <Text style={{ fontWeight: '700' }}>{plan!.hoursPerWeek}h/tuần</Text>
+              Cam kết: <Text style={{ color: COLORS.ink, fontWeight: '700' }}>{plan!.hoursPerWeek}h/tuần</Text>
             </Text>
           </View>
 
@@ -241,7 +241,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
                   <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }}>
                     {new Date(day.date).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </Text>
-                  <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.accent }}>{day.objective}</Text>
+                  <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.accentDark }}>{day.objective}</Text>
                   <View style={{ gap: 6, marginTop: 4 }}>
                     {day.lessons.map((lesson) => {
                       const isCompleted = completedLessonIds.includes(lesson.lesson_id);
@@ -255,7 +255,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
                             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                             borderWidth: 1, borderRadius: 8, padding: 10,
                             borderColor: isCompleted ? COLORS.successTint : COLORS.lineSoft,
-                            backgroundColor: isCompleted ? COLORS.successTint : COLORS.white,
+                            backgroundColor: isCompleted ? COLORS.successTint : COLORS.surfaceRaised,
                           }}
                         >
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
@@ -293,7 +293,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
 
       <Modal visible={showGenerateModal} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setShowGenerateModal(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: COLORS.white, borderRadius: 16, padding: 20, gap: 14 }}>
+          <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 16, padding: 20, gap: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: COLORS.ink }}>Cấu hình lộ trình học AI</Text>
               <Pressable onPress={() => setShowGenerateModal(false)} hitSlop={8}>
@@ -303,22 +303,22 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
 
             <View style={{ gap: 6 }}>
               <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>Ngày hoàn thành dự kiến (yyyy-mm-dd)</Text>
-              <TextInput
+              <TextInput placeholderTextColor={COLORS.inkFaint}
                 value={targetDate}
                 onChangeText={setTargetDate}
                 placeholder="2026-12-31"
-                style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
+                style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
               />
               <Text style={{ fontSize: 11, color: COLORS.lineDot }}>Lịch học sẽ được chia đều từ hôm nay đến ngày này.</Text>
             </View>
 
             <View style={{ gap: 6 }}>
               <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>Thời gian học (giờ/tuần)</Text>
-              <TextInput
+              <TextInput placeholderTextColor={COLORS.inkFaint}
                 value={hoursPerWeek}
                 onChangeText={setHoursPerWeek}
                 keyboardType="numeric"
-                style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
+                style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
               />
             </View>
 
@@ -341,7 +341,7 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
 
       <Modal visible={showRescheduleModal} animationType="slide" transparent presentationStyle="overFullScreen" onRequestClose={() => setShowRescheduleModal(false)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: COLORS.white, borderRadius: 16, padding: 20, gap: 14 }}>
+          <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 16, padding: 20, gap: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: COLORS.ink }}>Cập nhật tiến độ</Text>
               <Pressable onPress={() => setShowRescheduleModal(false)} hitSlop={8}>
@@ -352,11 +352,11 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
             <View style={{ gap: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.surface }}>
                 <Text style={{ fontSize: 12.5, color: COLORS.inkFaint }}>Còn lại:</Text>
-                <Text style={{ fontSize: 12.5, fontWeight: '600' }}>{uniqueUncompleted.length} bài ({totalMinutes} phút)</Text>
+                <Text style={{ color: COLORS.ink, fontSize: 12.5, fontWeight: '600' }}>{uniqueUncompleted.length} bài ({totalMinutes} phút)</Text>
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: COLORS.surface }}>
                 <Text style={{ fontSize: 12.5, color: COLORS.inkFaint }}>Đến hạn:</Text>
-                <Text style={{ fontSize: 12.5, fontWeight: '600' }}>
+                <Text style={{ color: COLORS.ink, fontSize: 12.5, fontWeight: '600' }}>
                   {isValidTarget ? new Date(effectiveTarget).toLocaleDateString('vi-VN') : '--'} ({daysRemaining} ngày)
                 </Text>
               </View>
@@ -376,11 +376,11 @@ export function StudyPlanTab({ courseId, enrolled, courseSlug, completedLessonId
                 <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>
                   Chọn ngày hoàn thành mới {isDeadlinePassed || !isValidTarget ? '*' : ''}
                 </Text>
-                <TextInput
+                <TextInput placeholderTextColor={COLORS.inkFaint}
                   value={rescheduleTargetDate}
                   onChangeText={setRescheduleTargetDate}
                   placeholder="2026-12-31"
-                  style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
+                  style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
                 />
                 {isOverloaded && !isDeadlinePassed && isValidTarget ? (
                   <Text style={{ fontSize: 11, color: COLORS.streakFlame }}>Khối lượng bài học quá nặng. Vui lòng dời deadline để giảm tải.</Text>

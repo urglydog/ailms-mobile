@@ -132,7 +132,7 @@ export function DiscoveryChat() {
           style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(15,23,42,0.5)' }}
         >
           <Pressable style={{ flex: 1 }} onPress={() => setIsOpen(false)} />
-          <View style={{ height: '70%', backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
+          <View style={{ height: '70%', backgroundColor: COLORS.surfaceRaised, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}>
             <View style={{ backgroundColor: COLORS.accent, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>
                 <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 15 }}>AI Course Discovery</Text>
@@ -204,13 +204,13 @@ export function DiscoveryChat() {
             />
 
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, padding: 10, paddingBottom: Math.max(insets.bottom, 10) }}>
-              <TextInput
+              <TextInput placeholderTextColor={COLORS.inkFaint}
                 value={input}
                 onChangeText={setInput}
                 placeholder="Ví dụ: Khoá học IT cho người mới..."
                 maxLength={MAX_MESSAGE_LENGTH}
                 multiline
-                style={{ flex: 1, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9, fontSize: 13.5, maxHeight: 100, backgroundColor: COLORS.surface }}
+                style={{ color: COLORS.ink, flex: 1, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9, fontSize: 13.5, maxHeight: 100, backgroundColor: COLORS.surface }}
               />
               <Pressable
                 onPress={sendMessage}

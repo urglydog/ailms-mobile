@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 
+import { COLORS } from '@/lib/theme/colors';
 /**
  * Chỉ thật sự được dùng khi test bằng `expo start --web` (xem `lib/auth/googleAuth.ts`) — trên
  * web, `WebBrowser.openAuthSessionAsync` không tự biết popup đã xong như native (ASWebAuthenticationSession
@@ -17,7 +18,7 @@ export default function GoogleAuthReturnScreen() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
       <ActivityIndicator />
-      <Text>Đang hoàn tất đăng nhập...</Text>
+      <Text style={{ color: COLORS.ink }}>Đang hoàn tất đăng nhập...</Text>
     </View>
   );
 }

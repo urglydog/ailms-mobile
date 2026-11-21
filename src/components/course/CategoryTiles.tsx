@@ -20,7 +20,7 @@ const RULES: { test: RegExp; icon: LucideIcon }[] = [
   { test: /excel|sheet|office/, icon: Table2 },
   { test: /soft|ky-nang|manage|quan-ly/, icon: Users },
 ];
-const TINTS = [COLORS.tint, COLORS.successTint, COLORS.streakBg, COLORS.tint, COLORS.dangerTint, COLORS.aiTint];
+const tints = () => [COLORS.tint, COLORS.successTint, COLORS.streakBg, COLORS.tint, COLORS.dangerTint, COLORS.aiTint];
 
 function iconFor(slug: string): LucideIcon {
   return RULES.find((r) => r.test.test(slug))?.icon ?? Folder;
@@ -43,7 +43,7 @@ export function CategoryTiles({ onPick }: { onPick: (slug: string) => void }) {
             <Pressable
               key={c.id}
               onPress={() => onPick(c.slug)}
-              style={{ width: 108, height: 84, borderRadius: 12, backgroundColor: TINTS[i % TINTS.length], padding: 10, justifyContent: 'space-between' }}
+              style={{ width: 108, height: 84, borderRadius: 12, backgroundColor: tints()[i % 6], padding: 10, justifyContent: 'space-between' }}
             >
               <Icon size={22} color={COLORS.accentDark} />
               <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.ink }} numberOfLines={2}>{c.name}</Text>

@@ -522,9 +522,9 @@ export default function LessonPlayerScreen() {
   if (error || !lesson) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text>{error instanceof ApiError ? error.message : 'Không tải được bài học.'}</Text>
+        <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được bài học.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -606,7 +606,7 @@ export default function LessonPlayerScreen() {
 
       <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 16, gap: 4 }}>
-        <Text style={{ fontSize: 18, fontWeight: '700' }}>{lesson.lessonTitle}</Text>
+        <Text style={{ color: COLORS.ink, fontSize: 18, fontWeight: '700' }}>{lesson.lessonTitle}</Text>
         <Text style={{ color: COLORS.inkMuted }}>{lesson.courseTitle}</Text>
         {!lesson.enrolled && lesson.isPreview ? (
           <Text style={{ color: COLORS.warning }}>Bạn đang xem thử — ghi danh để xem toàn bộ khoá học.</Text>
@@ -630,7 +630,7 @@ export default function LessonPlayerScreen() {
         {/* Công tắc "Nghe bản gốc" như web (`DubbingBar`): bật = nghe âm thanh gốc (bỏ giọng lồng tiếng);
             tắt = quay lại giọng lồng tiếng vừa dùng, hoặc giọng đã sẵn sàng đầu tiên. */}
         {isDirectVideo ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: COLORS.white }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: COLORS.surfaceRaised }}>
             <Text style={{ color: COLORS.ink, fontWeight: '600' }}>Nghe bản gốc</Text>
             <Switch
               value={activeLang === null}
@@ -770,7 +770,7 @@ export default function LessonPlayerScreen() {
 function ChapterNavSection({ chapter, currentLessonId }: { chapter: ChapterNav; currentLessonId: number }) {
   return (
     <View style={{ gap: 4 }}>
-      <Text style={{ fontWeight: '600' }}>{chapter.chapterTitle}</Text>
+      <Text style={{ color: COLORS.ink, fontWeight: '600' }}>{chapter.chapterTitle}</Text>
       {chapter.lessons.map((lesson) => (
         <LessonNavRow key={lesson.lessonId} lesson={lesson} active={lesson.lessonId === currentLessonId} />
       ))}

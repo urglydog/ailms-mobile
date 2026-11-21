@@ -27,7 +27,7 @@ interface MindmapToolbarProps {
 export function MindmapToolbar({ direction, onDirectionChange, onCopyCode, onDownload, downloadDisabled }: MindmapToolbarProps) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 8, backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
-      <View style={{ flexDirection: 'row', gap: 4, backgroundColor: COLORS.white, padding: 4, borderRadius: 10, borderWidth: 1, borderColor: COLORS.lineSoft }}>
+      <View style={{ flexDirection: 'row', gap: 4, backgroundColor: COLORS.surfaceRaised, padding: 4, borderRadius: 10, borderWidth: 1, borderColor: COLORS.lineSoft }}>
         {DIRECTIONS.map(({ id, label, Icon }) => {
           const active = direction === id;
           return (

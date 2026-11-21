@@ -72,8 +72,8 @@ export default function ConversationScreen() {
         />
       )}
       {error ? <Text style={{ color: COLORS.danger, paddingHorizontal: 12 }}>{error}</Text> : null}
-      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, backgroundColor: COLORS.white }}>
-        <TextInput
+      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, backgroundColor: COLORS.surfaceRaised }}>
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           placeholder="Nhập tin nhắn..."
           value={content}
           onChangeText={setContent}

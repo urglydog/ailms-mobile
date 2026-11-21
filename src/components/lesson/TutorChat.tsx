@@ -108,11 +108,11 @@ export function TutorChat({ courseId, lessonId, enrolled, courseSlug }: { course
         </Text>
       ) : null}
       <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           value={input}
           onChangeText={setInput}
           placeholder="Hỏi Gia sư AI..."
-          style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
+          style={{ color: COLORS.ink, flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
           onSubmitEditing={handleSend}
         />
         <Pressable

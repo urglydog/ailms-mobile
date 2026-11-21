@@ -27,9 +27,9 @@ export default function ExamHistoryScreen() {
         </View>
       ) : error ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được lịch sử.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được lịch sử.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
@@ -55,13 +55,13 @@ function HistoryRow({ item }: { item: QuizAttemptHistoryItem }) {
       style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
     >
       <View>
-        <Text style={{ fontWeight: '600' }}>{new Date(item.submittedAt).toLocaleString('vi-VN')}</Text>
+        <Text style={{ color: COLORS.ink, fontWeight: '600' }}>{new Date(item.submittedAt).toLocaleString('vi-VN')}</Text>
         <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>
           {item.correctCount}/{item.totalQuestions} câu đúng
           {item.isArchived ? ' · Đã lưu trữ' : ''}
         </Text>
       </View>
-      <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.accent }}>{item.score.toFixed(1)}</Text>
+      <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.accentDark }}>{item.score.toFixed(1)}</Text>
     </Pressable>
   );
 }

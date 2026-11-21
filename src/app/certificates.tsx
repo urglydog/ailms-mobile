@@ -27,9 +27,9 @@ export default function CertificatesScreen() {
         </View>
       ) : error ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách chứng chỉ.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được danh sách chứng chỉ.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
@@ -80,7 +80,7 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
 
   return (
     <View style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 14, gap: 6 }}>
-      <Text style={{ fontWeight: '700', fontSize: 16 }}>{certificate.courseTitle}</Text>
+      <Text style={{ color: COLORS.ink, fontWeight: '700', fontSize: 16 }}>{certificate.courseTitle}</Text>
       <Text style={{ color: COLORS.inkMuted }}>{certificate.instructorName}</Text>
       <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>
         Hoàn thành {new Date(certificate.completedAt).toLocaleDateString('vi-VN')} · {certificate.courseHours}h
@@ -94,7 +94,7 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
           {downloadMutation.isPending ? (
             <ActivityIndicator size="small" />
           ) : (
-            <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Tải PDF</Text>
+            <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Tải PDF</Text>
           )}
         </Pressable>
         {certificate.status !== 'REVOKED' ? (
@@ -105,13 +105,13 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
                 Alert.alert('Đã sao chép', 'Link xác thực chứng chỉ đã được sao chép.');
               }}
             >
-              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Sao chép link xác thực</Text>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Sao chép link xác thực</Text>
             </Pressable>
             <Pressable onPress={() => void Share.share({ message: `${certificate.courseTitle} — ${certificate.verifyUrl}`, url: certificate.verifyUrl })}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Chia sẻ</Text>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Chia sẻ</Text>
             </Pressable>
             <Pressable onPress={() => void Linking.openURL(buildLinkedInAddUrl(certificate))}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Thêm vào LinkedIn</Text>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Thêm vào LinkedIn</Text>
             </Pressable>
           </>
         ) : null}

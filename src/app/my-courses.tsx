@@ -85,7 +85,7 @@ export default function MyCoursesScreen() {
       </View>
 
       {courses.length > 0 ? (
-        <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.white, paddingVertical: 10 }}>
+        <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.surfaceRaised, paddingVertical: 10 }}>
           <Stat icon={<Flame size={15} color={COLORS.streakInk} />} value={`${streak?.currentStreak ?? 0}`} label="Ngày liên tiếp" />
           <View style={{ width: 1, backgroundColor: COLORS.lineSoft }} />
           <Stat icon={<Play size={15} color={COLORS.accentDark} />} value={String(counts['in-progress'])} label="Đang học" />
@@ -119,7 +119,7 @@ export default function MyCoursesScreen() {
           <Text style={{ color: COLORS.ink, fontSize: 14, fontWeight: '700' }} numberOfLines={2}>{completedFeatured.courseTitle}</Text>
           {completedFeatured.certificateCode ? (
             <Pressable onPress={() => router.push('/certificates' as Href)} hitSlop={8}>
-              <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13 }}>Xem chứng chỉ →</Text>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '700', fontSize: 13 }}>Xem chứng chỉ →</Text>
             </Pressable>
           ) : null}
         </View>
@@ -127,7 +127,7 @@ export default function MyCoursesScreen() {
 
       {courses.length > 0 ? (
         <View style={{ gap: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, paddingHorizontal: 10, backgroundColor: COLORS.white }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, paddingHorizontal: 10, backgroundColor: COLORS.surfaceRaised }}>
             <Search size={16} color={COLORS.inkFaint} />
             <TextInput
               value={query}
@@ -230,7 +230,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
         borderRadius: 16,
         borderWidth: 1,
         borderColor: active ? COLORS.accent : COLORS.line,
-        backgroundColor: active ? COLORS.tint : COLORS.white,
+        backgroundColor: active ? COLORS.tint : COLORS.surfaceRaised,
       }}
     >
       <Text style={{ color: active ? COLORS.accent : COLORS.inkMuted, fontWeight: '600', fontSize: 12 }}>{label}</Text>
@@ -258,7 +258,7 @@ function GridCard({ enrollment }: { enrollment: Enrollment }) {
   const { width } = useWindowDimensions();
   const cardWidth = (width - 32 - 12) / 2;
   return (
-    <Pressable onPress={() => open(enrollment)} style={{ width: cardWidth, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.white }}>
+    <Pressable onPress={() => open(enrollment)} style={{ width: cardWidth, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.surfaceRaised }}>
       <Thumb url={enrollment.thumbnailUrl} height={100} />
       <View style={{ padding: 10, gap: 6 }}>
         <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }} numberOfLines={2}>{enrollment.courseTitle}</Text>
@@ -272,7 +272,7 @@ function GridCard({ enrollment }: { enrollment: Enrollment }) {
 
 function RowCard({ enrollment }: { enrollment: Enrollment }) {
   return (
-    <Pressable onPress={() => open(enrollment)} style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.white }}>
+    <Pressable onPress={() => open(enrollment)} style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.surfaceRaised }}>
       <View style={{ width: 110 }}>
         <Thumb url={enrollment.thumbnailUrl} height={86} />
       </View>

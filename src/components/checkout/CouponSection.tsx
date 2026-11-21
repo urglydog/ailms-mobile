@@ -30,7 +30,7 @@ export function CouponSection(p: Props) {
     padding: 10,
     borderWidth: 1,
     borderColor: active ? COLORS.accent : COLORS.line,
-    backgroundColor: active ? COLORS.tint : COLORS.white,
+    backgroundColor: active ? COLORS.tint : COLORS.surfaceRaised,
     borderRadius: 8,
   });
   const dot = (active: boolean) => ({
@@ -39,7 +39,7 @@ export function CouponSection(p: Props) {
     borderRadius: 9,
     borderWidth: 2,
     borderColor: active ? COLORS.accent : COLORS.lineDot,
-    backgroundColor: active ? COLORS.accent : COLORS.white,
+    backgroundColor: active ? COLORS.accent : COLORS.surfaceRaised,
     marginTop: 2,
   });
 
@@ -83,7 +83,7 @@ export function CouponSection(p: Props) {
       ) : (
         <View style={{ gap: 6 }}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TextInput
+            <TextInput placeholderTextColor={COLORS.inkFaint}
               placeholder="Nhập mã giảm giá"
               value={code}
               onChangeText={setCode}

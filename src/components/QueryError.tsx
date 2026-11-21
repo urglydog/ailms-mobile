@@ -10,7 +10,7 @@ export function QueryError({ error, onRetry, compact }: { error: unknown; onRetr
         {error instanceof ApiError ? error.message : 'Không tải được dữ liệu. Kiểm tra kết nối mạng.'}
       </Text>
       <Pressable onPress={onRetry}>
-        <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Thử lại</Text>
+        <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Thử lại</Text>
       </Pressable>
     </View>
   );

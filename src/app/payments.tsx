@@ -24,9 +24,9 @@ export default function PaymentsScreen() {
         </View>
       ) : error ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được lịch sử thanh toán.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được lịch sử thanh toán.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !payments || payments.length === 0 ? (
@@ -56,7 +56,7 @@ function PaymentCard({ payment }: { payment: PaymentRecord }) {
   const statusText = isPaid ? 'Thành công' : isPending ? 'Đang chờ' : isRefunded ? 'Đã hoàn tiền' : 'Thất bại/Hết hạn';
 
   return (
-    <View style={{ backgroundColor: COLORS.white, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 8 }}>
+    <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Text style={{ fontWeight: '700', fontSize: 15, color: COLORS.ink, flex: 1, marginRight: 8 }}>
           {payment.courseTitle}
@@ -67,7 +67,7 @@ function PaymentCard({ payment }: { payment: PaymentRecord }) {
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-        <Text style={{ fontWeight: '800', fontSize: 18, color: COLORS.accent }}>
+        <Text style={{ fontWeight: '800', fontSize: 18, color: COLORS.accentDark }}>
           {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(payment.amount)}
         </Text>
         <Text style={{ color: COLORS.inkFaint, fontSize: 12, fontWeight: '600' }}>{payment.paymentMethod}</Text>

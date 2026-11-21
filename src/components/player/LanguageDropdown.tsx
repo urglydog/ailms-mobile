@@ -49,7 +49,7 @@ export function LanguageDropdown({ languages, activeCode, sourceLanguage, onSele
       >
         {active ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text>{active.flag}</Text>
+            <Text style={{ color: COLORS.ink }}>{active.flag}</Text>
             <Text style={{ fontSize: 14, fontWeight: '500', color: COLORS.ink }}>{active.label}</Text>
             {active.available ? (
               <Text style={{ color: COLORS.success, fontSize: 12, fontWeight: '700' }}>✓</Text>
@@ -66,7 +66,7 @@ export function LanguageDropdown({ languages, activeCode, sourceLanguage, onSele
       {open && (
         <View style={{
           marginTop: 8,
-          backgroundColor: COLORS.white,
+          backgroundColor: COLORS.surfaceRaised,
           borderRadius: 12,
           borderWidth: 1,
           borderColor: COLORS.lineSoft,
@@ -74,7 +74,7 @@ export function LanguageDropdown({ languages, activeCode, sourceLanguage, onSele
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.surface }}>
             <Search size={16} color={COLORS.lineDot} />
-            <TextInput
+            <TextInput placeholderTextColor={COLORS.inkFaint}
               value={query}
               onChangeText={setQuery}
               placeholder="Tìm ngôn ngữ…"
@@ -99,12 +99,12 @@ export function LanguageDropdown({ languages, activeCode, sourceLanguage, onSele
                     justifyContent: 'space-between',
                     paddingHorizontal: 16,
                     paddingVertical: 12,
-                    backgroundColor: isActive ? COLORS.tint : COLORS.white,
+                    backgroundColor: isActive ? COLORS.tint : COLORS.surfaceRaised,
                     opacity: isSource ? 0.5 : 1,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Text>{lang.flag}</Text>
+                    <Text style={{ color: COLORS.ink }}>{lang.flag}</Text>
                     <Text style={{ fontSize: 14, color: isActive ? COLORS.accent : COLORS.ink, fontWeight: isActive ? '600' : '400' }}>
                       {lang.label} {isSource && <Text style={{ fontSize: 12, color: COLORS.lineDot }}>(gốc)</Text>}
                     </Text>

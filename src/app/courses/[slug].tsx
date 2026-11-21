@@ -107,9 +107,9 @@ export default function CourseDetailScreen() {
   if (error || !course) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text>{error instanceof ApiError ? error.message : 'Không tải được khoá học.'}</Text>
+        <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được khoá học.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -172,7 +172,7 @@ export default function CourseDetailScreen() {
             <MarkdownRenderer content={course.description} />
           </View>
           <Pressable onPress={() => setDescExpanded((v) => !v)} accessibilityRole="button" hitSlop={8} style={{ alignSelf: 'flex-start', paddingVertical: 6 }}>
-            <Text style={{ color: COLORS.accent, fontWeight: '700' }}>{descExpanded ? 'Thu gọn' : 'Xem thêm'}</Text>
+            <Text style={{ color: COLORS.accentDark, fontWeight: '700' }}>{descExpanded ? 'Thu gọn' : 'Xem thêm'}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -182,7 +182,7 @@ export default function CourseDetailScreen() {
           <Text style={{ fontSize: 18, fontWeight: '800', color: COLORS.ink }}>Nội dung khoá học</Text>
           {isAuthenticated ? (
             <Pressable onPress={() => router.push(`/gradebook/${course.id}` as Href)} hitSlop={8}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Bảng điểm</Text>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Bảng điểm</Text>
             </Pressable>
           ) : null}
         </View>
@@ -282,10 +282,10 @@ function ReviewsSection({ courseId, isAuthenticated }: { courseId: number; isAut
   return (
     <View style={{ gap: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 16 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text style={{ fontSize: 18, fontWeight: '700' }}>Đánh giá</Text>
+        <Text style={{ color: COLORS.ink, fontSize: 18, fontWeight: '700' }}>Đánh giá</Text>
         {isAuthenticated && !showForm ? (
           <Pressable onPress={() => setShowForm(true)}>
-            <Text style={{ color: COLORS.accent }}>Viết đánh giá</Text>
+            <Text style={{ color: COLORS.accentDark }}>Viết đánh giá</Text>
           </Pressable>
         ) : null}
       </View>
@@ -299,13 +299,13 @@ function ReviewsSection({ courseId, isAuthenticated }: { courseId: number; isAut
               </Pressable>
             ))}
           </View>
-          <TextInput
+          <TextInput placeholderTextColor={COLORS.inkFaint}
             placeholder="Cảm nhận của bạn về khoá học..."
             value={comment}
             onChangeText={setComment}
             multiline
             numberOfLines={3}
-            style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, minHeight: 70, textAlignVertical: 'top' }}
+            style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, minHeight: 70, textAlignVertical: 'top' }}
           />
           {reviewError ? <Text style={{ color: COLORS.danger, fontSize: 12 }}>{reviewError}</Text> : null}
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -336,7 +336,7 @@ function ReviewRow({ review }: { review: CourseReview }) {
   return (
     <View style={{ gap: 2, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: COLORS.surface }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ fontWeight: '600' }}>{review.userName}</Text>
+        <Text style={{ color: COLORS.ink, fontWeight: '600' }}>{review.userName}</Text>
         <Text style={{ color: COLORS.star }}>{'★'.repeat(review.rating)}</Text>
       </View>
       {review.comment ? <Text style={{ color: COLORS.inkMuted }}>{review.comment}</Text> : null}

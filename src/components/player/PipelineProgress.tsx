@@ -16,7 +16,7 @@ export function PipelineProgress({ steps, percent, onWatchOriginal, onCancel, is
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent }} />
-          <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: COLORS.accent }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: COLORS.accentDark }}>
             ĐANG XỬ LÝ LỒNG TIẾNG AI
           </Text>
         </View>

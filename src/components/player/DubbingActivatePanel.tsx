@@ -31,7 +31,7 @@ export function DubbingActivatePanel({
           {quotaExceeded ? (
             'Bạn đã đạt giới hạn yêu cầu lồng tiếng hôm nay. Vui lòng quay lại vào ngày mai hoặc chọn ngôn ngữ đã có sẵn.'
           ) : (
-            <Text>Ngôn ngữ <Text style={{ fontWeight: '700' }}>{languageLabel}</Text> chưa có bản lồng tiếng AI.</Text>
+            <Text style={{ color: COLORS.ink }}>Ngôn ngữ <Text style={{ color: COLORS.ink, fontWeight: '700' }}>{languageLabel}</Text> chưa có bản lồng tiếng AI.</Text>
           )}
         </Text>
 

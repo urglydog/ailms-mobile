@@ -30,7 +30,7 @@ export function RankingBanner() {
           <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Bảng xếp hạng cộng đồng</Text>
         </View>
         <Pressable onPress={() => router.push('/community' as Href)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accent }}>Xem toàn bộ</Text>
+          <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accentDark }}>Xem toàn bộ</Text>
           <ChevronRight size={16} color={COLORS.accent} />
         </Pressable>
       </View>
@@ -43,7 +43,7 @@ export function RankingBanner() {
         {showMyRankPin && myRanking && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 20, borderWidth: 1, borderColor: COLORS.line, borderStyle: 'dashed', paddingHorizontal: 12, paddingVertical: 6 }}>
             <Text style={{ fontSize: 13, color: COLORS.inkMuted, fontWeight: '600' }}>
-              Bạn: <Text style={{ color: COLORS.accent }}>#{myRanking.rank}</Text> · {myRanking.totalXp} XP
+              Bạn: <Text style={{ color: COLORS.accentDark }}>#{myRanking.rank}</Text> · {myRanking.totalXp} XP
             </Text>
           </View>
         )}

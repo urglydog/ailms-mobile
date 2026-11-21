@@ -268,9 +268,9 @@ export default function ExamScreen() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Stack.Screen options={{ headerShown: true, title: 'Bài thi', headerLeft: () => <BackButton /> }} />
-        <Text style={{ textAlign: 'center' }}>{error instanceof ApiError ? error.message : 'Không tải được bài thi.'}</Text>
+        <Text style={{ color: COLORS.ink, textAlign: 'center' }}>{error instanceof ApiError ? error.message : 'Không tải được bài thi.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
         <Pressable onPress={() => setStarted(false)}>
           <Text style={{ color: COLORS.inkMuted }}>Quay lại trang giới thiệu</Text>
@@ -290,7 +290,7 @@ export default function ExamScreen() {
       <Stack.Screen options={{ headerShown: true, title: info.title, headerLeft: () => null }} />
 
       {/* Thanh trạng thái: giờ còn lại, tiến độ, vi phạm */}
-      <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, gap: 6 }}>
+      <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: COLORS.surfaceRaised, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, gap: 6 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ color: COLORS.inkMuted, fontSize: 13 }}>Đã trả lời {answeredCount}/{attempt.questions.length}</Text>
           {proctored ? (
@@ -310,7 +310,7 @@ export default function ExamScreen() {
                 <Pressable
                   key={q.id}
                   onPress={() => jumpTo(i)}
-                  style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: flagged[q.id] ? COLORS.danger : done ? COLORS.accent : COLORS.line, backgroundColor: done ? COLORS.accent : COLORS.white }}
+                  style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: flagged[q.id] ? COLORS.danger : done ? COLORS.accent : COLORS.line, backgroundColor: done ? COLORS.accent : COLORS.surfaceRaised }}
                 >
                   <Text style={{ fontSize: 12, fontWeight: '700', color: done ? COLORS.white : COLORS.inkMuted }}>{i + 1}</Text>
                 </Pressable>
@@ -342,7 +342,7 @@ export default function ExamScreen() {
           {attempt.questions.map((q, idx) => (
             <View key={q.id} style={{ gap: 8 }} onLayout={(e) => { questionYs.current[q.id] = e.nativeEvent.layout.y; }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                <Text style={{ fontWeight: '600', flex: 1 }}>
+                <Text style={{ color: COLORS.ink, fontWeight: '600', flex: 1 }}>
                   Câu {idx + 1}. {q.content}
                 </Text>
                 <Pressable onPress={() => setFlagged((prev) => ({ ...prev, [q.id]: !prev[q.id] }))} hitSlop={8}>
@@ -362,7 +362,7 @@ export default function ExamScreen() {
                       gap: 10,
                       borderWidth: 1,
                       borderColor: selected ? COLORS.accent : COLORS.line,
-                      backgroundColor: selected ? COLORS.tint : COLORS.white,
+                      backgroundColor: selected ? COLORS.tint : COLORS.surfaceRaised,
                       borderRadius: 8,
                       padding: 12,
                     }}
@@ -377,7 +377,7 @@ export default function ExamScreen() {
                         backgroundColor: selected ? COLORS.accent : 'transparent',
                       }}
                     />
-                    <Text style={{ flex: 1 }}>{opt.content}</Text>
+                    <Text style={{ color: COLORS.ink, flex: 1 }}>{opt.content}</Text>
                   </Pressable>
                 );
               })}

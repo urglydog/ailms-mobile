@@ -38,14 +38,14 @@ export function ExplainWrongAnswer({ questionId, selectedOptionId, referenceLess
       <View style={{ flexDirection: 'row', gap: 16 }}>
         {!state ? (
           <Pressable onPress={handleExplain}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accent }}>Hỏi Gia sư AI tại sao sai?</Text>
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accentDark }}>Hỏi Gia sư AI tại sao sai?</Text>
           </Pressable>
         ) : null}
         {referenceLessonId != null ? (
           <Pressable
             onPress={() => router.push(`/lessons/${referenceLessonId}${videoTimestamp ? `?seek=${videoTimestamp}` : ''}` as Href)}
           >
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accent }}>Ôn tập lại lý thuyết ↗</Text>
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accentDark }}>Ôn tập lại lý thuyết ↗</Text>
           </Pressable>
         ) : null}
       </View>
@@ -53,8 +53,8 @@ export function ExplainWrongAnswer({ questionId, selectedOptionId, referenceLess
       {state ? (
         <View style={{ backgroundColor: COLORS.tint, borderWidth: 1, borderColor: COLORS.tint, borderRadius: 8, padding: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accent }}>Gia sư AI giải thích:</Text>
-            {state.loading ? <Text style={{ fontSize: 11.5, color: COLORS.accent }}>Đang suy nghĩ...</Text> : null}
+            <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.accentDark }}>Gia sư AI giải thích:</Text>
+            {state.loading ? <Text style={{ fontSize: 11.5, color: COLORS.accentDark }}>Đang suy nghĩ...</Text> : null}
           </View>
           {state.text ? <MarkdownRenderer content={state.text} /> : null}
         </View>

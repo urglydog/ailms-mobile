@@ -10,7 +10,7 @@ export function StreakCard({ streak }: { streak: Streak }) {
   return (
     <View style={{ backgroundColor: COLORS.warningTint, borderRadius: 12, padding: 14, gap: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Text style={{ fontSize: 22 }}>🔥</Text>
+        <Text style={{ color: COLORS.ink, fontSize: 22 }}>🔥</Text>
         <View>
           <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }}>Chuỗi {streak.currentStreak} ngày</Text>
           <Text style={{ fontSize: 11.5, color: COLORS.warningInk }}>Kỷ lục: {streak.longestStreak} ngày</Text>

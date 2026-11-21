@@ -15,7 +15,7 @@ function passwordStrengthLabel(password: string): { score: number; label: string
   const hasNumber = /\d/.test(password);
   const hasSpecial = /[@$!%*#?&.]/.test(password);
   if (hasLetter && hasNumber && hasSpecial && password.length >= 8) return { score: 4, label: 'Mạnh', color: COLORS.success };
-  if (hasLetter && hasNumber) return { score: 3, label: 'Tốt', color: COLORS.accent };
+  if (hasLetter && hasNumber) return { score: 3, label: 'Tốt', color: COLORS.accentDark };
   return { score: 2, label: 'Yếu (cần cả chữ và số)', color: COLORS.warning };
 }
 
@@ -74,17 +74,17 @@ export default function RegisterScreen() {
   if (step === 'otp') {
     return (
       <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text style={{ fontSize: 24, fontWeight: '700', marginBottom: 4 }}>Xác thực OTP</Text>
+        <Text style={{ color: COLORS.ink, fontSize: 24, fontWeight: '700', marginBottom: 4 }}>Xác thực OTP</Text>
         <Text style={{ color: COLORS.inkMuted }}>
-          Vui lòng kiểm tra email <Text style={{ fontWeight: '700' }}>{email}</Text> để lấy mã OTP (6 chữ số).
+          Vui lòng kiểm tra email <Text style={{ color: COLORS.ink, fontWeight: '700' }}>{email}</Text> để lấy mã OTP (6 chữ số).
         </Text>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           placeholder="Mã OTP"
           value={otp}
           onChangeText={(v) => setOtp(v.slice(0, 6))}
           keyboardType="number-pad"
           maxLength={6}
-          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, textAlign: 'center', letterSpacing: 4, fontSize: 18 }}
+          style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, textAlign: 'center', letterSpacing: 4, fontSize: 18 }}
         />
         {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
         <Pressable
@@ -100,21 +100,21 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
-      <Text style={{ fontSize: 24, fontWeight: '700', marginBottom: 8 }}>Đăng ký tài khoản</Text>
+      <Text style={{ color: COLORS.ink, fontSize: 24, fontWeight: '700', marginBottom: 8 }}>Đăng ký tài khoản</Text>
 
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Họ tên"
         value={fullName}
         onChangeText={setFullName}
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <View style={{ gap: 4 }}>
         <PasswordInput
@@ -149,7 +149,7 @@ export default function RegisterScreen() {
         {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Đăng ký</Text>}
       </Pressable>
 
-      <Link href="/login" style={{ textAlign: 'center', color: COLORS.accent, marginTop: 8 }}>
+      <Link href="/login" style={{ textAlign: 'center', color: COLORS.accentDark, marginTop: 8 }}>
         Đã có tài khoản? Đăng nhập ngay
       </Link>
     </ScrollView>

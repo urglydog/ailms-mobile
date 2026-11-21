@@ -128,7 +128,7 @@ export default function CoursesScreen() {
                 </Pressable>
                 {activeFilterCount > 0 ? (
                   <Pressable onPress={() => setFilters(EMPTY_FILTERS)}>
-                    <Text style={{ fontSize: 13, color: COLORS.accent, fontWeight: '600' }}>Xóa lọc</Text>
+                    <Text style={{ fontSize: 13, color: COLORS.accentDark, fontWeight: '600' }}>Xóa lọc</Text>
                   </Pressable>
                 ) : null}
                 <View style={{ flex: 1 }} />
@@ -145,7 +145,7 @@ export default function CoursesScreen() {
                       accessibilityLabel={`Gỡ bộ lọc ${chip.label}`}
                       style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 6, paddingVertical: 5, borderRadius: 999, backgroundColor: COLORS.tint }}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.accent }}>{chip.label}</Text>
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.accentDark }}>{chip.label}</Text>
                       <X size={13} color={COLORS.accent} />
                     </Pressable>
                   ))}
@@ -161,9 +161,9 @@ export default function CoursesScreen() {
             </View>
           ) : error ? (
             <View style={{ padding: 24, alignItems: 'center', gap: 12 }}>
-              <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách khoá học.'}</Text>
+              <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được danh sách khoá học.'}</Text>
               <Pressable onPress={() => refetch()}>
-                <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+                <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
               </Pressable>
             </View>
           ) : (
@@ -172,7 +172,7 @@ export default function CoursesScreen() {
               <Text style={{ color: COLORS.inkFaint, textAlign: 'center' }}>Thử bỏ một vài bộ lọc hoặc dùng từ khoá khác.</Text>
               {activeFilterCount > 0 ? (
                 <Pressable onPress={() => setFilters(EMPTY_FILTERS)}>
-                  <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Xoá toàn bộ bộ lọc</Text>
+                  <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Xoá toàn bộ bộ lọc</Text>
                 </Pressable>
               ) : null}
             </View>

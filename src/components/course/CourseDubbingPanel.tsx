@@ -19,7 +19,7 @@ export function CourseDubbingPanel({ languages }: { languages: string[] }) {
       </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {languages.map((lang) => (
-          <View key={lang} style={{ borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.white, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>
+          <View key={lang} style={{ borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.surfaceRaised, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>
             <Text style={{ color: COLORS.accentDark, fontWeight: '600', fontSize: 13 }}>{lang}</Text>
           </View>
         ))}

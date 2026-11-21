@@ -18,14 +18,15 @@ const MAX_FILES = 3;
 const MAX_SIZE_MB = 5;
 const SUBJECT_MAX = 200;
 
-const inputStyle = {
+// Hàm (không phải hằng) để đọc màu theo chế độ sáng/tối hiện tại mỗi lần render.
+const inputStyle = () => ({
   borderWidth: 1,
   borderColor: COLORS.line,
   borderRadius: 8,
   padding: 12,
-  backgroundColor: COLORS.white,
+  backgroundColor: COLORS.surfaceRaised,
   color: COLORS.ink,
-} as const;
+});
 
 interface Topic {
   category: SupportCategory;
@@ -68,7 +69,7 @@ export default function HelpScreen() {
               key={id}
               onPress={() => { setSelected(id); setTopic(null); setOpenFaq(null); }}
               style={{
-                backgroundColor: selected === id ? COLORS.tint : COLORS.white,
+                backgroundColor: selected === id ? COLORS.tint : COLORS.surfaceRaised,
                 borderWidth: 1,
                 borderColor: selected === id ? COLORS.accent : COLORS.line,
                 borderRadius: 12,
@@ -84,7 +85,7 @@ export default function HelpScreen() {
         {selected ? (
           <View style={{ gap: 8 }}>
             <Text style={{ fontWeight: '700', fontSize: 16, color: COLORS.ink }}>Câu hỏi thường gặp</Text>
-            <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line }}>
+            <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line }}>
               {FAQS[selected].map((faq, i) => {
                 const open = openFaq === faq.q;
                 return (
@@ -209,18 +210,18 @@ function TicketForm({ initialCategory, initialEmail, lockedSubject, hint }: {
   }
 
   return (
-    <View style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
+    <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 12 }}>
       {error ? (
         <Text style={{ color: COLORS.danger, borderWidth: 1, borderColor: COLORS.danger, borderRadius: 8, padding: 8 }}>{error}</Text>
       ) : null}
 
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Email nhận phản hồi"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-        style={inputStyle}
+        style={inputStyle()}
       />
 
       {lockedSubject ? (
@@ -245,7 +246,7 @@ function TicketForm({ initialCategory, initialEmail, lockedSubject, hint }: {
                     borderRadius: 999,
                     borderWidth: 1,
                     borderColor: category === c ? COLORS.accent : COLORS.line,
-                    backgroundColor: category === c ? COLORS.tint : COLORS.white,
+                    backgroundColor: category === c ? COLORS.tint : COLORS.surfaceRaised,
                   }}
                 >
                   <Text style={{ color: COLORS.ink, fontSize: 12 }}>{CATEGORY_INFO[c].title}</Text>
@@ -253,18 +254,18 @@ function TicketForm({ initialCategory, initialEmail, lockedSubject, hint }: {
               ))}
             </ScrollView>
           </View>
-          <TextInput placeholder="Tiêu đề" value={subject} onChangeText={setSubject} maxLength={200} style={inputStyle} />
+          <TextInput placeholderTextColor={COLORS.inkFaint} placeholder="Tiêu đề" value={subject} onChangeText={setSubject} maxLength={200} style={inputStyle()} />
         </>
       )}
 
       <View style={{ gap: 4 }}>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           placeholder={lockedSubject ? 'Mô tả thêm tình huống của bạn' : 'Mô tả chi tiết (tối thiểu 10 ký tự)'}
           value={message}
           onChangeText={setMessage}
           multiline
           maxLength={3000}
-          style={[inputStyle, { minHeight: 110, textAlignVertical: 'top' }]}
+          style={[inputStyle(), { minHeight: 110, textAlignVertical: 'top' }]}
         />
         <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>
           {hint ? `Nên nêu rõ: ${hint}` : 'Mô tả càng rõ, chúng tôi xử lý càng nhanh.'}
@@ -277,7 +278,7 @@ function TicketForm({ initialCategory, initialEmail, lockedSubject, hint }: {
           onPress={() => void pickImages()}
           style={{ borderWidth: 1, borderColor: COLORS.accent, borderRadius: 8, padding: 10, alignItems: 'center', opacity: files.length >= MAX_FILES ? 0.5 : 1 }}
         >
-          <Text style={{ color: COLORS.accent, fontWeight: '600' }}>
+          <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>
             Đính kèm ảnh (tối đa {MAX_FILES} ảnh, mỗi ảnh {MAX_SIZE_MB}MB)
           </Text>
         </Pressable>

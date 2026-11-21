@@ -50,13 +50,13 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
               </Pressable>
             ))}
           </View>
-          <TextInput
+          <TextInput placeholderTextColor={COLORS.inkFaint}
             value={comment}
             onChangeText={setComment}
             multiline
             numberOfLines={3}
             placeholder="Chia sẻ cảm nhận của bạn (không bắt buộc)..."
-            style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 70, textAlignVertical: 'top' }}
+            style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 70, textAlignVertical: 'top' }}
           />
           {createReview.error ? (
             <Text style={{ color: COLORS.danger, fontSize: 12 }}>

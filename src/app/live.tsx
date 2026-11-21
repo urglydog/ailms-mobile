@@ -52,7 +52,7 @@ export default function LiveFeedScreen() {
           <Pressable
             key={t.value}
             onPress={() => setTab(t.value)}
-            style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: tab === t.value ? COLORS.accent : COLORS.white, borderWidth: 1, borderColor: tab === t.value ? COLORS.accent : COLORS.line }}
+            style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: tab === t.value ? COLORS.accent : COLORS.surfaceRaised, borderWidth: 1, borderColor: tab === t.value ? COLORS.accent : COLORS.line }}
           >
             <Text style={{ color: tab === t.value ? COLORS.white : COLORS.inkMuted, fontWeight: '600' }}>{t.label}</Text>
           </Pressable>
@@ -93,7 +93,7 @@ function LiveCard({ item }: { item: LiveFeedItem }) {
   return (
     <Pressable
       onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}/live/${item.id}`)}
-      style={{ backgroundColor: COLORS.white, borderRadius: 12, borderWidth: 1, borderColor: COLORS.lineSoft, overflow: 'hidden' }}
+      style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.lineSoft, overflow: 'hidden' }}
     >
       <View style={{ aspectRatio: 4 / 3, backgroundColor: COLORS.lineSoft }}>
         {item.thumbnailUrl ? <Image source={{ uri: item.thumbnailUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : null}

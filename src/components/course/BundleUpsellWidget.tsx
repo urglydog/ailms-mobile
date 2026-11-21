@@ -59,7 +59,7 @@ function BundleCard({ bundle, currentCourseId }: { bundle: CourseBundle; current
           </View>
         ) : null}
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, padding: 10 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.surfaceRaised, borderRadius: 10, padding: 10 }}>
           <Text style={{ fontSize: 11.5, color: COLORS.lineDot, textDecorationLine: 'line-through' }}>{fmt(bundle.originalPrice)}</Text>
           <Text style={{ fontSize: 15, fontWeight: '800', color: COLORS.ai }}>{fmt(bundle.finalPrice)}</Text>
         </View>

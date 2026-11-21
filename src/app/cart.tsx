@@ -57,7 +57,7 @@ export default function CartScreen() {
         </View>
       ) : error ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được giỏ hàng.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được giỏ hàng.'}</Text>
         </View>
       ) : !cartItems || cartItems.length === 0 ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -73,15 +73,15 @@ export default function CartScreen() {
               onPress={() => setDeselected(allSelected ? new Set(cartItems.map((i) => i.courseId)) : new Set())}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
-              <View style={{ width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: COLORS.accent, backgroundColor: allSelected ? COLORS.accent : COLORS.white, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: COLORS.accent, backgroundColor: allSelected ? COLORS.accent : COLORS.surfaceRaised, alignItems: 'center', justifyContent: 'center' }}>
                 {allSelected ? <Check size={14} color={COLORS.white} /> : null}
               </View>
               <Text style={{ color: COLORS.ink, fontWeight: '600' }}>Chọn tất cả ({selectedItems.length}/{cartItems.length})</Text>
             </Pressable>
             {cartItems.map((item) => (
-              <View key={item.courseId} style={{ flexDirection: 'row', backgroundColor: COLORS.white, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 12, opacity: deselected.has(item.courseId) ? 0.55 : 1 }}>
+              <View key={item.courseId} style={{ flexDirection: 'row', backgroundColor: COLORS.surfaceRaised, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: COLORS.lineSoft, gap: 12, opacity: deselected.has(item.courseId) ? 0.55 : 1 }}>
                 <Pressable onPress={() => toggle(item.courseId)} style={{ justifyContent: 'center' }}>
-                  <View style={{ width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: COLORS.accent, backgroundColor: deselected.has(item.courseId) ? COLORS.white : COLORS.accent, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ width: 20, height: 20, borderRadius: 4, borderWidth: 2, borderColor: COLORS.accent, backgroundColor: deselected.has(item.courseId) ? COLORS.surfaceRaised : COLORS.accent, alignItems: 'center', justifyContent: 'center' }}>
                     {deselected.has(item.courseId) ? null : <Check size={14} color={COLORS.white} />}
                   </View>
                 </Pressable>
@@ -97,7 +97,7 @@ export default function CartScreen() {
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
                     <View>
-                      <Text style={{ fontWeight: '800', fontSize: 16, color: COLORS.accent }}>
+                      <Text style={{ fontWeight: '800', fontSize: 16, color: COLORS.accentDark }}>
                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(priceOf(item))}
                       </Text>
                       {bundleMatch.bundleByCartCourseId.get(item.courseId) ? (
@@ -124,11 +124,11 @@ export default function CartScreen() {
             ))}
           </ScrollView>
 
-          <View style={{ padding: 16, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, gap: 12 }}>
+          <View style={{ padding: 16, backgroundColor: COLORS.surfaceRaised, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, gap: 12 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ fontSize: 15, color: COLORS.inkMuted, fontWeight: '600' }}>Tổng cộng:</Text>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: COLORS.accent }}>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: COLORS.accentDark }}>
                   {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalFinalPrice)}
                 </Text>
                 {isDiscounted ? (

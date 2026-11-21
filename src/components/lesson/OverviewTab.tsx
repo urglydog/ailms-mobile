@@ -67,7 +67,7 @@ export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: st
 
       <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, paddingTop: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.tint, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontWeight: '700', color: COLORS.accent }}>{course.instructorName.charAt(0).toUpperCase()}</Text>
+          <Text style={{ fontWeight: '700', color: COLORS.accentDark }}>{course.instructorName.charAt(0).toUpperCase()}</Text>
         </View>
         <View>
           <Text style={{ fontSize: 10.5, fontWeight: '700', color: COLORS.lineDot, textTransform: 'uppercase' }}>Giảng viên</Text>
@@ -81,7 +81,7 @@ export function OverviewTab({ courseSlug, courseId, enrolled }: { courseSlug: st
           onPress={() => startChat.mutate()}
           style={{ borderWidth: 1, borderColor: COLORS.accent, borderRadius: 8, padding: 10, alignItems: 'center', opacity: startChat.isPending ? 0.6 : 1 }}
         >
-          <Text style={{ color: COLORS.accent, fontWeight: '700' }}>
+          <Text style={{ color: COLORS.accentDark, fontWeight: '700' }}>
             {startChat.isPending ? 'Đang mở...' : 'Nhắn tin giảng viên'}
           </Text>
         </Pressable>

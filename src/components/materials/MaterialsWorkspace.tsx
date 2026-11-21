@@ -164,7 +164,7 @@ export function MaterialsWorkspace({
   if (error) {
     return (
       <View style={{ alignItems: 'center', gap: 12, paddingVertical: 24 }}>
-        <Text>{error instanceof ApiError ? error.message : 'Không tải được học liệu.'}</Text>
+        <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được học liệu.'}</Text>
         <Pressable
           onPress={() => {
             personalQuery.refetch();
@@ -172,7 +172,7 @@ export function MaterialsWorkspace({
             resourcesQuery.refetch();
           }}
         >
-          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -215,7 +215,7 @@ export function MaterialsWorkspace({
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: COLORS.accent, borderRadius: 10, paddingVertical: 10, backgroundColor: COLORS.tint }}
         >
           <Plus size={16} color={COLORS.accent} strokeWidth={2.5} />
-          <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13 }}>Tạo học liệu AI mới</Text>
+          <Text style={{ color: COLORS.accentDark, fontWeight: '700', fontSize: 13 }}>Tạo học liệu AI mới</Text>
         </Pressable>
       ) : null}
 
@@ -320,7 +320,7 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
             (nhiều ngôn ngữ) đẩy cả sheet cao quá màn hình, đẩy luôn nút X/tiêu đề ra NGOÀI màn
             hình phía trên, không bấm đóng được nữa. Giới hạn `maxHeight` + list ngôn ngữ cuộn
             riêng trong khung cố định thay vì để tự giãn theo nội dung. */}
-        <View style={{ maxHeight: '85%', backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 16 }}>
+        <View style={{ maxHeight: '85%', backgroundColor: COLORS.surfaceRaised, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Tạo học liệu AI mới</Text>
             <Pressable onPress={onClose} hitSlop={8}>
@@ -337,7 +337,7 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
                   <Pressable
                     key={id}
                     onPress={() => setMaterialType(id)}
-                    style={{ flex: 1, alignItems: 'center', gap: 4, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.lineSoft, backgroundColor: active ? COLORS.tint : COLORS.white }}
+                    style={{ flex: 1, alignItems: 'center', gap: 4, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.lineSoft, backgroundColor: active ? COLORS.tint : COLORS.surfaceRaised }}
                   >
                     <Icon size={18} color={active ? COLORS.accent : COLORS.inkFaint} strokeWidth={1.75} />
                     <Text style={{ fontSize: 11, fontWeight: '600', color: active ? COLORS.accent : COLORS.inkMuted }}>{label}</Text>
@@ -357,7 +357,7 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
               <View>
                 <Pressable
                   onPress={() => setLanguagePickerOpen((o) => !o)}
-                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: languagePickerOpen ? COLORS.accent : COLORS.lineSoft, backgroundColor: COLORS.white }}
+                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: languagePickerOpen ? COLORS.accent : COLORS.lineSoft, backgroundColor: COLORS.surfaceRaised }}
                 >
                   <Text style={{ fontSize: 13.5, fontWeight: '600', color: COLORS.ink }}>{selectedLanguageLabel ?? 'Chọn ngôn ngữ'}</Text>
                   {languagePickerOpen ? <ChevronUp size={16} color={COLORS.inkFaint} /> : <ChevronDown size={16} color={COLORS.inkFaint} />}
@@ -365,14 +365,14 @@ function CreateMaterialModal({ courseId, onClose }: { courseId: number; onClose:
 
                 {languagePickerOpen ? (
                   <View style={{ marginTop: 6, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 8, gap: 8 }}>
-                    <TextInput
+                    <TextInput placeholderTextColor={COLORS.inkFaint}
                       value={languageSearch}
                       onChangeText={setLanguageSearch}
                       placeholder="Gõ để tìm ngôn ngữ..."
                       autoCapitalize="none"
                       returnKeyType="done"
                       onSubmitEditing={() => Keyboard.dismiss()}
-                      style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13 }}
+                      style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13 }}
                     />
                     <ScrollView style={{ maxHeight: 160 }} contentContainerStyle={{ gap: 4 }} keyboardShouldPersistTaps="handled">
                       {filteredLanguages.length === 0 ? (

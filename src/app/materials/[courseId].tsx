@@ -14,7 +14,7 @@ export default function MaterialsScreen() {
   const id = Number(courseId);
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.surfaceRaised }}>
       <Stack.Screen options={{ headerShown: true, title: 'Học liệu', headerLeft: () => <BackButton /> }} />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <MaterialsWorkspace courseId={id} lessonId={lessonId ? Number(lessonId) : undefined} enrolled courseSlug="" />

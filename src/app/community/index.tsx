@@ -34,7 +34,7 @@ export default function CommunityScreen() {
   const showMyRankCard = isAuthenticated && !!myRanking?.ranked && !isMeInList;
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.surfaceRaised }}>
       <Stack.Screen options={{ headerShown: true, title: 'Cộng đồng', headerLeft: () => <BackButton /> }} />
 
       <FlatList
@@ -54,7 +54,7 @@ export default function CommunityScreen() {
             {showMyRankCard && myRanking ? (
               <View style={{ width: '100%', borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.tint, padding: 14, marginTop: 8, gap: 2 }}>
                 <Text style={{ fontSize: 11.5, fontWeight: '600', color: COLORS.inkFaint }}>Vị trí của bạn</Text>
-                <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.accent }}>#{myRanking.rank}</Text>
+                <Text style={{ fontSize: 20, fontWeight: '700', color: COLORS.accentDark }}>#{myRanking.rank}</Text>
                 <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.ink }}>{myRanking.totalXp} XP</Text>
               </View>
             ) : null}
@@ -117,7 +117,7 @@ function RankRow({ entry, isMe }: { entry: LeaderboardEntry; isMe: boolean }) {
         paddingVertical: 12,
         borderTopWidth: 1,
         borderTopColor: COLORS.surface,
-        backgroundColor: isMe ? COLORS.tint : COLORS.white,
+        backgroundColor: isMe ? COLORS.tint : COLORS.surfaceRaised,
       }}
     >
       <Text style={{ width: 32, textAlign: 'center', fontSize: 15, fontWeight: '700', color: rankStyle(entry.rank) }}>

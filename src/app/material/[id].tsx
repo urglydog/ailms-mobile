@@ -75,9 +75,9 @@ export default function MaterialDetailScreen() {
   if (error || !material) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text>{error instanceof ApiError ? error.message : 'Không tải được học liệu.'}</Text>
+        <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được học liệu.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -243,7 +243,7 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <ListChecks size={48} color={COLORS.accent} strokeWidth={1.5} />
-        <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Ôn tập nhanh</Text>
+        <Text style={{ color: COLORS.ink, fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Ôn tập nhanh</Text>
         <Text style={{ color: COLORS.inkFaint, textAlign: 'center' }}>
           Bài tập có {questions.length} câu hỏi giúp củng cố kiến thức vừa học — không tính giờ, làm lại bao nhiêu lần tuỳ ý.
         </Text>
@@ -261,12 +261,12 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <CheckCircle2 size={48} color={COLORS.success} strokeWidth={1.5} />
-        <Text style={{ fontSize: 18, fontWeight: '700' }}>Hoàn thành bài trắc nghiệm!</Text>
-        <Text style={{ fontSize: 32, fontWeight: '800', color: COLORS.accent }}>
+        <Text style={{ color: COLORS.ink, fontSize: 18, fontWeight: '700' }}>Hoàn thành bài trắc nghiệm!</Text>
+        <Text style={{ fontSize: 32, fontWeight: '800', color: COLORS.accentDark }}>
           {score}/{questions.length}
         </Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 8 }}>
-          <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Hoàn tất & quay lại</Text>
+          <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Hoàn tất & quay lại</Text>
         </Pressable>
       </View>
     );
@@ -303,7 +303,7 @@ function LectureQuiz({ questions }: { questions: QuizQuestion[] }) {
         {question.options.map((option) => {
           const isSelected = selectedOptionId === option.id;
           let borderColor: string = COLORS.lineSoft;
-          let backgroundColor: string = COLORS.white;
+          let backgroundColor: string = COLORS.surfaceRaised;
           let textColor: string = COLORS.ink;
           if (isAnswered) {
             if (option.isCorrect) {
@@ -473,10 +473,10 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <CheckCircle2 size={48} color={COLORS.success} strokeWidth={1.5} />
-        <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Đã ôn hết thẻ cần ôn hôm nay!</Text>
+        <Text style={{ color: COLORS.ink, fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Đã ôn hết thẻ cần ôn hôm nay!</Text>
         <Text style={{ color: COLORS.inkFaint, textAlign: 'center' }}>Quay lại sau khi có thẻ mới cần ôn.</Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 8 }}>
-          <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Quay lại</Text>
+          <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Quay lại</Text>
         </Pressable>
       </View>
     );
@@ -491,13 +491,13 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
     { label: 'Khó quá', quality: 0, delta: 1 * 60_000, color: COLORS.danger },
     { label: 'Khó', quality: 2, delta: 6 * 60_000, color: COLORS.warning },
     { label: 'Tốt', quality: 3, delta: 10 * 60_000, color: COLORS.success },
-    { label: 'Dễ', quality: 5, delta: 3 * 86_400_000, color: COLORS.accent },
+    { label: 'Dễ', quality: 5, delta: 3 * 86_400_000, color: COLORS.accentDark },
   ];
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: 'center' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
-        <Text style={{ color: COLORS.accent, fontWeight: '700' }}>{newCards.length}</Text>
+        <Text style={{ color: COLORS.accentDark, fontWeight: '700' }}>{newCards.length}</Text>
         <Text style={{ color: COLORS.lineDot }}>+</Text>
         <Text style={{ color: COLORS.warning, fontWeight: '700' }}>{learningCards.length}</Text>
         <Text style={{ color: COLORS.lineDot }}>+</Text>
@@ -704,7 +704,7 @@ function EditFlashcardModal({ card, onClose, onSaved }: { card: FlashcardCard; o
     <Modal visible transparent presentationStyle="overFullScreen" animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ maxHeight: '85%', backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 14 }}>
+        <View style={{ maxHeight: '85%', backgroundColor: COLORS.surfaceRaised, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 14 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Sửa thẻ</Text>
             <Pressable onPress={onClose} hitSlop={8}>
@@ -713,20 +713,20 @@ function EditFlashcardModal({ card, onClose, onSaved }: { card: FlashcardCard; o
           </View>
           <View style={{ gap: 6 }}>
             <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Mặt trước</Text>
-            <TextInput
+            <TextInput placeholderTextColor={COLORS.inkFaint}
               value={frontText}
               onChangeText={setFrontText}
               multiline
-              style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+              style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
             />
           </View>
           <View style={{ gap: 6 }}>
             <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Mặt sau</Text>
-            <TextInput
+            <TextInput placeholderTextColor={COLORS.inkFaint}
               value={backText}
               onChangeText={setBackText}
               multiline
-              style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+              style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
             />
           </View>
           <Pressable

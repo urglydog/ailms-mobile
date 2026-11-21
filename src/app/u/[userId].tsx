@@ -93,7 +93,7 @@ export default function PublicProfileScreen() {
           <Image source={{ uri: profile.avatarUrl }} style={{ width: 96, height: 96, borderRadius: 48 }} />
         ) : (
           <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: COLORS.tint, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 32, fontWeight: '700', color: COLORS.accent }}>{profile.fullName.charAt(0).toUpperCase()}</Text>
+            <Text style={{ fontSize: 32, fontWeight: '700', color: COLORS.accentDark }}>{profile.fullName.charAt(0).toUpperCase()}</Text>
           </View>
         )}
         <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.ink }}>{profile.fullName}</Text>
@@ -107,15 +107,15 @@ export default function PublicProfileScreen() {
             onPress={shareProfile}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.accent, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 16 }}
           >
-            <Share2 size={14} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>Chia sẻ</Text>
+            <Share2 size={14} color={COLORS.white} />
+            <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>Chia sẻ</Text>
           </Pressable>
         {isOwnProfile ? (
           <Pressable
             onPress={() => router.push('/profile' as Href)}
             style={{ borderWidth: 1, borderColor: COLORS.accent, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 18, marginTop: 4 }}
           >
-            <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 12.5 }}>Cài đặt tài khoản</Text>
+            <Text style={{ color: COLORS.accentDark, fontWeight: '700', fontSize: 12.5 }}>Cài đặt tài khoản</Text>
           </Pressable>
         ) : null}
         </View>
@@ -168,7 +168,7 @@ export default function PublicProfileScreen() {
                 <Text style={{ fontSize: 11, color: COLORS.lineDot, marginTop: 2 }}>
                   Cấp ngày {new Date(cert.issuedAt).toLocaleDateString('vi-VN')}
                 </Text>
-                <Text style={{ fontSize: 11, color: COLORS.accent, marginTop: 4, fontWeight: '600' }}>Xem / xác thực chứng chỉ</Text>
+                <Text style={{ fontSize: 11, color: COLORS.accentDark, marginTop: 4, fontWeight: '600' }}>Xem / xác thực chứng chỉ</Text>
               </Pressable>
             ))}
           </View>
@@ -211,7 +211,7 @@ function CourseRow({ course }: { course: PublicCourseSummary }) {
       )}
       <View style={{ flex: 1 }}>
         <Text numberOfLines={2} style={{ fontWeight: '600', fontSize: 13, color: COLORS.ink }}>{course.title}</Text>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.accent, marginTop: 2 }}>
+        <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.accentDark, marginTop: 2 }}>
           {course.isFree ? 'Miễn phí' : formatPrice(course.price)}
         </Text>
       </View>
@@ -221,7 +221,7 @@ function CourseRow({ course }: { course: PublicCourseSummary }) {
 
 function StatBox({ value, label, icon }: { value: string; label: string; icon?: React.ReactNode }) {
   return (
-    <View style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingVertical: 10, alignItems: 'center', backgroundColor: COLORS.white }}>
+    <View style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingVertical: 10, alignItems: 'center', backgroundColor: COLORS.surfaceRaised }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
         {icon}
         <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.ink }}>{value}</Text>
@@ -235,7 +235,7 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
   return (
     <Pressable
       onPress={onPress}
-      style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 16, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.line, backgroundColor: active ? COLORS.tint : COLORS.white }}
+      style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: 16, borderWidth: 1, borderColor: active ? COLORS.accent : COLORS.line, backgroundColor: active ? COLORS.tint : COLORS.surfaceRaised }}
     >
       <Text style={{ color: active ? COLORS.accent : COLORS.inkMuted, fontWeight: '600', fontSize: 12 }}>{label}</Text>
     </Pressable>

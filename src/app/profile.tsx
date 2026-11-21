@@ -12,6 +12,8 @@ import { usersApi } from '@/lib/api/users';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { UserProfile } from '@/types/user';
 import { COLORS } from '@/lib/theme/colors';
+import { Award, Bell, BookOpen, Trophy, ChevronRight, FileText, Heart, LifeBuoy, MessageSquare, Radio, Receipt, ShieldAlert, type LucideIcon } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 
 export default function ProfileScreen() {
   const { isAuthenticated, logout } = useAuth();
@@ -33,11 +35,11 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
       <TopNav />
       <ScrollView style={{ flex: 1 }}>
         <View style={{ padding: 16 }}>
-          <Text style={{ fontSize: 20, fontWeight: '700' }}>Hồ sơ</Text>
+          <Text style={{ color: COLORS.ink, fontSize: 22, fontWeight: '800' }}>Tài khoản</Text>
         </View>
 
       {isLoading ? (
@@ -46,37 +48,38 @@ export default function ProfileScreen() {
         </View>
       ) : error || !me ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được hồ sơ.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được hồ sơ.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : (
-        <View style={{ padding: 16, gap: 12, alignItems: 'center' }}>
-          {me.avatarUrl ? (
-            <Image source={{ uri: me.avatarUrl }} style={{ width: 96, height: 96, borderRadius: 48 }} />
-          ) : (
-            <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: COLORS.lineSoft, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontSize: 32, color: COLORS.inkMuted }}>{me.fullName.charAt(0).toUpperCase()}</Text>
+        <View style={{ padding: 16, gap: 12 }}>
+          {/* UI v2: thẻ hồ sơ ngang (avatar trái, tên/email phải), vai trò hiện nhãn tiếng Việt thay vì mã thô. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, padding: 14 }}>
+            {me.avatarUrl ? (
+              <Image source={{ uri: me.avatarUrl }} style={{ width: 64, height: 64, borderRadius: 32 }} />
+            ) : (
+              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: COLORS.tint, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.accentDark }}>{me.fullName.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: COLORS.ink }} numberOfLines={1}>{me.fullName}</Text>
+              <Text style={{ fontSize: 13, color: COLORS.inkMuted }} numberOfLines={1}>{me.email}</Text>
+              {me.headline ? <Text style={{ fontSize: 13, color: COLORS.inkMuted }} numberOfLines={1}>{me.headline}</Text> : null}
+              <Text style={{ alignSelf: 'flex-start', marginTop: 4, fontSize: 11.5, fontWeight: '700', color: COLORS.accentDark, backgroundColor: COLORS.tint, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, overflow: 'hidden' }}>
+                {ROLE_LABELS[me.role] ?? me.role}
+              </Text>
             </View>
-          )}
-          <Text style={{ fontSize: 18, fontWeight: '700' }}>{me.fullName}</Text>
-          <Text style={{ color: COLORS.inkMuted }}>{me.email}</Text>
-          {me.headline ? <Text style={{ color: COLORS.inkMuted }}>{me.headline}</Text> : null}
-          <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>Vai trò: {me.role}</Text>
+          </View>
 
-          <View style={{ flexDirection: 'row', gap: 16 }}>
-            <Pressable onPress={() => router.push('/edit-profile' as Href)}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Chỉnh sửa hồ sơ</Text>
-            </Pressable>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <QuickAction label="Sửa hồ sơ" onPress={() => router.push('/edit-profile' as Href)} />
             {me.authProvider !== 'GOOGLE' ? (
-              <Pressable onPress={() => router.push('/profile/change-password' as Href)}>
-                <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Đổi mật khẩu</Text>
-              </Pressable>
+              <QuickAction label="Đổi mật khẩu" onPress={() => router.push('/profile/change-password' as Href)} />
             ) : null}
-            <Pressable onPress={() => router.push(`/u/${me.id}` as Href)}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Hồ sơ công khai</Text>
-            </Pressable>
+            <QuickAction label="Trang cá nhân" onPress={() => router.push(`/u/${me.id}` as Href)} />
           </View>
 
           {streak ? (
@@ -85,39 +88,44 @@ export default function ProfileScreen() {
                 flexDirection: 'row',
                 justifyContent: 'space-around',
                 width: '100%',
-                backgroundColor: '#FFF7ED',
-                borderRadius: 10,
+                backgroundColor: COLORS.warningTint,
+                borderRadius: 12,
                 padding: 14,
-                marginTop: 8,
               }}
             >
               <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 20, fontWeight: '800', color: '#EA580C' }}>🔥 {streak.currentStreak}</Text>
-                <Text style={{ fontSize: 11, color: '#92400E' }}>Chuỗi ngày học</Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.streakFlame }}>🔥 {streak.currentStreak}</Text>
+                <Text style={{ fontSize: 11, color: COLORS.warningInk }}>Chuỗi ngày học</Text>
               </View>
               <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 20, fontWeight: '800', color: '#EA580C' }}>{streak.longestStreak}</Text>
-                <Text style={{ fontSize: 11, color: '#92400E' }}>Kỷ lục</Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.streakFlame }}>{streak.longestStreak}</Text>
+                <Text style={{ fontSize: 11, color: COLORS.warningInk }}>Kỷ lục</Text>
               </View>
               <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 20, fontWeight: '800', color: '#EA580C' }}>{streak.freezesRemaining}</Text>
-                <Text style={{ fontSize: 11, color: '#92400E' }}>Lượt đóng băng</Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.streakFlame }}>{streak.freezesRemaining}</Text>
+                <Text style={{ fontSize: 11, color: COLORS.warningInk }}>Lượt đóng băng</Text>
               </View>
             </View>
           ) : null}
 
-          <View style={{ width: '100%', marginTop: 16, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
-            <MenuRow label="Khoá học của tôi" href={'/my-courses' as Href} />
-            <MenuRow label="Yêu thích" href={'/wishlist' as Href} />
-            <MenuRow label="Chứng chỉ của tôi" href={'/certificates' as Href} />
-            <MenuRow label="Lịch sử thanh toán" href={'/payments' as Href} />
-            <MenuRow label="Buổi live" href={'/live' as Href} />
-            <MenuRow label="Tin nhắn" href={'/messages' as Href} />
-            <MenuRow label="Khiếu nại giao dịch" href={'/disputes' as Href} />
-            <MenuRow label="Trợ giúp & Hỗ trợ" href={'/help' as Href} />
-            <MenuRow label="Thông tin & Chính sách" href={'/legal' as Href} />
-            <MenuRow label="Thông báo" href={'/notifications' as Href} />
-          </View>
+          {/* UI v2: chia menu thành nhóm có tiêu đề, mỗi dòng có icon — dễ dò hơn 1 danh sách 10 dòng liền. */}
+          <MenuGroup title="Học tập">
+            <MenuRow icon={BookOpen} label="Khoá học của tôi" href={'/my-courses' as Href} />
+            <MenuRow icon={Heart} label="Yêu thích" href={'/wishlist' as Href} />
+            <MenuRow icon={Award} label="Chứng chỉ của tôi" href={'/certificates' as Href} />
+            <MenuRow icon={Radio} label="Buổi live" href={'/live' as Href} />
+            <MenuRow icon={Trophy} label="Bảng xếp hạng" href={'/community' as Href} last />
+          </MenuGroup>
+          <MenuGroup title="Giao dịch">
+            <MenuRow icon={Receipt} label="Lịch sử thanh toán" href={'/payments' as Href} />
+            <MenuRow icon={ShieldAlert} label="Khiếu nại giao dịch" href={'/disputes' as Href} last />
+          </MenuGroup>
+          <MenuGroup title="Liên lạc & hỗ trợ">
+            <MenuRow icon={MessageSquare} label="Tin nhắn" href={'/messages' as Href} />
+            <MenuRow icon={Bell} label="Thông báo" href={'/notifications' as Href} />
+            <MenuRow icon={LifeBuoy} label="Trợ giúp & Hỗ trợ" href={'/help' as Href} />
+            <MenuRow icon={FileText} label="Thông tin & Chính sách" href={'/legal' as Href} last />
+          </MenuGroup>
 
           <PrivacySection me={me} />
           <SecuritySection />
@@ -129,7 +137,8 @@ export default function ProfileScreen() {
                 { text: 'Đăng xuất', style: 'destructive', onPress: () => logout() },
               ])
             }
-            style={{ marginTop: 16, borderWidth: 1, borderColor: COLORS.danger, borderRadius: 8, padding: 12, alignItems: 'center', width: '100%' }}
+            accessibilityRole="button"
+            style={{ marginTop: 8, borderWidth: 1, borderColor: COLORS.danger, borderRadius: 10, minHeight: 48, alignItems: 'center', justifyContent: 'center', width: '100%', backgroundColor: COLORS.surfaceRaised }}
           >
             <Text style={{ color: COLORS.danger, fontWeight: '600' }}>Đăng xuất</Text>
           </Pressable>
@@ -205,7 +214,7 @@ function SecuritySection() {
           ))}
           {sessions.length > 3 && (
             <Pressable onPress={() => setExpanded(!expanded)} style={{ paddingVertical: 8, alignItems: 'center' }}>
-              <Text style={{ color: COLORS.accent, fontWeight: '600', fontSize: 13 }}>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '600', fontSize: 13 }}>
                 {expanded ? 'Thu gọn' : `Xem thêm ${sessions.length - 3} thiết bị`}
               </Text>
             </Pressable>
@@ -226,14 +235,49 @@ function SecuritySection() {
   );
 }
 
-function MenuRow({ label, href }: { label: string; href: Href }) {
+const ROLE_LABELS: Record<string, string> = {
+  STUDENT: 'Học viên',
+  INSTRUCTOR: 'Giảng viên',
+  ADMIN: 'Quản trị viên',
+};
+
+function QuickAction({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={{ flex: 1, minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.surfaceRaised, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}
+    >
+      <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.accentDark }} numberOfLines={1}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function MenuGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View style={{ width: '100%', gap: 6 }}>
+      <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.inkFaint, letterSpacing: 0.5, textTransform: 'uppercase', paddingHorizontal: 4 }}>{title}</Text>
+      <View style={{ backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, overflow: 'hidden' }}>
+        {children}
+      </View>
+    </View>
+  );
+}
+
+function MenuRow({ icon: Icon, label, href, last }: { icon: LucideIcon; label: string; href: Href; last?: boolean }) {
   return (
     <Pressable
       onPress={() => router.push(href)}
-      style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}
+      accessibilityRole="button"
+      style={({ pressed }) => ({
+        flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, paddingHorizontal: 14,
+        borderBottomWidth: last ? 0 : 1, borderBottomColor: COLORS.lineSoft,
+        backgroundColor: pressed ? COLORS.surface : 'transparent',
+      })}
     >
-      <Text style={{ fontSize: 15 }}>{label}</Text>
-      <Text style={{ color: COLORS.lineDot }}>›</Text>
+      <Icon size={18} color={COLORS.inkMuted} />
+      <Text style={{ flex: 1, fontSize: 15, color: COLORS.ink }}>{label}</Text>
+      <ChevronRight size={18} color={COLORS.lineDot} />
     </Pressable>
   );
 }

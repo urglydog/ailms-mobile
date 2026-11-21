@@ -1,4 +1,5 @@
-export type MermaidDirection = 'TB' | 'LR' | 'BT' | 'RL';
+
+import { COLORS } from '@/lib/theme/colors';export type MermaidDirection = 'TB' | 'LR' | 'BT' | 'RL';
 
 /** Áp hướng vẽ sơ đồ — port đúng regex từ `fe/components/materials/MermaidViewer.tsx` (chỉ phần
  * đổi hướng graph/flowchart, không port phần sanitize FISHBONE/MATRIX/bullet-list — không liên quan). */
@@ -73,7 +74,7 @@ export function buildMermaidHtml(mermaidCode: string, direction?: MermaidDirecti
                 canvas.width = width * scale;
                 canvas.height = height * scale;
                 var ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = COLORS.white;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.scale(scale, scale);
                 ctx.drawImage(img, 0, 0, width, height);

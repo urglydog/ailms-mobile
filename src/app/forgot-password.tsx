@@ -69,15 +69,15 @@ export default function ForgotPasswordScreen() {
   if (step === 'reset') {
     return (
       <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text style={{ fontSize: 24, fontWeight: '700' }}>Đặt lại mật khẩu</Text>
+        <Text style={{ color: COLORS.ink, fontSize: 24, fontWeight: '700' }}>Đặt lại mật khẩu</Text>
         <Text style={{ color: COLORS.inkMuted }}>Nhập mã OTP vừa gửi tới {email} và mật khẩu mới.</Text>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           placeholder="Mã OTP"
           value={otp}
           onChangeText={(v) => setOtp(v.slice(0, 6))}
           keyboardType="number-pad"
           maxLength={6}
-          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, textAlign: 'center', letterSpacing: 4, fontSize: 18 }}
+          style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12, textAlign: 'center', letterSpacing: 4, fontSize: 18 }}
         />
         <PasswordInput
           placeholder="Mật khẩu mới"
@@ -97,7 +97,7 @@ export default function ForgotPasswordScreen() {
           disabled={isSubmitting}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
         >
-          {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Đặt lại mật khẩu</Text>}
+          {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Đặt lại mật khẩu</Text>}
         </Pressable>
       </View>
     );
@@ -105,14 +105,14 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
-      <Text style={{ fontSize: 24, fontWeight: '700' }}>Quên mật khẩu</Text>
-      <TextInput
+      <Text style={{ color: COLORS.ink, fontSize: 24, fontWeight: '700' }}>Quên mật khẩu</Text>
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
       <Pressable
@@ -120,7 +120,7 @@ export default function ForgotPasswordScreen() {
         disabled={isSubmitting}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center', opacity: isSubmitting ? 0.6 : 1 }}
       >
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '600' }}>Gửi OTP</Text>}
+        {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '600' }}>Gửi OTP</Text>}
       </Pressable>
     </View>
   );

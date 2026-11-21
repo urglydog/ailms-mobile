@@ -7,7 +7,7 @@ import { COLORS } from '@/lib/theme/colors';
  * cần native linking, chạy được Expo Go. Style tối giản khớp màu/cỡ chữ đang dùng trong các bubble
  * chat hiện có, không theo theme đầy đủ của `fe`'s `MarkdownRenderer.tsx` (web có nhiều biến CSS
  * riêng, mobile chỉ cần đủ đọc được bold/list/heading). */
-export function MarkdownRenderer({ content, color = '#1E293B' }: { content: string; color?: string }) {
+export function MarkdownRenderer({ content, color = COLORS.ink }: { content: string; color?: string }) {
   return (
     <Markdown
       style={{

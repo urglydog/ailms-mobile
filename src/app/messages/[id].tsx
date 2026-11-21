@@ -62,7 +62,7 @@ export default function ConversationScreen() {
           renderItem={({ item: m }) => (
             <View style={{ alignSelf: m.mine ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
               <View style={{ backgroundColor: m.mine ? COLORS.accent : COLORS.tint, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 }}>
-                <Text style={{ color: m.mine ? '#fff' : COLORS.ink }}>{m.content}</Text>
+                <Text style={{ color: m.mine ? COLORS.white : COLORS.ink }}>{m.content}</Text>
               </View>
               <Text style={{ fontSize: 10, color: COLORS.inkFaint, marginTop: 2, alignSelf: m.mine ? 'flex-end' : 'flex-start' }}>
                 {new Date(m.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
@@ -72,8 +72,8 @@ export default function ConversationScreen() {
         />
       )}
       {error ? <Text style={{ color: COLORS.danger, paddingHorizontal: 12 }}>{error}</Text> : null}
-      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, backgroundColor: '#fff' }}>
-        <TextInput
+      <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft, backgroundColor: COLORS.surfaceRaised }}>
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           placeholder="Nhập tin nhắn..."
           value={content}
           onChangeText={setContent}
@@ -84,7 +84,7 @@ export default function ConversationScreen() {
           onPress={() => send.mutate(content.trim())}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingHorizontal: 16, justifyContent: 'center', opacity: !content.trim() || send.isPending ? 0.5 : 1 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '700' }}>Gửi</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '700' }}>Gửi</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>

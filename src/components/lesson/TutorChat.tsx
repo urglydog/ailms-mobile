@@ -108,11 +108,11 @@ export function TutorChat({ courseId, lessonId, enrolled, courseSlug }: { course
         </Text>
       ) : null}
       <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           value={input}
           onChangeText={setInput}
           placeholder="Hỏi Gia sư AI..."
-          style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
+          style={{ color: COLORS.ink, flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
           onSubmitEditing={handleSend}
         />
         <Pressable
@@ -120,7 +120,7 @@ export function TutorChat({ courseId, lessonId, enrolled, courseSlug }: { course
           disabled={!input.trim() || ask.isPending}
           style={{ backgroundColor: COLORS.accent, borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', opacity: !input.trim() || ask.isPending ? 0.5 : 1 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>Gửi</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>Gửi</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -132,7 +132,7 @@ function TutorBubble({ item }: { item: ChatItem }) {
   return (
     <View style={{ alignSelf: isUser ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
       <View style={{ backgroundColor: isUser ? COLORS.accent : COLORS.surface, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 }}>
-        <Text style={{ color: isUser ? '#fff' : COLORS.ink, fontSize: 13 }}>{item.content}</Text>
+        <Text style={{ color: isUser ? COLORS.white : COLORS.ink, fontSize: 13 }}>{item.content}</Text>
       </View>
     </View>
   );

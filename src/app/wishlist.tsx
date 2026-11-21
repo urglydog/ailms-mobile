@@ -70,9 +70,9 @@ export default function WishlistScreen() {
         </View>
       ) : error ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách yêu thích.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được danh sách yêu thích.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
@@ -83,7 +83,7 @@ export default function WishlistScreen() {
         <FlatList
           data={visible}
           ListHeaderComponent={
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, paddingHorizontal: 10, backgroundColor: COLORS.white }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, paddingHorizontal: 10, backgroundColor: COLORS.surfaceRaised }}>
               <Search size={16} color={COLORS.inkFaint} />
               <TextInput value={search} onChangeText={setSearch} placeholder="Tìm trong danh sách yêu thích…" placeholderTextColor={COLORS.lineDot} style={{ flex: 1, paddingVertical: 9, color: COLORS.ink }} />
             </View>
@@ -127,22 +127,22 @@ function WishlistCard({ item, inCart, enrolled, busy, onRemove, onAddCart, onEnr
         <View style={{ width: 100, height: 100, backgroundColor: COLORS.lineSoft }} />
       )}
       <View style={{ flex: 1, padding: 10, gap: 4, justifyContent: 'center' }}>
-        <Text style={{ fontWeight: '600' }} numberOfLines={2}>
+        <Text style={{ color: COLORS.ink, fontWeight: '600' }} numberOfLines={2}>
           {item.courseTitle}
         </Text>
         <Text style={{ color: COLORS.inkMuted, fontSize: 12 }}>{item.instructorName}</Text>
-        <Text style={{ color: COLORS.accent, fontWeight: '600' }}>
+        <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>
           {item.isFree ? 'Miễn phí' : `${item.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>
         {enrolled ? (
           <Text style={{ color: COLORS.successInk, fontSize: 12, fontWeight: '600' }}>✓ Đã ghi danh</Text>
         ) : item.isFree ? (
           <Pressable onPress={onEnroll} disabled={busy} style={{ alignSelf: 'flex-start', backgroundColor: COLORS.accent, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 5 }}>
-            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Đăng ký</Text>
+            <Text style={{ color: COLORS.white, fontSize: 12, fontWeight: '700' }}>Đăng ký</Text>
           </Pressable>
         ) : (
           <Pressable onPress={() => !inCart && onAddCart()} disabled={inCart || busy} style={{ alignSelf: 'flex-start', backgroundColor: inCart ? COLORS.successTint : COLORS.accent, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 5 }}>
-            <Text style={{ color: inCart ? COLORS.successInk : '#fff', fontSize: 12, fontWeight: '700' }}>{inCart ? '✓ Đã có trong giỏ' : 'Thêm vào giỏ'}</Text>
+            <Text style={{ color: inCart ? COLORS.successInk : COLORS.white, fontSize: 12, fontWeight: '700' }}>{inCart ? '✓ Đã có trong giỏ' : 'Thêm vào giỏ'}</Text>
           </Pressable>
         )}
       </View>

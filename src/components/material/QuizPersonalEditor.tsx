@@ -76,8 +76,8 @@ export function QuizPersonalEditor({ questions, quizId, materialId }: Props) {
           onPress={() => setIsAdding(true)}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16 }}
         >
-          <Plus size={16} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Thêm câu hỏi</Text>
+          <Plus size={16} color={COLORS.white} />
+          <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 13 }}>Thêm câu hỏi</Text>
         </Pressable>
       </View>
 
@@ -85,14 +85,14 @@ export function QuizPersonalEditor({ questions, quizId, materialId }: Props) {
         <View key={q.id} style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 14, gap: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
             <Text style={{ flex: 1, fontWeight: '700', fontSize: 13.5, color: COLORS.ink }}>
-              <Text style={{ color: COLORS.accent }}>Câu {idx + 1}: </Text>
+              <Text style={{ color: COLORS.accentDark }}>Câu {idx + 1}: </Text>
               {q.content}
             </Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <Pressable onPress={() => setEditingQuestion(q)} style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: COLORS.surface }}>
                 <Text style={{ fontSize: 11.5, fontWeight: '700', color: COLORS.ink }}>Sửa</Text>
               </Pressable>
-              <Pressable onPress={() => handleDelete(q.id)} style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: '#FEF2F2' }}>
+              <Pressable onPress={() => handleDelete(q.id)} style={{ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: COLORS.dangerTint }}>
                 <Trash2 size={14} color={COLORS.danger} />
               </Pressable>
             </View>
@@ -104,11 +104,11 @@ export function QuizPersonalEditor({ questions, quizId, materialId }: Props) {
                 style={{
                   flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8,
                   borderRadius: 8, borderWidth: 1, padding: 10,
-                  borderColor: opt.isCorrect ? '#86EFAC' : COLORS.lineSoft,
-                  backgroundColor: opt.isCorrect ? '#F0FDF4' : COLORS.surface,
+                  borderColor: opt.isCorrect ? COLORS.success : COLORS.lineSoft,
+                  backgroundColor: opt.isCorrect ? COLORS.successTint : COLORS.surface,
                 }}
               >
-                <Text style={{ flex: 1, fontSize: 13, color: opt.isCorrect ? '#15803D' : COLORS.inkMuted, fontWeight: opt.isCorrect ? '700' : '500' }}>
+                <Text style={{ flex: 1, fontSize: 13, color: opt.isCorrect ? COLORS.successInk : COLORS.inkMuted, fontWeight: opt.isCorrect ? '700' : '500' }}>
                   {opt.content}
                 </Text>
                 {opt.isCorrect ? <CheckCircle2 size={16} color={COLORS.success} /> : null}
@@ -166,12 +166,12 @@ function QuestionForm({
 
       <View style={{ gap: 6 }}>
         <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.inkMuted }}>Nội dung câu hỏi</Text>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           value={content}
           onChangeText={setContent}
           multiline
           numberOfLines={3}
-          style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5, textAlignVertical: 'top', minHeight: 70 }}
+          style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5, textAlignVertical: 'top', minHeight: 70 }}
         />
       </View>
 
@@ -205,13 +205,13 @@ function QuestionForm({
                 alignItems: 'center', justifyContent: 'center',
               }}
             >
-              {opt.isCorrect ? <CheckCircle2 size={14} color="#fff" /> : null}
+              {opt.isCorrect ? <CheckCircle2 size={14} color={COLORS.white} /> : null}
             </Pressable>
-            <TextInput
+            <TextInput placeholderTextColor={COLORS.inkFaint}
               value={opt.content}
               onChangeText={(text) => setOptions((prev) => prev.map((o, i) => (i === idx ? { ...o, content: text } : o)))}
               placeholder={`Đáp án ${idx + 1}`}
-              style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
+              style={{ color: COLORS.ink, flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10, fontSize: 13.5 }}
             />
             <Pressable onPress={() => setOptions((prev) => prev.filter((_, i) => i !== idx))} hitSlop={6}>
               <X size={18} color={COLORS.danger} />
@@ -219,7 +219,7 @@ function QuestionForm({
           </View>
         ))}
         <Pressable onPress={() => setOptions((prev) => [...prev, { content: '', isCorrect: false }])}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.accent }}>+ Thêm lựa chọn</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: COLORS.accentDark }}>+ Thêm lựa chọn</Text>
         </Pressable>
       </View>
 
@@ -232,7 +232,7 @@ function QuestionForm({
           disabled={!canSave || saving}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 20, opacity: !canSave || saving ? 0.5 : 1 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '700' }}>{saving ? 'Đang lưu...' : 'Lưu câu hỏi'}</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '700' }}>{saving ? 'Đang lưu...' : 'Lưu câu hỏi'}</Text>
         </Pressable>
       </View>
     </ScrollView>

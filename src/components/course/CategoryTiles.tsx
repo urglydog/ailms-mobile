@@ -20,7 +20,7 @@ const RULES: { test: RegExp; icon: LucideIcon }[] = [
   { test: /excel|sheet|office/, icon: Table2 },
   { test: /soft|ky-nang|manage|quan-ly/, icon: Users },
 ];
-const TINTS = ['#E8F2FF', '#E3F6EA', '#FFF1D6', '#F1E8FF', '#FFE8EC', '#E0F7FA'];
+const tints = () => [COLORS.tint, COLORS.successTint, COLORS.streakBg, COLORS.tint, COLORS.dangerTint, COLORS.aiTint];
 
 function iconFor(slug: string): LucideIcon {
   return RULES.find((r) => r.test.test(slug))?.icon ?? Folder;
@@ -31,9 +31,9 @@ export function CategoryTiles({ onPick }: { onPick: (slug: string) => void }) {
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.list(), staleTime: 10 * 60 * 1000 });
   if (!categories || categories.length === 0) return null;
   return (
-    <View style={{ gap: 10, paddingHorizontal: 16, paddingTop: 12 }}>
+    <View style={{ gap: 10, paddingHorizontal: 16 }}>
       <View>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.ink }}>Khám phá theo chủ đề</Text>
+        <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.ink }}>Chủ đề phổ biến</Text>
         <Text style={{ fontSize: 12.5, color: COLORS.inkMuted }}>Chọn lĩnh vực bạn muốn học</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
@@ -43,7 +43,7 @@ export function CategoryTiles({ onPick }: { onPick: (slug: string) => void }) {
             <Pressable
               key={c.id}
               onPress={() => onPick(c.slug)}
-              style={{ width: 108, height: 84, borderRadius: 12, backgroundColor: TINTS[i % TINTS.length], padding: 10, justifyContent: 'space-between' }}
+              style={{ width: 108, height: 84, borderRadius: 12, backgroundColor: tints()[i % 6], padding: 10, justifyContent: 'space-between' }}
             >
               <Icon size={22} color={COLORS.accentDark} />
               <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.ink }} numberOfLines={2}>{c.name}</Text>

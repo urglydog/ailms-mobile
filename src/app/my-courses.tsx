@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { ArrowUpDown, Award, Flame, GraduationCap, LayoutGrid, List as ListIcon, Play, Search } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';
@@ -25,6 +25,7 @@ import {
 } from '@/lib/myCourses';
 import type { Enrollment } from '@/types/enrollment';
 import { COLORS } from '@/lib/theme/colors';
+import { CourseThumb } from '@/components/ui/CourseThumb';
 
 const STATUS_LABEL: Record<StatusFilter, string> = { all: 'Tất cả', 'in-progress': 'Đang học', completed: 'Hoàn thành' };
 const SORTS: { value: SortOption; label: string }[] = [
@@ -54,7 +55,7 @@ export default function MyCoursesScreen() {
   const [status, setStatus] = useState<StatusFilter>('all');
   const [sort, setSort] = useState<SortOption>('recently-accessed');
   const [query, setQuery] = useState('');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [view, setView] = useState<'grid' | 'list'>('list');
 
   const courses = useMemo(() => data ?? [], [data]);
   const counts = useMemo(() => countByStatus(courses), [courses]);
@@ -84,7 +85,7 @@ export default function MyCoursesScreen() {
       </View>
 
       {courses.length > 0 ? (
-        <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.white, paddingVertical: 10 }}>
+        <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, backgroundColor: COLORS.surfaceRaised, paddingVertical: 10 }}>
           <Stat icon={<Flame size={15} color={COLORS.streakInk} />} value={`${streak?.currentStreak ?? 0}`} label="Ngày liên tiếp" />
           <View style={{ width: 1, backgroundColor: COLORS.lineSoft }} />
           <Stat icon={<Play size={15} color={COLORS.accentDark} />} value={String(counts['in-progress'])} label="Đang học" />
@@ -103,7 +104,7 @@ export default function MyCoursesScreen() {
           </View>
           <View style={{ flex: 1, padding: 12, gap: 5, justifyContent: 'center' }}>
             <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 }}>TIẾP TỤC HỌC</Text>
-            <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }} numberOfLines={2}>{featured.courseTitle}</Text>
+            <Text style={{ color: COLORS.white, fontSize: 14, fontWeight: '700' }} numberOfLines={2}>{featured.courseTitle}</Text>
             <View style={{ height: 5, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 3, overflow: 'hidden' }}>
               <View style={{ height: 5, width: `${Math.min(100, featured.progressPct)}%`, backgroundColor: COLORS.highlight }} />
             </View>
@@ -118,7 +119,7 @@ export default function MyCoursesScreen() {
           <Text style={{ color: COLORS.ink, fontSize: 14, fontWeight: '700' }} numberOfLines={2}>{completedFeatured.courseTitle}</Text>
           {completedFeatured.certificateCode ? (
             <Pressable onPress={() => router.push('/certificates' as Href)} hitSlop={8}>
-              <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13 }}>Xem chứng chỉ →</Text>
+              <Text style={{ color: COLORS.accentDark, fontWeight: '700', fontSize: 13 }}>Xem chứng chỉ →</Text>
             </Pressable>
           ) : null}
         </View>
@@ -126,7 +127,7 @@ export default function MyCoursesScreen() {
 
       {courses.length > 0 ? (
         <View style={{ gap: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, paddingHorizontal: 10, backgroundColor: COLORS.white }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, paddingHorizontal: 10, backgroundColor: COLORS.surfaceRaised }}>
             <Search size={16} color={COLORS.inkFaint} />
             <TextInput
               value={query}
@@ -155,7 +156,7 @@ export default function MyCoursesScreen() {
 
   const showSuggestions = courses.length === 0 || (!featured && suggestions.length > 0);
   const footer = showSuggestions && suggestions.length > 0 ? (
-    <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
+    <View style={{ paddingVertical: 16 }}>
       <CourseShelf title={courses.length === 0 ? 'Đang thịnh hành' : 'Khoá học tiếp theo cho bạn'} courses={suggestions} />
     </View>
   ) : null;
@@ -187,7 +188,7 @@ export default function MyCoursesScreen() {
                 <GraduationCap size={34} color={COLORS.accent} />
                 <Text style={{ fontWeight: '700', fontSize: 16, color: COLORS.ink }}>Bạn chưa ghi danh khoá học nào</Text>
                 <Pressable onPress={() => router.push('/courses' as Href)} style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 }}>
-                  <Text style={{ color: '#fff', fontWeight: '700' }}>Khám phá khoá học</Text>
+                  <Text style={{ color: COLORS.white, fontWeight: '700' }}>Khám phá khoá học</Text>
                 </Pressable>
               </View>
             ) : (
@@ -229,7 +230,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
         borderRadius: 16,
         borderWidth: 1,
         borderColor: active ? COLORS.accent : COLORS.line,
-        backgroundColor: active ? COLORS.tint : COLORS.white,
+        backgroundColor: active ? COLORS.tint : COLORS.surfaceRaised,
       }}
     >
       <Text style={{ color: active ? COLORS.accent : COLORS.inkMuted, fontWeight: '600', fontSize: 12 }}>{label}</Text>
@@ -238,11 +239,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 }
 
 function Thumb({ url, height }: { url: string | null; height: number }) {
-  return url ? (
-    <Image source={{ uri: url }} style={{ width: '100%', height }} resizeMode="cover" />
-  ) : (
-    <View style={{ width: '100%', height, backgroundColor: COLORS.lineSoft }} />
-  );
+  return <CourseThumb url={url} height={height} />;
 }
 
 function Progress({ pct }: { pct: number }) {
@@ -261,7 +258,7 @@ function GridCard({ enrollment }: { enrollment: Enrollment }) {
   const { width } = useWindowDimensions();
   const cardWidth = (width - 32 - 12) / 2;
   return (
-    <Pressable onPress={() => open(enrollment)} style={{ width: cardWidth, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.white }}>
+    <Pressable onPress={() => open(enrollment)} style={{ width: cardWidth, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.surfaceRaised }}>
       <Thumb url={enrollment.thumbnailUrl} height={100} />
       <View style={{ padding: 10, gap: 6 }}>
         <Text style={{ fontWeight: '700', fontSize: 13, color: COLORS.ink }} numberOfLines={2}>{enrollment.courseTitle}</Text>
@@ -275,7 +272,7 @@ function GridCard({ enrollment }: { enrollment: Enrollment }) {
 
 function RowCard({ enrollment }: { enrollment: Enrollment }) {
   return (
-    <Pressable onPress={() => open(enrollment)} style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.white }}>
+    <Pressable onPress={() => open(enrollment)} style={{ flexDirection: 'row', borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, overflow: 'hidden', backgroundColor: COLORS.surfaceRaised }}>
       <View style={{ width: 110 }}>
         <Thumb url={enrollment.thumbnailUrl} height={86} />
       </View>

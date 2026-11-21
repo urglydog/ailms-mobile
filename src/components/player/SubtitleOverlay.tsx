@@ -3,6 +3,7 @@ import { usePlayerTime } from '@/hooks/usePlayerTime';
 import type { SubtitleSegment } from '@/types/lesson';
 import { FONT_SIZE_PX, type SubtitleSettings } from '@/lib/subtitleSettings';
 
+import { COLORS } from '@/lib/theme/colors';
 function activeAt(segments: SubtitleSegment[], sec: number): SubtitleSegment | null {
   return segments.find((s) => sec >= s.startSec && sec < s.endSec) ?? null;
 }
@@ -38,12 +39,12 @@ export function SubtitleOverlay({ originalSubtitles, translatedSubtitles, player
         lineHeight: size * 1.35,
         textAlign: 'center',
         fontWeight: '600',
-        backgroundColor: hexToRgba('#000000', settings.backgroundOpacity / 100),
+        backgroundColor: hexToRgba(COLORS.black, settings.backgroundOpacity / 100),
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 4,
         overflow: 'hidden',
-        ...(settings.outline ? { textShadowColor: '#000', textShadowRadius: 3, textShadowOffset: { width: 0, height: 0 } } : null),
+        ...(settings.outline ? { textShadowColor: COLORS.black, textShadowRadius: 3, textShadowOffset: { width: 0, height: 0 } } : null),
       }}
     >
       {text}

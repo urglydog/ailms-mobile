@@ -10,7 +10,7 @@ export function ExamResultView({ result, elapsedSec, submittedAt }: { result: Qu
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 16 }}>
       <View style={{ alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontSize: 36, fontWeight: '800', color: COLORS.accent }}>{result.score.toFixed(1)}</Text>
+        <Text style={{ fontSize: 36, fontWeight: '800', color: COLORS.accentDark }}>{result.score.toFixed(1)}</Text>
         <Text style={{ color: COLORS.inkMuted }}>
           Đúng {result.correctCount}/{result.totalQuestions} câu
         </Text>
@@ -28,13 +28,13 @@ export function ExamResultView({ result, elapsedSec, submittedAt }: { result: Qu
           style={{
             gap: 6,
             borderWidth: 1,
-            borderColor: d.isCorrect ? '#86EFAC' : '#FCA5A5',
-            backgroundColor: d.isCorrect ? '#F0FDF4' : '#FEF2F2',
+            borderColor: d.isCorrect ? COLORS.success : COLORS.dangerOnNight,
+            backgroundColor: d.isCorrect ? COLORS.successTint : COLORS.dangerTint,
             borderRadius: 8,
             padding: 12,
           }}
         >
-          <Text style={{ fontWeight: '600' }}>
+          <Text style={{ color: COLORS.ink, fontWeight: '600' }}>
             Câu {idx + 1}. {d.content}
           </Text>
           {d.options.map((opt) => {
@@ -65,7 +65,7 @@ export function ExamResultView({ result, elapsedSec, submittedAt }: { result: Qu
       ))}
 
       <Pressable onPress={() => router.replace('/my-courses' as Href)} style={{ alignItems: 'center', padding: 12 }}>
-        <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Về khoá học của tôi</Text>
+        <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Về khoá học của tôi</Text>
       </Pressable>
     </ScrollView>
   );

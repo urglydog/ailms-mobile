@@ -5,6 +5,7 @@ import { ShieldAlert, Video } from 'lucide-react-native';
 import { quizzesApi } from '@/lib/api/quizzes';
 import type { ProctorFrameRes } from '@/types/quiz';
 
+import { COLORS } from '@/lib/theme/colors';
 export interface ProctoringRecording {
   uri: string;
   durationSec: number;
@@ -153,7 +154,7 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
   if (!camPermission?.granted || !micPermission?.granted) {
     return (
       <View style={styles.container}>
-        <ShieldAlert size={24} color="#EF4444" />
+        <ShieldAlert size={24} color={COLORS.danger} />
         <Text style={styles.text}>Vui lòng cấp quyền Camera và Micro để tiếp tục thi.</Text>
       </View>
     );
@@ -163,7 +164,7 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
     <View style={styles.cameraWrapper}>
       <CameraView ref={cameraRef} style={styles.camera} facing="front" mode="video" onCameraReady={() => setCameraReady(true)} />
       <View style={styles.badge}>
-        <Video size={12} color="#fff" />
+        <Video size={12} color={COLORS.white} />
         <Text style={styles.badgeText}>REC</Text>
       </View>
     </View>
@@ -173,13 +174,13 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: COLORS.dangerTint,
     borderRadius: 8,
     alignItems: 'center',
     gap: 8,
   },
   text: {
-    color: '#991B1B',
+    color: COLORS.dangerInk,
     textAlign: 'center',
     fontSize: 13,
   },
@@ -193,10 +194,10 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 100,
     borderWidth: 2,
-    borderColor: '#3B82F6',
-    backgroundColor: '#000',
+    borderColor: COLORS.accent,
+    backgroundColor: COLORS.black,
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOpacity: 0.2,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     left: 6,
-    backgroundColor: '#EF4444',
+    backgroundColor: COLORS.danger,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 6,
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   badgeText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 10,
     fontWeight: 'bold',
   },

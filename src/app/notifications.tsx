@@ -51,7 +51,7 @@ export default function NotificationsScreen() {
           headerRight: () =>
             unreadCount > 0 ? (
               <Pressable onPress={() => markAllReadMutation.mutate()}>
-                <Text style={{ color: COLORS.accent }}>Đọc hết</Text>
+                <Text style={{ color: COLORS.accentDark }}>Đọc hết</Text>
               </Pressable>
             ) : null,
         }}
@@ -63,9 +63,9 @@ export default function NotificationsScreen() {
         </View>
       ) : error ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text>{error instanceof ApiError ? error.message : 'Không tải được thông báo.'}</Text>
+          <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được thông báo.'}</Text>
           <Pressable onPress={() => refetch()}>
-            <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
         </View>
       ) : !data || data.length === 0 ? (
@@ -74,7 +74,7 @@ export default function NotificationsScreen() {
         </View>
       ) : (
         <>
-          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: '#fff' }}>
+          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.surfaceRaised }}>
             <Pressable
               onPress={() => setActiveTab('all')}
               style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: activeTab === 'all' ? COLORS.accent : 'transparent' }}
@@ -118,12 +118,12 @@ function NotificationRow({ item, onPress }: { item: Notification; onPress: () =>
         padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.lineSoft,
-        backgroundColor: item.isRead ? '#fff' : COLORS.tint,
+        backgroundColor: item.isRead ? COLORS.surfaceRaised : COLORS.tint,
       }}
     >
       {!item.isRead ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent, marginTop: 6 }} /> : <View style={{ width: 8 }} />}
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontWeight: '600' }}>{item.title}</Text>
+        <Text style={{ color: COLORS.ink, fontWeight: '600' }}>{item.title}</Text>
         <Text style={{ color: COLORS.inkMuted }}>{item.content}</Text>
         <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>{timeAgo(item.createdAt)}</Text>
       </View>

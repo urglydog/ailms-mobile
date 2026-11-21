@@ -34,6 +34,10 @@ import { useVoiceOptions } from '@/hooks/useVoiceOptions';
 import type { PipelineStep } from '@/types/dubbing';
 import type { ChapterNav, LessonNav } from '@/types/lesson';
 import { COLORS } from '@/lib/theme/colors';
+import Animated from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Lock, PlayCircle } from 'lucide-react-native';
+import { MOTION } from '@/lib/theme/tokens';
 
 const STAGE_LABELS: Record<string, string> = {
   ASR: 'Đang bóc tách lời thoại (STT)',
@@ -74,9 +78,11 @@ function buildChunkSteps(totalChunks: number): PipelineStep[] {
 // resources, reviews). Trước đây (08/10/2026) chỉ là 1 nút điều hướng sang màn `/materials/
 // [courseId]` riêng — không phải tab thật, cũng không có badge số lượng như web. Nội dung tab
 // (bài tập GV giao + học liệu) dùng chung `MaterialsWorkspace` với màn `/materials/[courseId]`.
-type MainTab = 'overview' | 'study-plan' | 'qna' | 'materials' | 'gradebook' | 'resources' | 'reviews' | 'tutor' | 'transcript';
+type MainTab = 'lectures' | 'overview' | 'study-plan' | 'qna' | 'materials' | 'gradebook' | 'resources' | 'reviews' | 'tutor' | 'transcript';
 
 const MAIN_TABS: { key: MainTab; label: string }[] = [
+  // UI v3 (giống Udemy): tab đầu tiên là danh sách bài giảng — chuyển bài không phải kéo qua mô tả.
+  { key: 'lectures', label: 'Bài giảng' },
   { key: 'overview', label: 'Tổng quan' },
   { key: 'study-plan', label: 'Lộ trình AI' },
   { key: 'qna', label: 'Hỏi đáp' },
@@ -102,7 +108,7 @@ function applyRate(player: { playbackRate: number }, rate: number) {
   }
 }
 
-const VIDEO_FRAME = { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' } as const;
+const VIDEO_FRAME = { width: '100%', aspectRatio: 16 / 9, backgroundColor: COLORS.black } as const;
 
 export default function LessonPlayerScreen() {
   const { id, seek } = useLocalSearchParams<{ id: string; seek?: string }>();
@@ -110,6 +116,7 @@ export default function LessonPlayerScreen() {
   // `?seek=<giây>` do "Ôn tập lại lý thuyết" (AI Gia sư giải thích câu sai) gắn vào — tua tới đúng mốc.
   const seekSec = seek !== undefined && Number.isFinite(Number(seek)) ? Number(seek) : null;
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
 
   const { data: lesson, isLoading, error, refetch } = useQuery({
     queryKey: ['lesson-player', lessonId],
@@ -117,7 +124,7 @@ export default function LessonPlayerScreen() {
     enabled: Number.isFinite(lessonId),
   });
 
-  const [mainTab, setMainTab] = useState<MainTab>('overview');
+  const [mainTab, setMainTab] = useState<MainTab>('lectures');
 
   // Badge đỏ trên tab "Học liệu" — khớp `fe`'s `currentLessonMaterialCount` (official materials +
   // tài nguyên khoá học gắn với bài/chương hiện tại), dùng chung `matchesLessonContext` với
@@ -160,7 +167,7 @@ export default function LessonPlayerScreen() {
     height: fsH,
     left: (winW - fsW) / 2,
     top: (winH - fsH) / 2,
-    backgroundColor: '#000',
+    backgroundColor: COLORS.black,
     transform: rotateFs ? [{ rotate: '90deg' }] : [],
   };
   const [dubMuted, setDubMuted] = useState(false);
@@ -468,7 +475,9 @@ export default function LessonPlayerScreen() {
   // Tự chuyển bài tiếp theo khi hết video (giống `handleVideoEnded` của web, bật/tắt được).
   const flatLessons = lesson?.chapters.flatMap((c) => c.lessons) ?? [];
   const lessonIdx = flatLessons.findIndex((l) => l.lessonId === lessonId);
-  const nextLessonId = lessonIdx >= 0 && lessonIdx < flatLessons.length - 1 ? (flatLessons[lessonIdx + 1]?.lessonId ?? null) : null;
+  const canOpen = (l?: { isPreview: boolean }) => !!l && (lesson?.enrolled === true || l.isPreview);
+  const prevLessonId = lessonIdx > 0 && canOpen(flatLessons[lessonIdx - 1]) ? (flatLessons[lessonIdx - 1]?.lessonId ?? null) : null;
+  const nextLessonId = lessonIdx >= 0 && lessonIdx < flatLessons.length - 1 && canOpen(flatLessons[lessonIdx + 1]) ? (flatLessons[lessonIdx + 1]?.lessonId ?? null) : null;
   useEventListener(player, 'playToEnd', () => {
     if (autoNext && nextLessonId) router.replace(`/lessons/${nextLessonId}` as Href);
   });
@@ -522,9 +531,9 @@ export default function LessonPlayerScreen() {
   if (error || !lesson) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text>{error instanceof ApiError ? error.message : 'Không tải được bài học.'}</Text>
+        <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được bài học.'}</Text>
         <Pressable onPress={() => refetch()}>
-          <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
       </View>
     );
@@ -563,12 +572,12 @@ export default function LessonPlayerScreen() {
 
       {streamConflict ? (
         <View style={{ ...VIDEO_FRAME, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-          <Text style={{ color: '#F87171', fontWeight: '700', fontSize: 16 }}>Phiên xem bị giới hạn</Text>
+          <Text style={{ color: COLORS.dangerOnNight, fontWeight: '700', fontSize: 16 }}>Phiên xem bị giới hạn</Text>
           <Text style={{ color: COLORS.line, textAlign: 'center', fontSize: 13, lineHeight: 20 }}>
             Tài khoản của bạn đang mở bài giảng này ở một thiết bị khác. Vui lòng dừng ở thiết bị kia, hoặc bấm giành lại quyền phát tại đây.
           </Text>
           <Pressable onPress={handleResumeStream} style={{ backgroundColor: COLORS.accent, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, marginTop: 8 }}>
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Giành quyền phát</Text>
+            <Text style={{ color: COLORS.white, fontWeight: '600' }}>Giành quyền phát</Text>
           </Pressable>
         </View>
       ) : isDirectVideo ? (
@@ -578,11 +587,11 @@ export default function LessonPlayerScreen() {
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}
           style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}
         >
-          <Text style={{ color: '#fff' }}>Video YouTube — chạm để mở</Text>
+          <Text style={{ color: COLORS.white }}>Video YouTube — chạm để mở</Text>
         </Pressable>
       ) : (
         <View style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#fff' }}>Chưa có video cho bài này.</Text>
+          <Text style={{ color: COLORS.white }}>Chưa có video cho bài này.</Text>
         </View>
       )}
 
@@ -605,15 +614,17 @@ export default function LessonPlayerScreen() {
       {typeof window !== 'undefined' && audioSrc ? <DubAudioSync key={currentLang?.code} track={track!} video={player} muted={dubMuted} /> : null}
 
       <ScrollView style={{ flex: 1 }}>
-      <View style={{ padding: 16, gap: 4 }}>
-        <Text style={{ fontSize: 18, fontWeight: '700' }}>{lesson.lessonTitle}</Text>
-        <Text style={{ color: COLORS.inkMuted }}>{lesson.courseTitle}</Text>
+      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10, gap: 2 }}>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 12.5, fontWeight: '600' }} numberOfLines={1}>
+          Bài {lessonIdx + 1}/{flatLessons.length} · {lesson.courseTitle}
+        </Text>
+        <Text style={{ color: COLORS.ink, fontSize: 17, fontWeight: '800' }}>{lesson.lessonTitle}</Text>
         {!lesson.enrolled && lesson.isPreview ? (
           <Text style={{ color: COLORS.warning }}>Bạn đang xem thử — ghi danh để xem toàn bộ khoá học.</Text>
         ) : null}
       </View>
 
-      <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 16 }}>
+      <View style={{ paddingHorizontal: 16, paddingBottom: 12, gap: 12 }}>
         <LanguageDropdown
           languages={lesson.languages || []}
           activeCode={activeLang}
@@ -630,7 +641,7 @@ export default function LessonPlayerScreen() {
         {/* Công tắc "Nghe bản gốc" như web (`DubbingBar`): bật = nghe âm thanh gốc (bỏ giọng lồng tiếng);
             tắt = quay lại giọng lồng tiếng vừa dùng, hoặc giọng đã sẵn sàng đầu tiên. */}
         {isDirectVideo ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: COLORS.white }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: COLORS.surfaceRaised }}>
             <Text style={{ color: COLORS.ink, fontWeight: '600' }}>Nghe bản gốc</Text>
             <Switch
               value={activeLang === null}
@@ -689,32 +700,60 @@ export default function LessonPlayerScreen() {
           vì chia 2 tầng tab như bản web). KHÔNG port dubbing/transcript/giới hạn phiên xem đồng
           thời — ngoài phạm vi 4 việc đã chốt, xem UpComming_Plan.md. */}
       <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, marginTop: 8 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+        {/* UI v2: tab dạng "pill" — mục đang chọn có nền tint + chữ đậm, đổi màu bằng CSS transition
+            của Reanimated (120 ms), vùng chạm cao 40. */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          accessibilityRole="tablist"
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8, gap: 6 }}
+          style={{ borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}
+        >
           {[...MAIN_TABS, { key: 'transcript', label: 'Transcript' }].map((tab) => (
             <Pressable
               key={tab.key}
               onPress={() => setMainTab(tab.key as MainTab)}
-              style={{
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-                borderBottomWidth: 2,
-                borderBottomColor: mainTab === tab.key ? COLORS.accent : 'transparent',
-              }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mainTab === tab.key }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: mainTab === tab.key ? COLORS.accent : COLORS.inkFaint }}>
+              <Animated.View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  minHeight: 40,
+                  paddingHorizontal: 14,
+                  borderRadius: 999,
+                  backgroundColor: mainTab === tab.key ? COLORS.tint : 'transparent',
+                  transitionProperty: 'backgroundColor',
+                  transitionDuration: MOTION.fast,
+                }}
+              >
+                <Text style={{ fontSize: 13.5, fontWeight: mainTab === tab.key ? '700' : '600', color: mainTab === tab.key ? COLORS.accentDark : COLORS.inkMuted }}>
                   {tab.label}
                 </Text>
                 {tab.key === 'materials' && lessonMaterialCount > 0 ? (
-                  <View style={{ marginLeft: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>{lessonMaterialCount}</Text>
+                  <View style={{ marginLeft: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS.white }}>{lessonMaterialCount}</Text>
                   </View>
                 ) : null}
-              </View>
+              </Animated.View>
             </Pressable>
           ))}
         </ScrollView>
 
+        {mainTab === 'lectures' && (
+          <View style={{ paddingHorizontal: 12, paddingVertical: 12, gap: 10 }}>
+            {lesson.chapters.map((chapter, i) => (
+              <ChapterNavSection
+                key={chapter.chapterId}
+                index={i}
+                chapter={chapter}
+                currentLessonId={lesson.lessonId}
+                canOpenAll={lesson.enrolled}
+              />
+            ))}
+          </View>
+        )}
         {mainTab === 'overview' && <OverviewTab courseSlug={lesson.courseSlug} courseId={lesson.courseId} enrolled={lesson.enrolled} />}
         {mainTab === 'study-plan' && (
           <StudyPlanTab
@@ -756,46 +795,122 @@ export default function LessonPlayerScreen() {
         )}
       </View>
 
-      <View style={{ padding: 16, gap: 12 }}>
-        <Text style={{ fontWeight: '700', fontSize: 14, color: COLORS.ink }}>Nội dung khóa học</Text>
-        {lesson.chapters.map((chapter) => (
-          <ChapterNavSection key={chapter.chapterId} chapter={chapter} currentLessonId={lesson.lessonId} />
-        ))}
-      </View>
       </ScrollView>
+
+      {/* UI v3: thanh chuyển bài cố định ở đáy — luôn trong tầm ngón cái. */}
+      {!fullscreen ? (
+        <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10 + insets.bottom, borderTopWidth: 1, borderTopColor: COLORS.line, backgroundColor: COLORS.surfaceRaised }}>
+          <NavButton label="Bài trước" icon="prev" targetId={prevLessonId} />
+          <NavButton label="Bài tiếp" icon="next" targetId={nextLessonId} primary />
+        </View>
+      ) : null}
     </View>
   );
 }
 
-function ChapterNavSection({ chapter, currentLessonId }: { chapter: ChapterNav; currentLessonId: number }) {
-  return (
-    <View style={{ gap: 4 }}>
-      <Text style={{ fontWeight: '600' }}>{chapter.chapterTitle}</Text>
-      {chapter.lessons.map((lesson) => (
-        <LessonNavRow key={lesson.lessonId} lesson={lesson} active={lesson.lessonId === currentLessonId} />
-      ))}
-    </View>
-  );
-}
-
-function LessonNavRow({ lesson, active }: { lesson: LessonNav; active: boolean }) {
+function NavButton({ label, icon, targetId, primary }: { label: string; icon: 'prev' | 'next'; targetId: number | null; primary?: boolean }) {
+  const disabled = targetId === null;
+  const Icon = icon === 'prev' ? ChevronLeft : ChevronRight;
+  const fg = primary ? COLORS.white : COLORS.ink;
   return (
     <Pressable
-      onPress={() => !active && router.replace(`/lessons/${lesson.lessonId}` as Href)}
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 8,
-        paddingLeft: 12,
-        backgroundColor: active ? COLORS.tint : 'transparent',
-        borderRadius: 6,
-      }}
+      disabled={disabled}
+      onPress={() => targetId !== null && router.replace(`/lessons/${targetId}` as Href)}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => ({
+        flex: 1,
+        minHeight: 46,
+        borderRadius: 10,
+        flexDirection: icon === 'prev' ? 'row' : 'row-reverse',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        backgroundColor: primary ? COLORS.accent : COLORS.surface,
+        borderWidth: primary ? 0 : 1,
+        borderColor: COLORS.line,
+        opacity: disabled ? 0.4 : pressed ? 0.85 : 1,
+      })}
     >
-      <Text style={{ color: active ? COLORS.accent : COLORS.ink, fontWeight: active ? '700' : '400' }}>
-        {lesson.isCompleted ? '✓ ' : ''}
-        {lesson.lessonTitle}
-      </Text>
-      <Text style={{ color: COLORS.lineDot }}>{Math.round(lesson.durationSec / 60)} phút</Text>
+      <Icon size={18} color={fg} />
+      <Text style={{ color: fg, fontWeight: '700', fontSize: 14.5 }}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function formatMinutes(sec: number) {
+  const m = Math.max(1, Math.round(sec / 60));
+  return `${m} phút`;
+}
+
+/** Chương thu gọn được; chương chứa bài đang học mở sẵn. */
+function ChapterNavSection({ chapter, index, currentLessonId, canOpenAll }: { chapter: ChapterNav; index: number; currentLessonId: number; canOpenAll: boolean }) {
+  const containsCurrent = chapter.lessons.some((l) => l.lessonId === currentLessonId);
+  const [open, setOpen] = useState(containsCurrent);
+  const done = chapter.lessons.filter((l) => l.isCompleted).length;
+  const total = chapter.lessons.reduce((sum, l) => sum + l.durationSec, 0);
+  return (
+    <View style={{ backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 12, overflow: 'hidden' }}>
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12 }}
+      >
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ color: COLORS.inkFaint, fontSize: 11.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 }}>Chương {index + 1}</Text>
+          <Text style={{ color: COLORS.ink, fontWeight: '700', fontSize: 15 }}>{chapter.chapterTitle}</Text>
+          <Text style={{ color: COLORS.inkFaint, fontSize: 12 }}>
+            {done}/{chapter.lessons.length} bài · {formatMinutes(total)}
+          </Text>
+        </View>
+        <View style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }}>
+          <ChevronDown size={20} color={COLORS.inkMuted} />
+        </View>
+      </Pressable>
+      {open
+        ? chapter.lessons.map((l, i) => (
+            <LessonNavRow key={l.lessonId} number={i + 1} lesson={l} active={l.lessonId === currentLessonId} locked={!canOpenAll && !l.isPreview} />
+          ))
+        : null}
+    </View>
+  );
+}
+
+function LessonNavRow({ lesson, number, active, locked }: { lesson: LessonNav; number: number; active: boolean; locked: boolean }) {
+  const StatusIcon = lesson.isCompleted ? CheckCircle2 : locked ? Lock : PlayCircle;
+  const iconColor = lesson.isCompleted ? COLORS.success : active ? COLORS.accentDark : COLORS.inkFaint;
+  return (
+    <Pressable
+      disabled={active || locked}
+      onPress={() => router.replace(`/lessons/${lesson.lessonId}` as Href)}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active, disabled: locked }}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        minHeight: 52,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.lineSoft,
+        borderLeftWidth: 3,
+        borderLeftColor: active ? COLORS.accent : 'transparent',
+        backgroundColor: active ? COLORS.tint : pressed ? COLORS.surface : 'transparent',
+      })}
+    >
+      <Text style={{ width: 18, textAlign: 'center', color: COLORS.inkFaint, fontSize: 13 }}>{number}</Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: locked ? COLORS.inkFaint : COLORS.ink, fontWeight: active ? '700' : '500', fontSize: 14 }} numberOfLines={2}>
+          {lesson.lessonTitle}
+        </Text>
+        <Text style={{ color: COLORS.inkFaint, fontSize: 12 }}>
+          {active ? 'Đang học · ' : ''}
+          {formatMinutes(lesson.durationSec)}
+        </Text>
+      </View>
+      <StatusIcon size={18} color={iconColor} />
     </Pressable>
   );
 }

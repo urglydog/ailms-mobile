@@ -37,13 +37,13 @@ function BundleCard({ bundle, currentCourseId }: { bundle: CourseBundle; current
   const otherCourses = bundle.courses.filter((c) => c.id !== currentCourseId);
 
   return (
-    <View style={{ borderWidth: 1, borderColor: '#A5F3FC', borderRadius: 14, backgroundColor: '#ECFEFF', overflow: 'hidden' }}>
-      <View style={{ height: 3, backgroundColor: '#06B6D4' }} />
+    <View style={{ borderWidth: 1, borderColor: COLORS.aiTint, borderRadius: 14, backgroundColor: COLORS.aiTint, overflow: 'hidden' }}>
+      <View style={{ height: 3, backgroundColor: COLORS.cyan }} />
       <View style={{ padding: 14, gap: 8 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#0891B2', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
-            <Gift size={11} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>-{bundle.discountPercent}%</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.cyan, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
+            <Gift size={11} color={COLORS.white} />
+            <Text style={{ color: COLORS.white, fontSize: 11, fontWeight: '700' }}>-{bundle.discountPercent}%</Text>
           </View>
           <Text style={{ flex: 1, fontWeight: '700', fontSize: 13, color: COLORS.ink }}>{bundle.title}</Text>
         </View>
@@ -59,9 +59,9 @@ function BundleCard({ bundle, currentCourseId }: { bundle: CourseBundle; current
           </View>
         ) : null}
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, padding: 10 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.surfaceRaised, borderRadius: 10, padding: 10 }}>
           <Text style={{ fontSize: 11.5, color: COLORS.lineDot, textDecorationLine: 'line-through' }}>{fmt(bundle.originalPrice)}</Text>
-          <Text style={{ fontSize: 15, fontWeight: '800', color: '#0E7490' }}>{fmt(bundle.finalPrice)}</Text>
+          <Text style={{ fontSize: 15, fontWeight: '800', color: COLORS.ai }}>{fmt(bundle.finalPrice)}</Text>
         </View>
 
         <Text style={{ fontSize: 11, color: COLORS.inkFaint, textAlign: 'center' }}>Mua gói combo này trên phiên bản web</Text>

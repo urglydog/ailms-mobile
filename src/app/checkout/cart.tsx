@@ -91,7 +91,7 @@ export default function CartCheckoutScreen() {
         <Stack.Screen options={{ headerShown: true, title: 'Thanh toán' }} />
         <Text style={{ color: COLORS.inkFaint }}>Giỏ hàng trống.</Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: COLORS.accent }}>Quay lại</Text>
+          <Text style={{ color: COLORS.accentDark }}>Quay lại</Text>
         </Pressable>
       </View>
     );
@@ -101,7 +101,7 @@ export default function CartCheckoutScreen() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
         <Stack.Screen options={{ headerShown: true, title: 'Kết quả thanh toán' }} />
-        <Text style={{ fontSize: 20, fontWeight: '700', textAlign: 'center' }}>
+        <Text style={{ color: COLORS.ink, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>
           {result.status === 'PAID' ? 'Thanh toán thành công!' : 'Thanh toán không thành công'}
         </Text>
         <Text style={{ color: COLORS.inkMuted, textAlign: 'center' }}>
@@ -113,7 +113,7 @@ export default function CartCheckoutScreen() {
           onPress={() => (result.status === 'PAID' ? router.replace('/my-courses' as Href) : router.back())}
           style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, paddingHorizontal: 24 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>{result.status === 'PAID' ? 'Vào khoá học của tôi' : 'Quay lại'}</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '600' }}>{result.status === 'PAID' ? 'Vào khoá học của tôi' : 'Quay lại'}</Text>
         </Pressable>
       </View>
     );
@@ -150,26 +150,26 @@ export default function CartCheckoutScreen() {
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
       <Stack.Screen options={{ headerShown: true, title: 'Thanh toán giỏ hàng', headerLeft: () => <BackButton /> }} />
-      <Text style={{ fontSize: 18, fontWeight: '700' }}>Thanh toán {cartItems.length} khoá học</Text>
+      <Text style={{ color: COLORS.ink, fontSize: 18, fontWeight: '700' }}>Thanh toán {cartItems.length} khoá học</Text>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: COLORS.accent }}>{totalFinalPrice.toLocaleString('vi-VN')}đ</Text>
+        <Text style={{ fontSize: 22, fontWeight: '700', color: COLORS.accentDark }}>{totalFinalPrice.toLocaleString('vi-VN')}đ</Text>
         {totalFinalPrice < totalOriginal ? (
           <Text style={{ color: COLORS.inkFaint, textDecorationLine: 'line-through' }}>{totalOriginal.toLocaleString('vi-VN')}đ</Text>
         ) : null}
       </View>
 
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Họ tên xuất hoá đơn (không bắt buộc)"
         value={billingName}
         onChangeText={setBillingName}
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
-      <TextInput
+      <TextInput placeholderTextColor={COLORS.inkFaint}
         placeholder="Số điện thoại (không bắt buộc)"
         value={billingPhone}
         onChangeText={setBillingPhone}
         keyboardType="phone-pad"
-        style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
+        style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 12 }}
       />
       <CouponSection
         available={coupons.available}
@@ -189,7 +189,7 @@ export default function CartCheckoutScreen() {
         onPress={() => checkoutMutation.mutate()}
         style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 14, alignItems: 'center' }}
       >
-        <Text style={{ color: '#fff', fontWeight: '600' }}>Thanh toán qua PayOS</Text>
+        <Text style={{ color: COLORS.white, fontWeight: '600' }}>Thanh toán qua PayOS</Text>
       </Pressable>
     </ScrollView>
   );

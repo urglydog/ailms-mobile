@@ -30,7 +30,7 @@ export default function LegalScreen() {
     <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
       <Stack.Screen options={{ headerShown: true, title: 'Thông tin & Chính sách', headerLeft: () => <BackButton /> }} />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }} keyboardShouldPersistTaps="handled">
-        <View style={{ backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: COLORS.line }}>
+        <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line }}>
           {PAGES.map((p, i) => (
             <Pressable
               key={p.path}
@@ -43,10 +43,10 @@ export default function LegalScreen() {
           ))}
         </View>
 
-        <View style={{ backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 8 }}>
+        <View style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, padding: 14, gap: 8 }}>
           <Text style={{ fontWeight: '700', color: COLORS.ink }}>Xác thực chứng chỉ</Text>
           <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>Nhập mã chứng chỉ để kiểm tra tính hợp lệ.</Text>
-          <TextInput
+          <TextInput placeholderTextColor={COLORS.inkFaint}
             placeholder="Mã chứng chỉ"
             value={code}
             onChangeText={setCode}
@@ -58,7 +58,7 @@ export default function LegalScreen() {
             onPress={() => open(`/verify/${encodeURIComponent(code.trim())}`)}
             style={{ backgroundColor: COLORS.accent, borderRadius: 8, padding: 12, alignItems: 'center', opacity: code.trim() ? 1 : 0.5 }}
           >
-            <Text style={{ color: '#fff', fontWeight: '700' }}>Xác thực</Text>
+            <Text style={{ color: COLORS.white, fontWeight: '700' }}>Xác thực</Text>
           </Pressable>
         </View>
       </ScrollView>

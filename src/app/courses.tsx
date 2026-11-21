@@ -1,237 +1,134 @@
-import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-query';
-import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { Redirect, router, type Href } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { ChevronRight, Play, Search } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
-import { categoriesApi, coursesApi } from '@/lib/api/courses';
-import { LayoutGrid, List as ListIcon, X } from 'lucide-react-native';
-import { CourseFiltersModal, DURATIONS, EMPTY_FILTERS, LEVELS, SORTS, type CourseFilterState } from '@/components/course/CourseFiltersModal';
-import { ApiError } from '@/lib/api/client';
-import { useAuth } from '@/lib/auth/AuthContext';
-import { HomeShelves } from '@/components/course/HomeShelves';
+import { HomeShelf, SHELVES } from '@/components/course/HomeShelves';
 import { CategoryTiles } from '@/components/course/CategoryTiles';
 import { RankingBanner } from '@/components/ranking/RankingBanner';
 import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
-import type { CourseSummary, Page } from '@/types/course';
+import { CourseThumb } from '@/components/ui/CourseThumb';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { enrollmentsApi } from '@/lib/api/enrollments';
+import { usersApi } from '@/lib/api/users';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { formatRelative, lessonTarget, pickContinue } from '@/lib/myCourses';
 import { COLORS } from '@/lib/theme/colors';
 
-export default function CoursesScreen() {
+/**
+ * Trang Khám phá (UI v3, tham khảo Udemy mobile). Thứ tự theo mức ưu tiên của người học:
+ * chào + tìm kiếm → TIẾP TỤC HỌC → kệ khoá học (vuốt ngang, "Xem tất cả") → chủ đề (ở giữa,
+ * không chiếm đầu trang) → thêm kệ → bảng xếp hạng ở cuối. Danh sách đầy đủ + bộ lọc nằm ở `/search`.
+ */
+export default function HomeScreen() {
   const { isAuthenticated } = useAuth();
-  const [searchInput, setSearchInput] = useState('');
-  const [keyword, setKeyword] = useState('');
-  const { category: categoryParam } = useLocalSearchParams<{ category?: string }>();
-  const [filters, setFilters] = useState<CourseFilterState>({ ...EMPTY_FILTERS, category: categoryParam ?? null });
-  const [showFilters, setShowFilters] = useState(false);
-  const [view, setView] = useState<'grid' | 'list'>('grid');
-  const activeFilterCount =
-    (filters.category ? 1 : 0) + (filters.level ? 1 : 0) + (filters.priceType !== 'all' ? 1 : 0) +
-    (filters.minRating ? 1 : 0) + (filters.durationBucket ? 1 : 0) + (filters.sortBy !== 'newest' ? 1 : 0);
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+  const enabled = isAuthenticated === true;
 
-  const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.list(), staleTime: 10 * 60 * 1000 });
+  const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => usersApi.getMe(), enabled });
+  const { data: enrollments } = useQuery({ queryKey: ['enrollments'], queryFn: () => enrollmentsApi.getMine(), enabled });
+  const featured = enrollments ? pickContinue(enrollments) : null;
 
-  // Debounce 400ms — tránh gọi API mỗi lần gõ 1 ký tự.
-  useEffect(() => {
-    const timer = setTimeout(() => setKeyword(searchInput.trim()), 400);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  if (isAuthenticated === false) return <Redirect href="/login" />;
 
-  const { data, isLoading, error, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<Page<CourseSummary>, Error, InfiniteData<Page<CourseSummary>>, readonly unknown[], number>({
-    queryKey: ['courses', keyword, filters],
-    initialPageParam: 0,
-    getNextPageParam: (last) => (last.number + 1 < last.totalPages ? last.number + 1 : undefined),
-    queryFn: ({ pageParam }) =>
-      coursesApi.search({
-        page: pageParam,
-        keyword: keyword || undefined,
-        categorySlug: filters.category ?? undefined,
-        level: filters.level ?? undefined,
-        priceType: filters.priceType,
-        minRating: filters.minRating ?? undefined,
-        durationBucket: filters.durationBucket ?? undefined,
-        sortBy: filters.sortBy,
-      }),
-    enabled: isAuthenticated === true,
-  });
-
-  // Chip các bộ lọc đang áp dụng — bấm × để gỡ từng cái (cổng từ `fe` ActiveFilters).
-  const activeChips: { key: string; label: string; clear: () => void }[] = [];
-  if (filters.category) {
-    const name = categories?.find((c) => c.slug === filters.category)?.name ?? filters.category;
-    activeChips.push({ key: 'category', label: name, clear: () => setFilters({ ...filters, category: null }) });
-  }
-  if (filters.level) {
-    activeChips.push({ key: 'level', label: LEVELS.find((l) => l.value === filters.level)?.label ?? filters.level, clear: () => setFilters({ ...filters, level: null }) });
-  }
-  if (filters.priceType !== 'all') {
-    activeChips.push({ key: 'price', label: filters.priceType === 'free' ? 'Miễn phí' : 'Có phí', clear: () => setFilters({ ...filters, priceType: 'all' }) });
-  }
-  if (filters.minRating) {
-    activeChips.push({ key: 'rating', label: `Từ ${filters.minRating}★`, clear: () => setFilters({ ...filters, minRating: null }) });
-  }
-  if (filters.durationBucket) {
-    activeChips.push({ key: 'duration', label: DURATIONS.find((d) => d.value === filters.durationBucket)?.label ?? filters.durationBucket, clear: () => setFilters({ ...filters, durationBucket: null }) });
-  }
-  if (filters.sortBy !== 'newest') {
-    activeChips.push({ key: 'sort', label: SORTS.find((x) => x.value === filters.sortBy)?.label ?? filters.sortBy, clear: () => setFilters({ ...filters, sortBy: 'newest' }) });
-  }
-
-  if (isAuthenticated === false) {
-    return <Redirect href="/login" />;
-  }
+  const firstName = me?.fullName?.trim().split(/\s+/).pop();
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
       <TopNav />
-      <FlatList
-        data={data?.pages.flatMap((p) => p.content) ?? []}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-        }}
-        onEndReachedThreshold={0.6}
-        keyExtractor={(item) => String(item.id)}
-        refreshing={isRefetching}
-        onRefresh={refetch}
-        key={view}
-        numColumns={view === 'grid' ? 2 : 1}
-        columnWrapperStyle={view === 'grid' ? { gap: 12, paddingHorizontal: 16 } : undefined}
-        contentContainerStyle={{ paddingBottom: 16, gap: 12 }}
-        ListHeaderComponent={
-          <>
-            <SystemAnnouncementBanner />
-            {!keyword && activeFilterCount === 0 ? <CategoryTiles onPick={(slug) => setFilters({ ...EMPTY_FILTERS, category: slug })} /> : null}
-            {!keyword && activeFilterCount === 0 ? <HomeShelves /> : null}
-            <RankingBanner />
-            <View style={{ padding: 16, gap: 10, paddingBottom: 0 }}>
-              <Text style={{ fontSize: 20, fontWeight: '700' }}>Khoá học</Text>
-              {data && (keyword || activeFilterCount > 0) ? (
-                <Text style={{ fontSize: 12.5, color: COLORS.inkMuted }}>Tìm thấy {data.pages[0]?.totalElements ?? 0} khoá học</Text>
-              ) : null}
-              <TextInput
-                placeholder="Tìm khoá học..."
-                value={searchInput}
-                onChangeText={setSearchInput}
-                style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 8, padding: 10 }}
-              />
-              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingVertical: 4 }}>
-                <Pressable
-                  onPress={() => setShowFilters(true)}
-                  style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: activeFilterCount > 0 ? COLORS.accent : COLORS.surface }}
-                >
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: activeFilterCount > 0 ? '#FFF' : COLORS.inkMuted }}>
-                    Bộ lọc{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-                  </Text>
-                </Pressable>
-                {activeFilterCount > 0 ? (
-                  <Pressable onPress={() => setFilters(EMPTY_FILTERS)}>
-                    <Text style={{ fontSize: 13, color: COLORS.accent, fontWeight: '600' }}>Xóa lọc</Text>
-                  </Pressable>
-                ) : null}
-                <View style={{ flex: 1 }} />
-                <Pressable onPress={() => setView(view === 'grid' ? 'list' : 'grid')} accessibilityLabel="Đổi kiểu hiển thị" hitSlop={8}>
-                  {view === 'grid' ? <ListIcon size={20} color={COLORS.inkMuted} /> : <LayoutGrid size={20} color={COLORS.inkMuted} />}
-                </Pressable>
-              </View>
-              {activeChips.length > 0 ? (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {activeChips.map((chip) => (
-                    <Pressable
-                      key={chip.key}
-                      onPress={chip.clear}
-                      accessibilityLabel={`Gỡ bộ lọc ${chip.label}`}
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 6, paddingVertical: 5, borderRadius: 999, backgroundColor: COLORS.tint }}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.accent }}>{chip.label}</Text>
-                      <X size={13} color={COLORS.accent} />
-                    </Pressable>
-                  ))}
-                </View>
-              ) : null}
-            </View>
-          </>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 96, gap: 28 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              await queryClient.invalidateQueries();
+              setRefreshing(false);
+            }}
+          />
         }
-        ListEmptyComponent={
-          isLoading ? (
-            <View style={{ padding: 40, alignItems: 'center' }}>
-              <ActivityIndicator />
+      >
+        <View style={{ gap: 14 }}>
+          <SystemAnnouncementBanner />
+          <View style={{ paddingHorizontal: 16, gap: 12, paddingTop: 4 }}>
+            <View>
+              <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.ink }} accessibilityRole="header">
+                {firstName ? `Chào ${firstName} 👋` : 'Chào bạn 👋'}
+              </Text>
+              <Text style={{ fontSize: 14, color: COLORS.inkMuted }}>Hôm nay bạn muốn học gì?</Text>
             </View>
-          ) : error ? (
-            <View style={{ padding: 24, alignItems: 'center', gap: 12 }}>
-              <Text>{error instanceof ApiError ? error.message : 'Không tải được danh sách khoá học.'}</Text>
-              <Pressable onPress={() => refetch()}>
-                <Text style={{ color: COLORS.accent }}>Thử lại</Text>
+            <Pressable
+              onPress={() => router.push('/search' as Href)}
+              accessibilityRole="search"
+              accessibilityLabel="Tìm khoá học"
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.surfaceRaised }}
+            >
+              <Search size={18} color={COLORS.inkFaint} />
+              <Text style={{ color: COLORS.inkFaint, fontSize: 15 }}>Tìm khoá học, chủ đề, giảng viên…</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {featured ? (
+          <View style={{ paddingHorizontal: 16, gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 19, fontWeight: '800', color: COLORS.ink }}>Tiếp tục học</Text>
+              <Pressable onPress={() => router.push('/my-courses' as Href)} hitSlop={8}>
+                <Text style={{ fontSize: 13.5, fontWeight: '700', color: COLORS.accentDark }}>Khoá của tôi</Text>
               </Pressable>
             </View>
-          ) : (
-            <View style={{ padding: 40, alignItems: 'center', gap: 8 }}>
-              <Text style={{ color: COLORS.ink, fontWeight: '700' }}>Không tìm thấy khoá học phù hợp</Text>
-              <Text style={{ color: COLORS.inkFaint, textAlign: 'center' }}>Thử bỏ một vài bộ lọc hoặc dùng từ khoá khác.</Text>
-              {activeFilterCount > 0 ? (
-                <Pressable onPress={() => setFilters(EMPTY_FILTERS)}>
-                  <Text style={{ color: COLORS.accent, fontWeight: '600' }}>Xoá toàn bộ bộ lọc</Text>
-                </Pressable>
-              ) : null}
-            </View>
-          )
-        }
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <View style={{ padding: 16 }}>
-              <ActivityIndicator />
-            </View>
-          ) : data && !hasNextPage && (data.pages[0]?.totalElements ?? 0) > 0 ? (
-            <Text style={{ textAlign: 'center', color: COLORS.inkFaint, fontSize: 12, padding: 16 }}>Bạn đã xem hết khoá học phù hợp.</Text>
-          ) : null
-        }
-        renderItem={({ item }) => <CourseCard course={item} list={view === 'list'} />}
-      />
-      <CourseFiltersModal
-        visible={showFilters}
-        filters={filters}
-        categories={categories ?? []}
-        onChange={setFilters}
-        onClose={() => setShowFilters(false)}
-      />
+            <PressableScale
+              onPress={() => router.push(lessonTarget(featured) as Href)}
+              accessibilityRole="button"
+              accessibilityLabel={`Tiếp tục học ${featured.courseTitle}`}
+              style={{ flexDirection: 'row', backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 14, overflow: 'hidden' }}
+            >
+              <View style={{ width: 120 }}>
+                <CourseThumb url={featured.thumbnailUrl} title={featured.courseTitle} height="100%" />
+              </View>
+              <View style={{ flex: 1, padding: 12, gap: 6 }}>
+                <Text style={{ color: COLORS.ink, fontSize: 15, fontWeight: '700' }} numberOfLines={2}>{featured.courseTitle}</Text>
+                <View style={{ height: 6, backgroundColor: COLORS.lineSoft, borderRadius: 3, overflow: 'hidden' }}>
+                  <View style={{ height: 6, width: `${Math.min(100, featured.progressPct)}%`, backgroundColor: COLORS.accent }} />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={{ color: COLORS.inkFaint, fontSize: 12 }}>
+                    {Math.round(featured.progressPct)}% · {featured.lastAccessedAt ? formatRelative(featured.lastAccessedAt) : 'chưa học'}
+                  </Text>
+                  <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' }}>
+                    <Play size={15} color={COLORS.white} fill={COLORS.white} />
+                  </View>
+                </View>
+              </View>
+            </PressableScale>
+          </View>
+        ) : null}
+
+        <HomeShelf def={SHELVES.trending} />
+        <HomeShelf def={SHELVES.newest} />
+
+        <CategoryTiles onPick={(slug) => router.push(`/search?category=${encodeURIComponent(slug)}` as Href)} />
+
+        <HomeShelf def={SHELVES.free} />
+        <HomeShelf def={SHELVES.beginner} />
+
+        <Pressable
+          onPress={() => router.push('/search' as Href)}
+          style={{ marginHorizontal: 16, minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: COLORS.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+        >
+          <Text style={{ color: COLORS.accentDark, fontWeight: '700', fontSize: 15 }}>Xem tất cả khoá học</Text>
+          <ChevronRight size={18} color={COLORS.accentDark} />
+        </Pressable>
+
+        <RankingBanner />
+      </ScrollView>
       <BottomNav />
     </View>
-  );
-}
-
-function CourseCard({ course, list }: { course: CourseSummary; list: boolean }) {
-  const { width } = useWindowDimensions();
-  const cardWidth = list ? width - 32 : (width - 32 - 12) / 2;
-  const thumb = course.thumbnailUrl ? (
-    <Image source={{ uri: course.thumbnailUrl }} style={list ? { width: 120, height: '100%', minHeight: 96 } : { width: '100%', height: 100 }} resizeMode="cover" />
-  ) : (
-    <View style={list ? { width: 120, minHeight: 96, backgroundColor: COLORS.lineSoft } : { width: '100%', height: 100, backgroundColor: COLORS.lineSoft }} />
-  );
-
-  return (
-    <Pressable
-      onPress={() => router.push(`/courses/${course.slug}` as Href)}
-      style={{
-        width: cardWidth,
-        marginHorizontal: list ? 16 : 0,
-        flexDirection: list ? 'row' : 'column',
-        borderWidth: 1,
-        borderColor: COLORS.line,
-        borderRadius: 8,
-        overflow: 'hidden',
-        backgroundColor: '#FFF',
-      }}
-    >
-      {thumb}
-      <View style={{ padding: 10, gap: 4, flex: list ? 1 : undefined }}>
-        <Text style={{ fontWeight: '700', fontSize: 13, color: '#1E293B' }} numberOfLines={2}>{course.title}</Text>
-        <Text style={{ color: COLORS.inkFaint, fontSize: 11 }} numberOfLines={1}>{course.instructorName}</Text>
-        {course.avgRating ? (
-          <Text style={{ color: COLORS.inkMuted, fontSize: 11 }}>★ {course.avgRating.toFixed(1)} ({course.reviewCount})</Text>
-        ) : null}
-        <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13, marginTop: 4 }}>
-          {course.isFree ? 'Miễn phí' : `${course.finalPrice.toLocaleString('vi-VN')}đ`}
-        </Text>
-      </View>
-    </Pressable>
   );
 }

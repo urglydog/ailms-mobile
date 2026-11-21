@@ -86,7 +86,7 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
         <Text style={{ fontWeight: '700', fontSize: 13.5, color: COLORS.ink, flex: 1 }}>{assignment.title}</Text>
         {assignment.maxScore != null ? (
-          <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.accent, backgroundColor: COLORS.tint, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.accentDark, backgroundColor: COLORS.tint, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
             Tối đa {assignment.maxScore} điểm
           </Text>
         ) : null}
@@ -105,7 +105,7 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
           {mySubmission.textContent ? <Text style={{ fontSize: 12.5, color: COLORS.ink }}>{mySubmission.textContent}</Text> : null}
           {mySubmission.fileUrl ? (
             <Pressable onPress={() => Linking.openURL(mySubmission.fileUrl!)}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.accent }}>📎 {mySubmission.fileName ?? 'Tệp đã nộp'}</Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.accentDark }}>📎 {mySubmission.fileName ?? 'Tệp đã nộp'}</Text>
             </Pressable>
           ) : null}
           {isGraded ? (
@@ -121,13 +121,13 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
         </View>
       ) : (
         <View style={{ gap: 8 }}>
-          <TextInput
+          <TextInput placeholderTextColor={COLORS.inkFaint}
             value={textContent}
             onChangeText={setTextContent}
             multiline
             numberOfLines={3}
             placeholder="Nhập nội dung bài làm..."
-            style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 60, textAlignVertical: 'top' }}
+            style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 60, textAlignVertical: 'top' }}
           />
           <Pressable onPress={handlePickFile} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
             <Paperclip size={14} color={COLORS.inkFaint} />
@@ -150,7 +150,7 @@ function AssignmentCard({ lessonId, item }: { lessonId: number; item: StudentAss
               opacity: (!textContent.trim() && !file) || submit.isPending ? 0.5 : 1,
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>
+            <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>
               {submit.isPending ? 'Đang nộp...' : 'Nộp bài'}
             </Text>
           </Pressable>

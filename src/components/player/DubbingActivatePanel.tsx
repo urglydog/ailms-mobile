@@ -31,7 +31,7 @@ export function DubbingActivatePanel({
           {quotaExceeded ? (
             'Bạn đã đạt giới hạn yêu cầu lồng tiếng hôm nay. Vui lòng quay lại vào ngày mai hoặc chọn ngôn ngữ đã có sẵn.'
           ) : (
-            <Text>Ngôn ngữ <Text style={{ fontWeight: '700' }}>{languageLabel}</Text> chưa có bản lồng tiếng AI.</Text>
+            <Text style={{ color: COLORS.ink }}>Ngôn ngữ <Text style={{ color: COLORS.ink, fontWeight: '700' }}>{languageLabel}</Text> chưa có bản lồng tiếng AI.</Text>
           )}
         </Text>
 
@@ -43,15 +43,15 @@ export function DubbingActivatePanel({
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: isSubmitting ? '#A5B4FC' : '#4F46E5',
+                backgroundColor: isSubmitting ? COLORS.tint : COLORS.accent,
                 paddingHorizontal: 16,
                 paddingVertical: 10,
                 borderRadius: 8,
                 gap: 8,
               }}
             >
-              {isSubmitting && <ActivityIndicator color="#fff" size="small" />}
-              <Text style={{ color: '#fff', fontWeight: '600', fontSize: 14 }}>
+              {isSubmitting && <ActivityIndicator color={COLORS.white} size="small" />}
+              <Text style={{ color: COLORS.white, fontWeight: '600', fontSize: 14 }}>
                 {isSubmitting ? 'Đang gửi…' : 'Kích hoạt lồng tiếng AI'}
               </Text>
             </Pressable>

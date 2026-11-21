@@ -52,9 +52,9 @@ export default function LiveFeedScreen() {
           <Pressable
             key={t.value}
             onPress={() => setTab(t.value)}
-            style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: tab === t.value ? COLORS.accent : '#fff', borderWidth: 1, borderColor: tab === t.value ? COLORS.accent : COLORS.line }}
+            style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, backgroundColor: tab === t.value ? COLORS.accent : COLORS.surfaceRaised, borderWidth: 1, borderColor: tab === t.value ? COLORS.accent : COLORS.line }}
           >
-            <Text style={{ color: tab === t.value ? '#fff' : COLORS.inkMuted, fontWeight: '600' }}>{t.label}</Text>
+            <Text style={{ color: tab === t.value ? COLORS.white : COLORS.inkMuted, fontWeight: '600' }}>{t.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -93,13 +93,13 @@ function LiveCard({ item }: { item: LiveFeedItem }) {
   return (
     <Pressable
       onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}/live/${item.id}`)}
-      style={{ backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: COLORS.lineSoft, overflow: 'hidden' }}
+      style={{ backgroundColor: COLORS.surfaceRaised, borderRadius: 12, borderWidth: 1, borderColor: COLORS.lineSoft, overflow: 'hidden' }}
     >
       <View style={{ aspectRatio: 4 / 3, backgroundColor: COLORS.lineSoft }}>
         {item.thumbnailUrl ? <Image source={{ uri: item.thumbnailUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : null}
         <View style={{ position: 'absolute', left: 8, top: 8, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isLive ? COLORS.danger : COLORS.inkMuted, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
-          {isLive ? <Radio size={12} color="#fff" /> : null}
-          <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+          {isLive ? <Radio size={12} color={COLORS.white} /> : null}
+          <Text style={{ color: COLORS.white, fontSize: 11, fontWeight: '700' }}>
             {isLive ? 'LIVE' : item.scheduledAt ? formatDateTime(item.scheduledAt) : 'Sắp diễn ra'}
           </Text>
         </View>

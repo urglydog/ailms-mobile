@@ -50,13 +50,13 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
               </Pressable>
             ))}
           </View>
-          <TextInput
+          <TextInput placeholderTextColor={COLORS.inkFaint}
             value={comment}
             onChangeText={setComment}
             multiline
             numberOfLines={3}
             placeholder="Chia sẻ cảm nhận của bạn (không bắt buộc)..."
-            style={{ borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 70, textAlignVertical: 'top' }}
+            style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 13, minHeight: 70, textAlignVertical: 'top' }}
           />
           {createReview.error ? (
             <Text style={{ color: COLORS.danger, fontSize: 12 }}>
@@ -75,7 +75,7 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
               opacity: rating === 0 || createReview.isPending ? 0.5 : 1,
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>
+            <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>
               {createReview.isPending ? 'Đang gửi...' : 'Gửi đánh giá'}
             </Text>
           </Pressable>
@@ -102,8 +102,8 @@ export function ReviewsTab({ courseId }: { courseId: number }) {
 function ReviewCard({ review }: { review: CourseReview }) {
   return (
     <View style={{ flexDirection: 'row', gap: 10 }}>
-      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#7C3AED', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>{review.userName.charAt(0).toUpperCase()}</Text>
+      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 13 }}>{review.userName.charAt(0).toUpperCase()}</Text>
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

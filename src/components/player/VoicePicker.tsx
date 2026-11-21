@@ -40,7 +40,7 @@ export function VoicePicker({ voices, selected, onSelect }: VoicePickerProps) {
                   borderRadius: 20,
                   borderWidth: 1,
                   borderColor: isSelected ? COLORS.accent : COLORS.line,
-                  backgroundColor: isSelected ? COLORS.tint : COLORS.white,
+                  backgroundColor: isSelected ? COLORS.tint : COLORS.surfaceRaised,
                 }}
               >
                 <Text style={{ fontSize: 13, fontWeight: '500', color: isSelected ? COLORS.accent : COLORS.inkMuted }}>

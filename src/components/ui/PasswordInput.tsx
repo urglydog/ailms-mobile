@@ -8,7 +8,7 @@ export function PasswordInput({ style, ...rest }: Omit<TextInputProps, 'style'> 
   const [visible, setVisible] = useState(false);
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>
-      <TextInput {...rest} secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} style={{ flex: 1, padding: 0, color: COLORS.ink }} />
+      <TextInput placeholderTextColor={COLORS.inkFaint} {...rest} secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} style={{ flex: 1, padding: 0, color: COLORS.ink }} />
       <Pressable onPress={() => setVisible((v) => !v)} hitSlop={10} accessibilityLabel={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}>
         {visible ? <EyeOff size={18} color={COLORS.inkFaint} /> : <Eye size={18} color={COLORS.inkFaint} />}
       </Pressable>

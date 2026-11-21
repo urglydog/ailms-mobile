@@ -43,11 +43,11 @@ export function QnaTab({ lessonId, enrolled, courseSlug }: { lessonId: number; e
         }
       />
       <View style={{ flexDirection: 'row', gap: 8, padding: 10, borderTopWidth: 1, borderTopColor: COLORS.lineSoft }}>
-        <TextInput
+        <TextInput placeholderTextColor={COLORS.inkFaint}
           value={input}
           onChangeText={setInput}
           placeholder="Đặt câu hỏi về bài học..."
-          style={{ flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
+          style={{ color: COLORS.ink, flex: 1, borderWidth: 1, borderColor: COLORS.line, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, fontSize: 13 }}
           onSubmitEditing={handleSend}
         />
         <Pressable
@@ -55,7 +55,7 @@ export function QnaTab({ lessonId, enrolled, courseSlug }: { lessonId: number; e
           disabled={!input.trim()}
           style={{ backgroundColor: COLORS.accent, borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', opacity: input.trim() ? 1 : 0.5 }}
         >
-          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>Gửi</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>Gửi</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -70,13 +70,13 @@ function ChatBubble({ message, isMine }: { message: LessonChatMessage; isMine: b
       </Text>
       <View
         style={{
-          backgroundColor: isMine ? COLORS.accent : message.isInstructor ? '#F0FDF4' : COLORS.surface,
+          backgroundColor: isMine ? COLORS.accent : message.isInstructor ? COLORS.successTint : COLORS.surface,
           borderRadius: 14,
           paddingHorizontal: 12,
           paddingVertical: 8,
         }}
       >
-        <Text style={{ color: isMine ? '#fff' : COLORS.ink, fontSize: 13 }}>{message.content}</Text>
+        <Text style={{ color: isMine ? COLORS.white : COLORS.ink, fontSize: 13 }}>{message.content}</Text>
       </View>
     </View>
   );

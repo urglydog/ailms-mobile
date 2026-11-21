@@ -19,6 +19,7 @@ import { RelatedCourses } from '@/components/course/RelatedCourses';
 import type { CourseChapter } from '@/types/course';
 import type { CourseReview } from '@/types/review';
 import { COLORS } from '@/lib/theme/colors';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { CourseThumb } from '@/components/ui/CourseThumb';
 import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer';
@@ -244,14 +245,15 @@ export default function CourseDetailScreen() {
           ) : null}
           <Text style={{ fontSize: 20, fontWeight: '800', color: course.isFree ? COLORS.success : COLORS.ink }}>{priceLabel}</Text>
         </View>
-        <Pressable
+        <PressableScale
           onPress={primaryAction.onPress}
           disabled={primaryAction.pending}
           accessibilityRole="button"
-          style={{ flex: 1.4, backgroundColor: COLORS.accent, borderRadius: 10, minHeight: 48, alignItems: 'center', justifyContent: 'center', opacity: primaryAction.pending ? 0.6 : 1 }}
+          containerStyle={{ flex: 1.4 }}
+          style={{ backgroundColor: COLORS.accent, borderRadius: 10, minHeight: 48, alignItems: 'center', justifyContent: 'center', opacity: primaryAction.pending ? 0.6 : 1 }}
         >
           {primaryAction.pending ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 15 }}>{primaryAction.label}</Text>}
-        </Pressable>
+        </PressableScale>
       </View>
     </View>
   );

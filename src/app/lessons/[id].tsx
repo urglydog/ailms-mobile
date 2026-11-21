@@ -34,6 +34,8 @@ import { useVoiceOptions } from '@/hooks/useVoiceOptions';
 import type { PipelineStep } from '@/types/dubbing';
 import type { ChapterNav, LessonNav } from '@/types/lesson';
 import { COLORS } from '@/lib/theme/colors';
+import Animated from 'react-native-reanimated';
+import { MOTION } from '@/lib/theme/tokens';
 
 const STAGE_LABELS: Record<string, string> = {
   ASR: 'Đang bóc tách lời thoại (STT)',
@@ -689,20 +691,35 @@ export default function LessonPlayerScreen() {
           vì chia 2 tầng tab như bản web). KHÔNG port dubbing/transcript/giới hạn phiên xem đồng
           thời — ngoài phạm vi 4 việc đã chốt, xem UpComming_Plan.md. */}
       <View style={{ borderTopWidth: 1, borderTopColor: COLORS.lineSoft, marginTop: 8 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
+        {/* UI v2: tab dạng "pill" — mục đang chọn có nền tint + chữ đậm, đổi màu bằng CSS transition
+            của Reanimated (120 ms), vùng chạm cao 40. */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          accessibilityRole="tablist"
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8, gap: 6 }}
+          style={{ borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}
+        >
           {[...MAIN_TABS, { key: 'transcript', label: 'Transcript' }].map((tab) => (
             <Pressable
               key={tab.key}
               onPress={() => setMainTab(tab.key as MainTab)}
-              style={{
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-                borderBottomWidth: 2,
-                borderBottomColor: mainTab === tab.key ? COLORS.accent : 'transparent',
-              }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mainTab === tab.key }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: mainTab === tab.key ? COLORS.accent : COLORS.inkFaint }}>
+              <Animated.View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  minHeight: 40,
+                  paddingHorizontal: 14,
+                  borderRadius: 999,
+                  backgroundColor: mainTab === tab.key ? COLORS.tint : 'transparent',
+                  transitionProperty: 'backgroundColor',
+                  transitionDuration: MOTION.fast,
+                }}
+              >
+                <Text style={{ fontSize: 13.5, fontWeight: mainTab === tab.key ? '700' : '600', color: mainTab === tab.key ? COLORS.accentDark : COLORS.inkMuted }}>
                   {tab.label}
                 </Text>
                 {tab.key === 'materials' && lessonMaterialCount > 0 ? (
@@ -710,7 +727,7 @@ export default function LessonPlayerScreen() {
                     <Text style={{ fontSize: 10, fontWeight: '700', color: COLORS.white }}>{lessonMaterialCount}</Text>
                   </View>
                 ) : null}
-              </View>
+              </Animated.View>
             </Pressable>
           ))}
         </ScrollView>

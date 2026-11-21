@@ -16,6 +16,7 @@ import { RankingBanner } from '@/components/ranking/RankingBanner';
 import { SystemAnnouncementBanner } from '@/components/system/SystemAnnouncementBanner';
 import type { CourseSummary, Page } from '@/types/course';
 import { COLORS } from '@/lib/theme/colors';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { CourseThumb } from '@/components/ui/CourseThumb';
 
 export default function CoursesScreen() {
@@ -209,7 +210,7 @@ function CourseCard({ course, list }: { course: CourseSummary; list: boolean }) 
     : <CourseThumb url={course.thumbnailUrl} title={course.title} height={(cardWidth * 9) / 16} />;
 
   return (
-    <Pressable
+    <PressableScale
       onPress={() => router.push(`/courses/${course.slug}` as Href)}
       style={{
         width: cardWidth,
@@ -239,6 +240,6 @@ function CourseCard({ course, list }: { course: CourseSummary; list: boolean }) 
           {course.isFree ? 'Miễn phí' : `${course.finalPrice.toLocaleString('vi-VN')}đ`}
         </Text>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

@@ -1,7 +1,8 @@
 import { router, type Href } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 import { COLORS } from '@/lib/theme/colors';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { CourseThumb } from '@/components/ui/CourseThumb';
 import type { CourseSummary } from '@/types/course';
 
@@ -13,7 +14,7 @@ export function CourseShelf({ title, courses }: { title: string; courses: Course
       <Text style={{ fontSize: 18, fontWeight: '700', color: COLORS.ink }}>{title}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
         {courses.map((c) => (
-          <Pressable
+          <PressableScale
             key={c.id}
             onPress={() => router.push(`/courses/${c.slug}` as Href)}
             accessibilityRole="button"
@@ -34,7 +35,7 @@ export function CourseShelf({ title, courses }: { title: string; courses: Course
                 {c.isFree ? 'Miễn phí' : `${c.finalPrice.toLocaleString('vi-VN')}đ`}
               </Text>
             </View>
-          </Pressable>
+          </PressableScale>
         ))}
       </ScrollView>
     </View>

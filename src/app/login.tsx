@@ -6,6 +6,7 @@ import { GraduationCap } from 'lucide-react-native';
 import { ApiError } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { COLORS } from '@/lib/theme/colors';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 
 export default function LoginScreen() {
@@ -111,14 +112,14 @@ export default function LoginScreen() {
         style={{ borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, paddingHorizontal: 14, minHeight: 48, backgroundColor: COLORS.surfaceRaised }}
       />
       {error ? <Text style={{ color: COLORS.danger }}>{error}</Text> : null}
-      <Pressable
+      <PressableScale
         onPress={handleSubmit}
         disabled={isSubmitting}
         accessibilityRole="button"
         style={{ backgroundColor: COLORS.accent, borderRadius: 10, minHeight: 48, alignItems: 'center', justifyContent: 'center', opacity: isSubmitting ? 0.6 : 1 }}
       >
         {isSubmitting ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 15 }}>Đăng nhập</Text>}
-      </Pressable>
+      </PressableScale>
 
       <Link href={'/forgot-password' as Href} style={{ textAlign: 'right', color: COLORS.accentDark, fontWeight: '600', paddingVertical: 4 }}>
         Quên mật khẩu?

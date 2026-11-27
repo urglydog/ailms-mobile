@@ -1,6 +1,6 @@
 import { flashcardDb } from './flashcardDb';
 import { flashcardsApi } from '../api/flashcards';
-import { ApiError } from '../api/client';
+import { ApiError, getAccessToken } from '../api/client';
 
 let running = false;
 let retryAfter = 0;
@@ -33,8 +33,11 @@ export const syncService = {
           await flashcardDb.applyServerResult(result);
           synced += 1;
         } catch (err) {
-          if (err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 401 && err.status !== 403 && err.status !== 429) {
-            // Thẻ không còn tồn tại / dữ liệu không hợp lệ — bỏ khỏi hàng đợi để khỏi kẹt mãi.
+          // 403 khi vẫn còn đăng nhập = học viên không còn quyền với bộ thẻ này (vd khoá đã bị thu hồi sau hoàn tiền) → bỏ lượt ôn đó, không kẹt hàng đợi.
+          // 403 mà phiên đã bị xoá (hết hạn) thì giữ lại để gửi sau khi đăng nhập lại.
+          const noAccess = err instanceof ApiError && err.status === 403 && !!(await getAccessToken());
+          if (noAccess || (err instanceof ApiError && err.status >= 400 && err.status < 500 && err.status !== 401 && err.status !== 403 && err.status !== 429)) {
+            // Thẻ không còn tồn tại / dữ liệu không hợp lệ / không còn quyền — bỏ khỏi hàng đợi để khỏi kẹt mãi.
             await flashcardDb.removeSyncQueueItem(item.id);
             continue;
           }

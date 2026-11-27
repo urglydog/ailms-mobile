@@ -19,9 +19,11 @@ export interface SubtitleSettings {
 export const FONT_SIZE_PX: Record<SubtitleFontSize, number> = { sm: 12, md: 14, lg: 17, xl: 21 };
 export const COLOR_SWATCHES = [COLORS.white, COLORS.highlight, COLORS.cyan, COLORS.success, COLORS.dangerOnNight];
 
+// Mặc định KHÔNG bật phụ đề nào (giống web): người xem bấm "Gốc" hoặc "Dịch" để bật từng loại — bật một loại thì chỉ hiện loại đó,
+// bật thêm loại kia mới hiện cả hai.
 export const DEFAULT_SUBTITLE_SETTINGS: SubtitleSettings = {
-  showOriginal: true,
-  showTranslated: true,
+  showOriginal: false,
+  showTranslated: false,
   fontSize: 'md',
   textColor: COLORS.white,
   backgroundOpacity: 70,
@@ -35,7 +37,8 @@ export async function loadSubtitleSettings(): Promise<SubtitleSettings> {
   try {
     const raw = await SecureStore.getItemAsync(KEY);
     if (!raw) return DEFAULT_SUBTITLE_SETTINGS;
-    return { ...DEFAULT_SUBTITLE_SETTINGS, ...(JSON.parse(raw) as Partial<SubtitleSettings>) };
+    // Kiểu chữ/màu/vị trí được nhớ giữa các lần xem; việc bật phụ đề nào thì tính theo từng lần xem nên luôn bắt đầu ở trạng thái tắt.
+    return { ...DEFAULT_SUBTITLE_SETTINGS, ...(JSON.parse(raw) as Partial<SubtitleSettings>), showOriginal: false, showTranslated: false };
   } catch {
     return DEFAULT_SUBTITLE_SETTINGS;
   }

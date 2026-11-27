@@ -12,6 +12,9 @@ export const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
 /** Thời gian (mili giây) không chạm thì thanh điều khiển bắt đầu mờ đi khi video đang phát. */
 const CONTROLS_HIDE_AFTER_MS = 3000;
+/** Sau khi tua, coi là "đã tới nơi" khi vị trí phát cách điểm đích dưới ngần này giây; quá `SEEK_HOLD_MAX_MS` thì thôi giữ chấm. */
+const SEEK_SETTLE_SEC = 1.5;
+const SEEK_HOLD_MAX_MS = 1500;
 
 function seekTo(player: PlayerLike, sec: number) {
   try {
@@ -111,6 +114,8 @@ export function PlayerSurface(p: Props) {
   const duration = player.duration;
 
   const [drag, setDrag] = useState<number | null>(null);
+  // Sau khi thả tay, chấm tua đứng yên ở điểm vừa chọn cho tới khi video thật sự tới đó (hoặc quá ~1,5s) — trước đây chấm bật về điểm đang phát rồi mới nhảy tới.
+  const [hold, setHold] = useState<number | null>(null);
 
   // Thanh điều khiển tự ẩn như YouTube: đang phát thì sau ~3 giây không chạm sẽ mờ dần rồi ẩn; chạm vào video để hiện lại / ẩn ngay;
   // đang tạm dừng hoặc đang kéo thanh tua thì luôn hiện. Chạm vào bất kỳ nút nào cũng kéo dài thời gian hiện.
@@ -145,12 +150,23 @@ export function PlayerSurface(p: Props) {
   // Các ref chỉ được đọc trong callback cử chỉ (không phải lúc render) — lint không phân biệt được.
   /* eslint-disable react-hooks/refs */
   const pan = useMemo(
-    () => createSeekPan(barWidth, lastRatio, setDrag, (ratio) => seekTo(player, ratio * durationRef.current)),
+    () =>
+      createSeekPan(barWidth, lastRatio, setDrag, (ratio) => {
+        seekTo(player, ratio * durationRef.current);
+        setHold(ratio);
+      }),
     [player],
   );
   /* eslint-enable react-hooks/refs */
 
-  const ratio = drag ?? (duration > 0 ? Math.min(1, sec / duration) : 0);
+  const holdActive = hold !== null && duration > 0 && Math.abs(sec - hold * duration) >= SEEK_SETTLE_SEC;
+  useEffect(() => {
+    if (hold === null) return;
+    const timer = setTimeout(() => setHold(null), SEEK_HOLD_MAX_MS);
+    return () => clearTimeout(timer);
+  }, [hold]);
+  const ratio = drag ?? (holdActive && hold !== null ? hold : duration > 0 ? Math.min(1, sec / duration) : 0);
+  const shownSec = drag !== null ? drag * duration : holdActive && hold !== null ? hold * duration : sec;
   const showMuted = p.dubActive ? p.dubMuted : videoMuted;
 
   const txt = { color: COLORS.white, fontSize: 11.5, fontWeight: '700' } as const;
@@ -208,7 +224,7 @@ export function PlayerSurface(p: Props) {
                 <Text style={txt}>{p.rate}×</Text>
               </Btn>
               <Text style={{ ...txt, fontVariant: ['tabular-nums'], marginLeft: 2 }} numberOfLines={1}>
-                {fmt(drag !== null ? drag * duration : sec)} / {fmt(duration)}
+                {fmt(shownSec)} / {fmt(duration)}
               </Text>
               <View style={{ flex: 1 }} />
               <Btn

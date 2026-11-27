@@ -27,7 +27,7 @@ export function YouTubeView({ controller, youtubeId, startSec }: Props) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.black, pointerEvents: 'none' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.black }}>
       <WebView
         ref={attach}
         source={{ html, baseUrl: WEB_URL }}

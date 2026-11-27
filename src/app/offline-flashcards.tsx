@@ -287,7 +287,7 @@ export default function OfflineFlashcardsScreen() {
                   ))
                 )}
               </View>
-            ) : null
+            ) : undefined
           }
           renderItem={({ item }) => (
             <Pressable

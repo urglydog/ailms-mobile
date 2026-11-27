@@ -35,6 +35,15 @@ export interface OfflineDeck {
   due: number;
   /** Số lượt ôn của bộ này chưa gửi lên server. */
   pending: number;
+  /** Khoá học chứa bộ thẻ (biết sau khi tải từ màn Ôn tập offline hoặc khi màn đó mở lúc có mạng). */
+  courseTitle: string | null;
+  /** Bộ thẻ do giảng viên chia sẻ (chỉ xem) — khác với bộ cá nhân tự tạo (sửa được). */
+  isOfficial: boolean;
+}
+
+/** Thông tin phụ app tự ghi thêm vào bản lưu (không có trong dữ liệu server). */
+interface CachedExtras {
+  _courseTitle?: string;
 }
 
 function toCard(row: FlashcardRow): FlashcardCard {
@@ -97,11 +106,44 @@ export const flashcardDb = {
   },
 
   /** Lưu trọn bộ thẻ (thẻ + bản chi tiết) để ôn offline. Không làm gì nếu không phải flashcard. */
-  async saveDeck(detail: MaterialDetail): Promise<boolean> {
+  async saveDeck(detail: MaterialDetail, meta?: { courseTitle?: string }): Promise<boolean> {
     if (detail.materialType !== 'FLASHCARD' || !detail.flashcards) return false;
     await flashcardDb.syncMaterialFlashcards(detail.id, detail.flashcards);
-    await flashcardDb.saveMaterialCache(detail.id, JSON.stringify(detail));
+    // Giữ tên khoá học đã biết từ lần lưu trước nếu lần này không có.
+    let courseTitle = meta?.courseTitle;
+    if (!courseTitle) {
+      const previous = await flashcardDb.getMaterialCache(detail.id);
+      if (previous) {
+        try {
+          courseTitle = (JSON.parse(previous) as CachedExtras)._courseTitle;
+        } catch {
+          // Bản lưu cũ hỏng — bỏ qua.
+        }
+      }
+    }
+    const extras: CachedExtras = courseTitle ? { _courseTitle: courseTitle } : {};
+    await flashcardDb.saveMaterialCache(detail.id, JSON.stringify({ ...detail, ...extras }));
     return true;
+  },
+
+  /** Ghi thêm tên khoá học cho một bộ thẻ đã lưu. */
+  async setDeckCourseTitle(materialId: number, courseTitle: string): Promise<void> {
+    const cached = await flashcardDb.getMaterialCache(materialId);
+    if (!cached) return;
+    try {
+      const parsed = JSON.parse(cached) as Record<string, unknown>;
+      await flashcardDb.saveMaterialCache(materialId, JSON.stringify({ ...parsed, _courseTitle: courseTitle }));
+    } catch {
+      // Bản lưu hỏng — bỏ qua.
+    }
+  },
+
+  /** Xoá toàn bộ dữ liệu offline (đăng xuất hoặc đổi sang tài khoản khác). */
+  async clearAll(): Promise<void> {
+    const db = await getDb();
+    await db.runAsync('DELETE FROM flashcard_sync_queue');
+    await db.runAsync('DELETE FROM flashcards');
+    await db.runAsync('DELETE FROM material_cache');
   },
 
   async getMaterialCache(materialId: number): Promise<string | null> {
@@ -128,10 +170,14 @@ export const flashcardDb = {
     for (const cache of caches) {
       let title = '';
       let language = '';
+      let courseTitle: string | null = null;
+      let isOfficial = false;
       try {
-        const parsed = JSON.parse(cache.json) as Partial<MaterialDetail>;
+        const parsed = JSON.parse(cache.json) as Partial<MaterialDetail> & CachedExtras;
         title = parsed.title ?? '';
         language = parsed.language ?? '';
+        courseTitle = parsed._courseTitle ?? null;
+        isOfficial = parsed.isOfficial === true;
       } catch {
         // Bản lưu hỏng — vẫn liệt kê để người học xoá được.
       }
@@ -143,6 +189,8 @@ export const flashcardDb = {
         total: own.length,
         due: own.filter((c) => isCardDue(c.next_review_at)).length,
         pending: queue.filter((q) => materialOfCard.get(q.flashcard_id) === cache.material_id).length,
+        courseTitle,
+        isOfficial,
       });
     }
     return decks.sort((a, b) => b.due - a.due || a.title.localeCompare(b.title));

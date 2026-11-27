@@ -4,6 +4,7 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { buildYouTubeHtml } from '@/components/player/youtubeHtml';
 import type { YouTubeController } from '@/components/player/youtubeController';
 import { COLORS } from '@/lib/theme/colors';
+import { WEB_URL } from '@/lib/webUrl';
 
 interface Props {
   controller: YouTubeController;
@@ -29,7 +30,7 @@ export function YouTubeView({ controller, youtubeId, startSec }: Props) {
     <View style={{ flex: 1, backgroundColor: COLORS.black, pointerEvents: 'none' }}>
       <WebView
         ref={attach}
-        source={{ html, baseUrl: 'https://www.youtube.com' }}
+        source={{ html, baseUrl: WEB_URL }}
         originWhitelist={['*']}
         onMessage={handleMessage}
         style={{ flex: 1, backgroundColor: COLORS.black }}

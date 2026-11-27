@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
 import { TopNav } from '@/components/TopNav';
+import { FeaturedShelf } from '@/components/course/FeaturedShelf';
 import { BottomNav } from '@/components/BottomNav';
 import { categoriesApi, coursesApi } from '@/lib/api/courses';
 import { LayoutGrid, List as ListIcon, X } from 'lucide-react-native';
@@ -169,6 +170,11 @@ export default function SearchScreen() {
                 </View>
               ) : null}
             </View>
+            {filters.category && !keyword ? (
+              <View style={{ paddingTop: 12 }}>
+                <FeaturedShelf categorySlug={filters.category} />
+              </View>
+            ) : null}
           </>
         }
         ListEmptyComponent={

@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { authApi } from '@/lib/api/auth';
 import { ApiError, clearTokens, getAccessToken, getRefreshToken, setAuthFailureHandler } from '@/lib/api/client';
 import { usersApi } from '@/lib/api/users';
+import { claimOfflineStorage, releaseOfflineStorage } from '@/lib/db/owner';
+import { syncService } from '@/lib/db/syncService';
 import { signInWithGoogle } from '@/lib/auth/googleAuth';
 import type { LoginRequest } from '@/types/auth';
 
@@ -29,7 +31,10 @@ async function restoreSession(): Promise<boolean> {
   if (!(await getAccessToken())) return false;
   const outcome = await Promise.race([
     usersApi.getMe().then(
-      () => 'ok' as const,
+      (me) => {
+        void claimOfflineStorage(me.id).catch(() => {});
+        return 'ok' as const;
+      },
       (err: unknown) => err,
     ),
     new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), SESSION_CHECK_TIMEOUT_MS)),
@@ -54,19 +59,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void restoreSession().then(setIsAuthenticated);
   }, []);
 
+  /** Sau khi đăng nhập: gắn dữ liệu offline với tài khoản này (xoá dữ liệu của tài khoản khác nếu có). Lỗi ở bước này không chặn đăng nhập. */
+  const claimStorage = async () => {
+    try {
+      const me = await usersApi.getMe();
+      await claimOfflineStorage(me.id);
+    } catch {
+      // Bỏ qua — sẽ thử lại ở lần mở app sau.
+    }
+  };
+
   const login = async (data: LoginRequest) => {
     await authApi.login(data);
+    await claimStorage();
     setIsAuthenticated(true);
   };
 
   const loginWithGoogle = async () => {
     await signInWithGoogle();
+    await claimStorage();
     setIsAuthenticated(true);
   };
 
   const logout = async () => {
     const refreshToken = await getRefreshToken();
+    // Gửi nốt các lượt ôn flashcard còn chờ (nếu có mạng) rồi mới xoá dữ liệu offline của tài khoản này khỏi máy.
+    try {
+      await syncService.syncOfflineReviews({ force: true });
+    } catch {
+      // Không gửi được (mất mạng) — vẫn đăng xuất.
+    }
     await authApi.logout(refreshToken ?? '');
+    await releaseOfflineStorage().catch(() => {});
     setIsAuthenticated(false);
   };
 

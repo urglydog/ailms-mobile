@@ -49,7 +49,7 @@ export function buildYouTubeHtml(videoId: string, startSec: number): string {
       videoId: ${vid},
       width: '100%',
       height: '100%',
-      playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, playsinline: 1, iv_load_policy: 3, start: ${start} },
+      playerVars: { origin: (location.origin && location.origin !== 'null') ? location.origin : undefined, autoplay: 1, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, playsinline: 1, iv_load_policy: 3, start: ${start} },
       events: {
         onReady: function () {
           ready = true;

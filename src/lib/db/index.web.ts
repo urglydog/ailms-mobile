@@ -36,7 +36,12 @@ const webDb = {
     if (normalized.startsWith('INSERT OR REPLACE INTO MATERIAL_CACHE')) {
       materialCacheTable.set(args[0] as number, args[1] as string);
     } else if (normalized.startsWith('DELETE FROM MATERIAL_CACHE')) {
-      materialCacheTable.delete(args[0] as number);
+      if (args.length === 0) materialCacheTable.clear();
+      else materialCacheTable.delete(args[0] as number);
+    } else if (normalized.startsWith('DELETE FROM FLASHCARDS') && args.length === 0) {
+      flashcardsTable.length = 0;
+    } else if (normalized.startsWith('DELETE FROM FLASHCARD_SYNC_QUEUE') && args.length === 0) {
+      syncQueueTable.length = 0;
     } else if (normalized.startsWith('DELETE FROM FLASHCARDS')) {
       const materialId = args[0];
       for (let i = flashcardsTable.length - 1; i >= 0; i--) {

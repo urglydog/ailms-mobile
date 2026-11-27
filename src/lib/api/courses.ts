@@ -37,6 +37,14 @@ export const coursesApi = {
     return api.get<Page<CourseSummary>>(`/api/v1/courses${qs ? `?${qs}` : ''}`);
   },
 
+  /** Kệ "Được đề xuất": khoá đang trong đợt quảng bá đã được admin duyệt (endpoint công khai, như web `publicCoursesApi.featured`). */
+  async featured(placement: 'HOME_FEATURED' | 'CATEGORY_FEATURED' = 'HOME_FEATURED', size = 8, categorySlug?: string): Promise<CourseSummary[]> {
+    const query = new URLSearchParams({ placement, size: String(size) });
+    if (categorySlug) query.set('categorySlug', categorySlug);
+    const page = await api.get<{ content: CourseSummary[] }>(`/api/v1/courses/featured?${query.toString()}`);
+    return page.content;
+  },
+
   /** Lấy theo slug, không phải id — xem CourseDetail. */
   getDetail(slug: string): Promise<CourseDetail> {
     return api.get<CourseDetail>(`/api/v1/courses/${encodeURIComponent(slug)}`);

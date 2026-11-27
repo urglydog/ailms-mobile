@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { Animated, PanResponder, Pressable, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Animated, PanResponder, Pressable, Text, View, type GestureResponderEvent } from 'react-native';
 import { FileText, Maximize2, Minimize2, Pause, Play, RotateCcw, RotateCw, Settings, Volume2, VolumeX } from 'lucide-react-native';
 import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
 import { usePlayerMuted, usePlayerTime, useReallyPlaying } from '@/hooks/usePlayerTime';
@@ -46,32 +46,35 @@ function fmt(raw: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
 }
 
-/** Bộ xử lý cử chỉ cho thanh tua: kéo/chạm để chọn vị trí, thả tay thì tua. Đặt ngoài component để không đọc ref lúc render. */
+/** Bộ xử lý cử chỉ cho thanh tua: chạm/kéo để chọn vị trí, thả tay thì tua. Vị trí tính theo `locationX` TRONG thanh (các phần tử con của thanh
+ * không nhận chạm nên `locationX` luôn tính theo thanh) chia cho bề rộng thanh — đúng cả khi khung bị xoay ở chế độ toàn màn hình và không phụ thuộc
+ * toạ độ màn hình. Lúc nhấc ngón tay dùng giá trị gần nhất (toạ độ lúc nhấc có thể thiếu/NaN). Đặt ngoài component để không đọc ref lúc render. */
 function createSeekPan(
-  barRef: React.RefObject<ComponentRef<typeof View> | null>,
-  boxRef: React.RefObject<{ left: number; width: number }>,
-  durationRef: React.RefObject<number>,
+  widthRef: React.RefObject<number>,
+  lastRatioRef: React.RefObject<number>,
   setDrag: (v: number | null) => void,
-  seek: (sec: number) => void,
+  seekToRatio: (ratio: number) => void,
 ) {
-  const pct = (pageX: number) => Math.min(1, Math.max(0, (pageX - boxRef.current.left) / boxRef.current.width));
-  // Dùng toạ độ của `gestureState` (x0 lúc chạm, moveX lúc kéo/thả) — `nativeEvent.pageX` lúc thả tay có thể
-  // thiếu/NaN trên cảm ứng (touchend không còn ngón nào) khiến thao tác tua bị bỏ qua.
+  const ratioAt = (e: GestureResponderEvent, fallback: number) => {
+    const x = e.nativeEvent.locationX;
+    return Number.isFinite(x) && widthRef.current > 0 ? Math.min(1, Math.max(0, x / widthRef.current)) : fallback;
+  };
   return PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (_e, g) => {
-      barRef.current?.measureInWindow((x, _y, w) => {
-        boxRef.current.left = x;
-        boxRef.current.width = Math.max(1, w);
-      });
-      setDrag(pct(g.x0));
+    // Không nhường cử chỉ cho màn hình cha (cuộn dọc, vuốt quay lại) khi đang kéo thanh tua.
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: (e) => {
+      lastRatioRef.current = ratioAt(e, 0);
+      setDrag(lastRatioRef.current);
     },
-    onPanResponderMove: (_e, g) => setDrag(pct(g.moveX || g.x0)),
-    onPanResponderRelease: (_e, g) => {
-      const ratio = pct(g.moveX || g.x0);
+    onPanResponderMove: (e) => {
+      lastRatioRef.current = ratioAt(e, lastRatioRef.current);
+      setDrag(lastRatioRef.current);
+    },
+    onPanResponderRelease: () => {
       setDrag(null);
-      seek(ratio * durationRef.current);
+      seekToRatio(lastRatioRef.current);
     },
     onPanResponderTerminate: () => setDrag(null),
   });
@@ -132,9 +135,9 @@ export function PlayerSurface(p: Props) {
     else poke();
   };
 
-  // Thanh tua: kéo/chạm để tua (đo vị trí thanh trong cửa sổ để tính %).
-  const barRef = useRef<ComponentRef<typeof View>>(null);
-  const barBox = useRef({ left: 0, width: 1 });
+  // Thanh tua: kéo/chạm để tua.
+  const barWidth = useRef(1);
+  const lastRatio = useRef(0);
   const durationRef = useRef(0);
   useEffect(() => {
     durationRef.current = duration;
@@ -142,7 +145,7 @@ export function PlayerSurface(p: Props) {
   // Các ref chỉ được đọc trong callback cử chỉ (không phải lúc render) — lint không phân biệt được.
   /* eslint-disable react-hooks/refs */
   const pan = useMemo(
-    () => createSeekPan(barRef, barBox, durationRef, setDrag, (sec) => seekTo(player, sec)),
+    () => createSeekPan(barWidth, lastRatio, setDrag, (ratio) => seekTo(player, ratio * durationRef.current)),
     [player],
   );
   /* eslint-enable react-hooks/refs */
@@ -178,15 +181,18 @@ export function PlayerSurface(p: Props) {
             {isPlaying ? <Pause size={26} color={COLORS.white} fill={COLORS.white} /> : <Play size={26} color={COLORS.white} fill={COLORS.white} />}
           </Pressable>
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, paddingBottom: 6, paddingTop: 14, backgroundColor: 'rgba(0,0,0,0.45)' }}>
+            {/* Chừa lề hai bên để không chạm vùng cử chỉ vuốt-quay-lại ở mép màn hình iOS; mọi phần tử con không nhận chạm để `locationX` luôn tính theo thanh. */}
             <View
-              ref={barRef}
               {...pan.panHandlers}
-              style={{ height: 22, justifyContent: 'center' }}
+              onLayout={(e) => {
+                barWidth.current = Math.max(1, e.nativeEvent.layout.width);
+              }}
+              style={{ height: 28, justifyContent: 'center', marginHorizontal: 14 }}
             >
-              <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)' }}>
+              <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}>
                 <View style={{ height: 4, borderRadius: 2, width: `${ratio * 100}%`, backgroundColor: COLORS.accent }} />
               </View>
-              <View style={{ position: 'absolute', left: `${ratio * 100}%`, marginLeft: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.white }} />
+              <View style={{ position: 'absolute', left: `${ratio * 100}%`, marginLeft: -7, width: 14, height: 14, borderRadius: 7, backgroundColor: COLORS.white, pointerEvents: 'none' }} />
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
               <Btn label={isPlaying ? 'Tạm dừng' : 'Phát'} onPress={() => togglePlay(player, isPlaying)}>

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useFocusEffect, type Href } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { CloudDownload, Layers, RefreshCw, Trash2, WifiOff } from 'lucide-react-native';
 
@@ -18,6 +18,29 @@ interface RemoteDeck {
   id: number;
   title: string;
   courseTitle: string;
+  /** Bộ thẻ do giảng viên chia sẻ (chỉ xem), khác bộ cá nhân tự tạo. */
+  isOfficial: boolean;
+}
+
+/** Nhãn phân biệt bộ thẻ của giảng viên (chỉ xem) với bộ thẻ cá nhân (sửa được). */
+function DeckKindBadge({ official }: { official: boolean }) {
+  return (
+    <Text
+      style={{
+        alignSelf: 'flex-start',
+        fontSize: 11,
+        fontWeight: '700',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 6,
+        overflow: 'hidden',
+        color: official ? COLORS.accentDark : COLORS.inkMuted,
+        backgroundColor: official ? COLORS.tint : COLORS.surface,
+      }}
+    >
+      {official ? 'Của giảng viên' : 'Cá nhân'}
+    </Text>
+  );
 }
 
 /** Gom mọi bộ flashcard đã tạo xong trong các khoá học bạn đã ghi danh (cá nhân + do giảng viên chia sẻ). */
@@ -31,7 +54,12 @@ async function fetchRemoteDecks(): Promise<RemoteDeck[]> {
     ]);
     for (const item of [...personal, ...shared]) {
       if (item.materialType === 'FLASHCARD' && item.status === 'COMPLETED') {
-        decks.set(item.id, { id: item.id, title: item.title || `Bộ thẻ #${item.id}`, courseTitle: enrollment.courseTitle });
+        decks.set(item.id, {
+          id: item.id,
+          title: item.title || `Bộ thẻ #${item.id}`,
+          courseTitle: enrollment.courseTitle,
+          isOfficial: 'isOfficial' in item && item.isOfficial === true,
+        });
       }
     }
   }
@@ -58,6 +86,22 @@ export default function OfflineFlashcardsScreen() {
     staleTime: 60_000,
   });
   const savedIds = new Set(decks.map((d) => d.materialId));
+
+  // Bộ thẻ đã lưu từ trước mà chưa biết thuộc khoá học nào (vd mở thẳng từ màn học liệu) — bổ sung tên khoá học khi có mạng.
+  const backfilled = useRef(new Set<number>());
+  useEffect(() => {
+    if (!remoteDecks) return;
+    const todo = decks.filter((d) => !d.courseTitle && !backfilled.current.has(d.materialId));
+    if (todo.length === 0) return;
+    void (async () => {
+      for (const deck of todo) {
+        backfilled.current.add(deck.materialId);
+        const remote = remoteDecks.find((r) => r.id === deck.materialId);
+        if (remote) await flashcardDb.setDeckCourseTitle(deck.materialId, remote.courseTitle);
+      }
+      await refetch();
+    })();
+  }, [remoteDecks, decks, refetch]);
   const downloadable = (remoteDecks ?? []).filter((d) => !savedIds.has(d.id));
 
   // Mở lại màn (vd vừa ôn xong một bộ) thì cập nhật số thẻ cần ôn.
@@ -96,7 +140,7 @@ export default function OfflineFlashcardsScreen() {
       setBusy(list.length > 1 ? `Đang tải bộ thẻ ${i + 1}/${list.length}...` : `Đang tải "${deck.title}"...`);
       try {
         const detail = await materialsApi.getDetail(deck.id);
-        if (await flashcardDb.saveDeck(detail)) saved += 1;
+        if (await flashcardDb.saveDeck(detail, { courseTitle: deck.courseTitle })) saved += 1;
       } catch (err) {
         if (!(err instanceof ApiError)) throw err;
       }
@@ -225,6 +269,7 @@ export default function OfflineFlashcardsScreen() {
                       <View style={{ flex: 1, gap: 2 }}>
                         <Text style={{ color: COLORS.ink, fontWeight: '700', fontSize: 14.5 }} numberOfLines={2}>{d.title}</Text>
                         <Text style={{ color: COLORS.inkFaint, fontSize: 12.5 }} numberOfLines={1}>{d.courseTitle}</Text>
+                        <DeckKindBadge official={d.isOfficial} />
                       </View>
                       <Pressable
                         onPress={() => {
@@ -254,9 +299,15 @@ export default function OfflineFlashcardsScreen() {
                 <Text style={{ color: COLORS.ink, fontWeight: '700', fontSize: 14.5 }} numberOfLines={2}>
                   {item.title}
                 </Text>
-                <Text style={{ color: COLORS.inkFaint, fontSize: 12.5 }}>
-                  {item.total} thẻ · {item.due > 0 ? `${item.due} thẻ cần ôn` : 'Đã ôn hết thẻ đến hạn'}
+                <Text style={{ color: COLORS.inkFaint, fontSize: 12.5 }} numberOfLines={1}>
+                  {item.courseTitle ?? 'Chưa rõ khoá học'}
                 </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <DeckKindBadge official={item.isOfficial} />
+                  <Text style={{ flex: 1, color: COLORS.inkFaint, fontSize: 12.5 }}>
+                    {item.total} thẻ · {item.due > 0 ? `${item.due} cần ôn` : 'đã ôn hết'}
+                  </Text>
+                </View>
                 {item.pending > 0 ? (
                   <Text style={{ color: COLORS.streakInk, fontSize: 12 }}>{item.pending} lượt ôn chưa gửi lên tài khoản</Text>
                 ) : null}

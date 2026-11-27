@@ -5,6 +5,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { ChevronRight, Play, Search } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';
+import { FeaturedShelf } from '@/components/course/FeaturedShelf';
 import { BottomNav } from '@/components/BottomNav';
 import { HomeShelf, SHELVES } from '@/components/course/HomeShelves';
 import { CategoryTiles } from '@/components/course/CategoryTiles';
@@ -109,6 +110,7 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
+        <FeaturedShelf />
         <HomeShelf def={SHELVES.trending} />
         <HomeShelf def={SHELVES.newest} />
 

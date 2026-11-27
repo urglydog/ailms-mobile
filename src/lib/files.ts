@@ -18,18 +18,17 @@ export async function saveAndShareBlob(blob: Blob, filename: string, mimeType: s
     return;
   }
 
-  const dir = new Directory(Paths.cache, 'downloads');
-  if (!dir.exists) dir.create({ intermediates: true });
+  // `Blob` của React Native không có `.arrayBuffer()` (nên tải chứng chỉ/biên lai PDF luôn báo lỗi) — đọc qua FileReader ra data URL rồi ghi như ảnh.
+  await saveAndShareDataUrl(await blobToDataUrl(blob), filename, mimeType);
+}
 
-  const file = new File(dir, filename);
-  if (file.exists) file.delete();
-  file.create();
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  file.writeSync(bytes);
-
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(file.uri, { mimeType });
-  }
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => (typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Không đọc được tệp tải về.')));
+    reader.onerror = () => reject(reader.error ?? new Error('Không đọc được tệp tải về.'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 /**

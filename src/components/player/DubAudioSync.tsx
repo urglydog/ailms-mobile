@@ -22,6 +22,7 @@ function resolveAudio(track: AudioTrack, sec: number): { src: string | null; off
 function silence(video: PlayerLike) {
   try {
     video.muted = true;
+    if (video.volume !== undefined) video.volume = 0;
   } catch {
     // Player đã giải phóng.
   }

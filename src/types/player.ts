@@ -8,6 +8,8 @@ export interface PlayerLike {
   readonly duration: number;
   readonly playing: boolean;
   muted: boolean;
+  /** Âm lượng 0–1 (chỉ video tải lên có). Khi nghe giọng lồng tiếng, âm gốc bị tắt cả bằng `muted` lẫn `volume = 0` cho chắc. */
+  volume?: number;
   playbackRate: number;
   play(): void;
   pause(): void;

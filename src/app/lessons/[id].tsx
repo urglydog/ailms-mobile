@@ -112,9 +112,10 @@ function applyRate(player: { playbackRate: number }, rate: number) {
   }
 }
 
-function applyMuted(player: { muted: boolean }, muted: boolean) {
+function applyMuted(player: { muted: boolean; volume?: number }, muted: boolean) {
   try {
     player.muted = muted;
+    if (player.volume !== undefined) player.volume = muted ? 0 : 1;
   } catch {
     // Player đã giải phóng.
   }
@@ -393,7 +394,9 @@ export default function LessonPlayerScreen() {
   // giọng lồng tiếng và ghi tiến độ dùng chung.
   const isDirectVideo = !!lesson?.videoUrl && !lesson.youtubeId;
   const youtubeId = lesson?.youtubeId && isValidYoutubeId(lesson.youtubeId) ? lesson.youtubeId : null;
-  const [ytFailed, setYtFailed] = useState(false);
+  // Mã lỗi của YouTube khi không nhúng được (101/150/153: chủ video chặn nhúng hoặc thiếu nguồn nhúng; -1: không nạp được trình phát).
+  const [ytErrorCode, setYtErrorCode] = useState<number | null>(null);
+  const ytFailed = ytErrorCode !== null;
   // Vị trí đang xem dở khi khung YouTube bị gỡ (vd bị giới hạn phiên xem) để tạo lại đúng chỗ.
   const [ytResumeSec, setYtResumeSec] = useState<number | null>(null);
   const ytPlayable = !!youtubeId && !ytFailed && Platform.OS !== 'web';
@@ -429,7 +432,7 @@ export default function LessonPlayerScreen() {
     onTime: reportProgress,
     onEnded: goNextLesson,
     // YouTube không cho nhúng video này (hoặc không nạp được trình phát) → hiện nút mở trên YouTube.
-    onError: () => setYtFailed(true),
+    onError: (code) => setYtErrorCode(code),
   });
   useEffect(() => {
     if (lesson) yt.setFallbackDuration(lesson.durationSec);
@@ -631,7 +634,8 @@ export default function LessonPlayerScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: !fullscreen, title: lesson.lessonTitle, headerLeft: () => <BackButton /> }} />
+      {/* Tắt cử chỉ vuốt từ mép trái để quay lại: kéo thanh tua video ở gần mép không còn bị hiểu là quay lại màn trước. */}
+      <Stack.Screen options={{ headerShown: !fullscreen, title: lesson.lessonTitle, headerLeft: () => <BackButton />, gestureEnabled: false }} />
 
       {streamConflict ? (
         <View style={{ ...VIDEO_FRAME, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
@@ -654,6 +658,7 @@ export default function LessonPlayerScreen() {
             {ytFailed ? 'Video này chưa phát được trong ứng dụng.' : 'Video YouTube'}
           </Text>
           <Text style={{ color: COLORS.white, opacity: 0.8, textAlign: 'center', fontSize: 13 }}>Chạm để mở video trên YouTube.</Text>
+          {ytErrorCode !== null ? <Text style={{ color: COLORS.white, opacity: 0.5, textAlign: 'center', fontSize: 11 }}>Mã lỗi YouTube: {ytErrorCode}</Text> : null}
         </Pressable>
       ) : (
         <View style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}>

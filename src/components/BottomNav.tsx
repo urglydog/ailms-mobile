@@ -23,7 +23,10 @@ export function BottomNav() {
         return (
           <Pressable
             key={tab.href}
-            onPress={() => router.replace(tab.href as Href)}
+            onPress={() => {
+              // Đang ở đúng mục này thì không điều hướng lại (tránh màn hình bị tạo lại và tải lại mỗi lần chạm).
+              if (!active) router.replace(tab.href as Href);
+            }}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             accessibilityLabel={tab.label}

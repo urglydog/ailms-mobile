@@ -86,10 +86,10 @@ export default function HomeScreen() {
               onPress={() => router.push(lessonTarget(featured) as Href)}
               accessibilityRole="button"
               accessibilityLabel={`Tiếp tục học ${featured.courseTitle}`}
-              style={{ flexDirection: 'row', backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 14, overflow: 'hidden' }}
+              style={{ flexDirection: 'row', height: 104, backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.line, borderRadius: 14, overflow: 'hidden' }}
             >
-              <View style={{ width: 120 }}>
-                <CourseThumb url={featured.thumbnailUrl} title={featured.courseTitle} height="100%" />
+              <View style={{ width: 120, height: 104 }}>
+                <CourseThumb url={featured.thumbnailUrl} title={featured.courseTitle} height={104} />
               </View>
               <View style={{ flex: 1, padding: 12, gap: 6 }}>
                 <Text style={{ color: COLORS.ink, fontSize: 15, fontWeight: '700' }} numberOfLines={2}>{featured.courseTitle}</Text>

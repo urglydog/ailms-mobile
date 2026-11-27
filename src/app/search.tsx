@@ -222,7 +222,7 @@ function CourseCard({ course, list }: { course: CourseSummary; list: boolean }) 
   const { width } = useWindowDimensions();
   const cardWidth = list ? width - 32 : (width - 32 - 12) / 2;
   const thumb = list
-    ? <CourseThumb url={course.thumbnailUrl} title={course.title} width={120} height="100%" />
+    ? <CourseThumb url={course.thumbnailUrl} title={course.title} width={120} height={96} />
     : <CourseThumb url={course.thumbnailUrl} title={course.title} height={(cardWidth * 9) / 16} />;
 
   return (

@@ -13,6 +13,31 @@ import { syncService } from '@/lib/db/syncService';
 import { useIsOnline } from '@/lib/network';
 import { COLORS } from '@/lib/theme/colors';
 
+/** Một bộ thẻ có trong tài khoản (chưa chắc đã lưu trên máy). */
+interface RemoteDeck {
+  id: number;
+  title: string;
+  courseTitle: string;
+}
+
+/** Gom mọi bộ flashcard đã tạo xong trong các khoá học bạn đã ghi danh (cá nhân + do giảng viên chia sẻ). */
+async function fetchRemoteDecks(): Promise<RemoteDeck[]> {
+  const enrollments = await enrollmentsApi.getMine();
+  const decks = new Map<number, RemoteDeck>();
+  for (const enrollment of enrollments) {
+    const [personal, shared] = await Promise.all([
+      materialsApi.listForCourse(enrollment.courseId).catch(() => []),
+      materialsApi.listSharedForCourse(enrollment.courseId).catch(() => []),
+    ]);
+    for (const item of [...personal, ...shared]) {
+      if (item.materialType === 'FLASHCARD' && item.status === 'COMPLETED') {
+        decks.set(item.id, { id: item.id, title: item.title || `Bộ thẻ #${item.id}`, courseTitle: enrollment.courseTitle });
+      }
+    }
+  }
+  return [...decks.values()];
+}
+
 /** Ôn flashcard bằng các bộ thẻ đã lưu trên máy — dùng được khi không có mạng. */
 export default function OfflineFlashcardsScreen() {
   const queryClient = useQueryClient();
@@ -24,6 +49,16 @@ export default function OfflineFlashcardsScreen() {
     queryFn: () => flashcardDb.listOfflineDecks(),
   });
   const pending = decks.reduce((sum, d) => sum + d.pending, 0);
+
+  // Các bộ thẻ trong tài khoản mà máy chưa lưu — hiện ra để bấm "Tải" từng bộ (cần có mạng).
+  const { data: remoteDecks, isLoading: loadingRemote, refetch: refetchRemote } = useQuery({
+    queryKey: ['remote-flashcard-decks'],
+    queryFn: fetchRemoteDecks,
+    enabled: online,
+    staleTime: 60_000,
+  });
+  const savedIds = new Set(decks.map((d) => d.materialId));
+  const downloadable = (remoteDecks ?? []).filter((d) => !savedIds.has(d.id));
 
   // Mở lại màn (vd vừa ôn xong một bộ) thì cập nhật số thẻ cần ôn.
   useFocusEffect(
@@ -52,44 +87,43 @@ export default function OfflineFlashcardsScreen() {
     }
   };
 
-  const downloadAll = async () => {
-    setBusy('Đang tìm các bộ thẻ trong khoá học của bạn...');
+  /** Tải một danh sách bộ thẻ về máy. Một bộ lỗi thì bỏ qua và tiếp tục; mất mạng giữa chừng thì dừng. */
+  const downloadDecks = async (list: RemoteDeck[]) => {
+    let saved = 0;
+    for (let i = 0; i < list.length; i += 1) {
+      const deck = list[i];
+      if (!deck) continue;
+      setBusy(list.length > 1 ? `Đang tải bộ thẻ ${i + 1}/${list.length}...` : `Đang tải "${deck.title}"...`);
+      try {
+        const detail = await materialsApi.getDetail(deck.id);
+        if (await flashcardDb.saveDeck(detail)) saved += 1;
+      } catch (err) {
+        if (!(err instanceof ApiError)) throw err;
+      }
+    }
+    return saved;
+  };
+
+  const runDownload = async (list: RemoteDeck[]) => {
+    if (list.length === 0) {
+      Alert.alert('Đã lưu đủ', 'Tất cả bộ thẻ trong khoá học của bạn đã được lưu trên máy.');
+      return;
+    }
     try {
-      const enrollments = await enrollmentsApi.getMine();
-      const ids = new Set<number>();
-      for (const enrollment of enrollments) {
-        const [personal, shared] = await Promise.all([
-          materialsApi.listForCourse(enrollment.courseId).catch(() => []),
-          materialsApi.listSharedForCourse(enrollment.courseId).catch(() => []),
-        ]);
-        for (const item of [...personal, ...shared]) {
-          if (item.materialType === 'FLASHCARD' && item.status === 'COMPLETED') ids.add(item.id);
-        }
-      }
-      const list = [...ids];
-      let saved = 0;
-      for (let i = 0; i < list.length; i += 1) {
-        const materialId = list[i];
-        if (materialId === undefined) continue;
-        setBusy(`Đang tải bộ thẻ ${i + 1}/${list.length}...`);
-        try {
-          const detail = await materialsApi.getDetail(materialId);
-          if (await flashcardDb.saveDeck(detail)) saved += 1;
-        } catch (err) {
-          // Một bộ lỗi thì bỏ qua, tiếp tục các bộ còn lại; mất mạng giữa chừng thì dừng hẳn.
-          if (!(err instanceof ApiError)) throw err;
-        }
-      }
+      const saved = await downloadDecks(list);
       refreshAll();
-      Alert.alert(
-        'Đã lưu bộ thẻ',
-        saved > 0 ? `Đã lưu ${saved} bộ thẻ trên máy. Bạn có thể ôn ngay cả khi không có mạng.` : 'Hiện chưa có bộ thẻ nào để lưu. Hãy tạo flashcard trong khoá học rồi quay lại đây.',
-      );
+      void refetchRemote();
+      Alert.alert('Đã lưu bộ thẻ', saved > 0 ? `Đã lưu ${saved} bộ thẻ trên máy. Bạn có thể ôn ngay cả khi không có mạng.` : 'Chưa lưu được bộ thẻ nào. Vui lòng thử lại.');
     } catch (err) {
       Alert.alert('Chưa tải được', err instanceof ApiError ? err.message : 'Kết nối mạng bị gián đoạn. Vui lòng thử lại khi có mạng ổn định.');
     } finally {
       setBusy(null);
     }
+  };
+
+  const downloadAll = () => {
+    setBusy('Đang chuẩn bị...');
+    void runDownload(downloadable);
   };
 
   const confirmRemove = (deck: OfflineDeck) => {
@@ -141,14 +175,14 @@ export default function OfflineFlashcardsScreen() {
           </View>
         ) : null}
 
-        {online ? (
+        {online && downloadable.length > 1 ? (
           <Pressable
             onPress={downloadAll}
             disabled={busy !== null}
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 11, borderRadius: 10, borderWidth: 1, borderColor: COLORS.accent, backgroundColor: COLORS.tint, opacity: busy ? 0.6 : 1 }}
           >
             {busy ? <ActivityIndicator size="small" color={COLORS.accent} /> : <CloudDownload size={16} color={COLORS.accent} />}
-            <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13.5 }}>{busy ?? 'Lưu các bộ thẻ của tôi về máy'}</Text>
+            <Text style={{ color: COLORS.accent, fontWeight: '700', fontSize: 13.5 }}>{busy ?? `Tải tất cả ${downloadable.length} bộ thẻ về máy`}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -165,9 +199,50 @@ export default function OfflineFlashcardsScreen() {
               <Layers size={40} color={COLORS.lineDot} strokeWidth={1.5} />
               <Text style={{ color: COLORS.ink, fontWeight: '700', textAlign: 'center' }}>Chưa có bộ thẻ nào được lưu trên máy</Text>
               <Text style={{ color: COLORS.inkFaint, textAlign: 'center', fontSize: 13 }}>
-                Khi có mạng, bấm “Lưu các bộ thẻ của tôi về máy”. Mỗi bộ thẻ bạn mở cũng được tự động lưu lại.
+                Khi có mạng, chọn bộ thẻ ở mục “Bộ thẻ có thể tải về máy” bên dưới. Mỗi bộ thẻ bạn mở cũng được tự động lưu lại.
               </Text>
             </View>
+          }
+          ListFooterComponent={
+            online ? (
+              <View style={{ gap: 10, marginTop: 16 }}>
+                <Text style={{ color: COLORS.ink, fontWeight: '700', fontSize: 15 }}>Bộ thẻ có thể tải về máy</Text>
+                {loadingRemote ? (
+                  <ActivityIndicator />
+                ) : downloadable.length === 0 ? (
+                  <Text style={{ color: COLORS.inkFaint, fontSize: 13 }}>
+                    {remoteDecks && remoteDecks.length > 0
+                      ? 'Tất cả bộ thẻ trong khoá học của bạn đã được lưu trên máy.'
+                      : 'Chưa có bộ thẻ nào trong khoá học của bạn. Hãy tạo flashcard trong mục Học liệu của khoá học.'}
+                  </Text>
+                ) : (
+                  downloadable.map((d) => (
+                    <View
+                      key={d.id}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.surfaceRaised }}
+                    >
+                      <Layers size={22} color={COLORS.inkFaint} strokeWidth={1.75} />
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text style={{ color: COLORS.ink, fontWeight: '700', fontSize: 14.5 }} numberOfLines={2}>{d.title}</Text>
+                        <Text style={{ color: COLORS.inkFaint, fontSize: 12.5 }} numberOfLines={1}>{d.courseTitle}</Text>
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          setBusy('Đang tải...');
+                          void runDownload([d]);
+                        }}
+                        disabled={busy !== null}
+                        accessibilityLabel={`Tải bộ thẻ ${d.title} về máy`}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: COLORS.accent, opacity: busy ? 0.6 : 1 }}
+                      >
+                        <CloudDownload size={14} color={COLORS.white} />
+                        <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 12.5 }}>Tải</Text>
+                      </Pressable>
+                    </View>
+                  ))
+                )}
+              </View>
+            ) : null
           }
           renderItem={({ item }) => (
             <Pressable

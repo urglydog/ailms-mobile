@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { PanResponder, Pressable, Text, View } from 'react-native';
+import { Animated, PanResponder, Pressable, Text, View } from 'react-native';
 import { FileText, Maximize2, Minimize2, Pause, Play, RotateCcw, RotateCw, Settings, Volume2, VolumeX } from 'lucide-react-native';
 import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
 import { usePlayerMuted, usePlayerTime, useReallyPlaying } from '@/hooks/usePlayerTime';
@@ -9,6 +9,9 @@ import type { SubtitleSettings } from '@/lib/subtitleSettings';
 
 import { COLORS } from '@/lib/theme/colors';
 export const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+/** Thời gian (mili giây) không chạm thì thanh điều khiển bắt đầu mờ đi khi video đang phát. */
+const CONTROLS_HIDE_AFTER_MS = 3000;
 
 function seekTo(player: PlayerLike, sec: number) {
   try {
@@ -106,6 +109,29 @@ export function PlayerSurface(p: Props) {
 
   const [drag, setDrag] = useState<number | null>(null);
 
+  // Thanh điều khiển tự ẩn như YouTube: đang phát thì sau ~3 giây không chạm sẽ mờ dần rồi ẩn; chạm vào video để hiện lại / ẩn ngay;
+  // đang tạm dừng hoặc đang kéo thanh tua thì luôn hiện. Chạm vào bất kỳ nút nào cũng kéo dài thời gian hiện.
+  const [awake, setAwake] = useState(true);
+  const [pokeTick, setPokeTick] = useState(0);
+  const showControls = awake || !isPlaying || drag !== null;
+  const [fade] = useState(() => new Animated.Value(1));
+  const poke = () => {
+    setAwake(true);
+    setPokeTick((n) => n + 1);
+  };
+  useEffect(() => {
+    if (!isPlaying || !awake || drag !== null) return;
+    const timer = setTimeout(() => setAwake(false), CONTROLS_HIDE_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [isPlaying, awake, drag, pokeTick]);
+  useEffect(() => {
+    Animated.timing(fade, { toValue: showControls ? 1 : 0, duration: showControls ? 150 : 450, useNativeDriver: true }).start();
+  }, [showControls, fade]);
+  const onTapVideo = () => {
+    if (showControls && isPlaying) setAwake(false);
+    else poke();
+  };
+
   // Thanh tua: kéo/chạm để tua (đo vị trí thanh trong cửa sổ để tính %).
   const barRef = useRef<ComponentRef<typeof View>>(null);
   const barBox = useRef({ left: 0, width: 1 });
@@ -134,22 +160,23 @@ export function PlayerSurface(p: Props) {
         translatedSubtitles={p.translatedSubtitles}
         player={player}
         settings={p.settings}
-        raised
+        raised={showControls}
       />
 
-      {/* Chạm vào giữa video = phát/dừng (thanh điều khiển luôn hiện, không ẩn/hiện như web desktop hover). */}
-      <Pressable onPress={() => togglePlay(player, isPlaying)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 56 }} />
+      {/* Chạm vào video: hiện thanh điều khiển nếu đang ẩn, ẩn ngay nếu đang hiện lúc video chạy. Phát/dừng dùng nút giữa hoặc nút ở thanh dưới. */}
+      <Pressable onPress={onTapVideo} accessibilityLabel="Hiện hoặc ẩn thanh điều khiển" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
 
-      <>
-          {!isPlaying ? (
-            <Pressable
-              onPress={() => togglePlay(player, isPlaying)}
-              accessibilityLabel="Phát"
-              style={{ position: 'absolute', alignSelf: 'center', top: '35%', width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Play size={26} color={COLORS.white} fill={COLORS.white} />
-            </Pressable>
-          ) : null}
+      <Animated.View
+        onTouchStart={poke}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: fade, pointerEvents: showControls ? 'box-none' : 'none' }}
+      >
+          <Pressable
+            onPress={() => togglePlay(player, isPlaying)}
+            accessibilityLabel={isPlaying ? 'Tạm dừng' : 'Phát'}
+            style={{ position: 'absolute', alignSelf: 'center', top: '32%', width: 54, height: 54, borderRadius: 27, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}
+          >
+            {isPlaying ? <Pause size={26} color={COLORS.white} fill={COLORS.white} /> : <Play size={26} color={COLORS.white} fill={COLORS.white} />}
+          </Pressable>
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, paddingBottom: 6, paddingTop: 14, backgroundColor: 'rgba(0,0,0,0.45)' }}>
             <View
               ref={barRef}
@@ -205,7 +232,7 @@ export function PlayerSurface(p: Props) {
               </Btn>
             </View>
           </View>
-      </>
+      </Animated.View>
     </View>
   );
 }

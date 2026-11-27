@@ -28,6 +28,11 @@ const TYPE_LABEL: Record<MaterialType, string> = {
 
 type Row = (MaterialListItem | SharedMaterialListItem) | CourseResource;
 
+type TypeFilter = 'ALL' | MaterialType | 'RESOURCE';
+type SortKey = 'NEWEST' | 'OLDEST' | 'NAME_ASC';
+const SORT_ORDER: SortKey[] = ['NEWEST', 'OLDEST', 'NAME_ASC'];
+const SORT_LABEL: Record<SortKey, string> = { NEWEST: 'Mới nhất', OLDEST: 'Cũ nhất', NAME_ASC: 'Tên A–Z' };
+
 function isResource(item: Row): item is CourseResource {
   return 'fileUrl' in item;
 }
@@ -108,8 +113,10 @@ export function matchesLessonContext(assignments: MaterialAssignment[], lessonId
  * Nhân". Dùng chung component này cho cả màn `/materials/[courseId]` (điều hướng độc lập) lẫn tab
  * "Học liệu" lồng trong lesson player (`lessons/[id].tsx`). */
 export function MaterialsWorkspace({
-  courseId, lessonId, chapters, enrolled, courseSlug,
+  courseId, lessonId, chapters, enrolled, courseSlug, initialType,
 }: {
+  /** Mở sẵn bộ lọc theo loại (vd từ thông báo nhắc ôn flashcard). */
+  initialType?: MaterialType;
   courseId: number;
   lessonId?: number;
   /** Để resolve "học liệu gán theo CHƯƠNG chứa bài học hiện tại" — không truyền thì bỏ qua nhánh
@@ -120,6 +127,8 @@ export function MaterialsWorkspace({
 }) {
   const [activeTab, setActiveTab] = useState<'official' | 'personal'>('official');
   const [createOpen, setCreateOpen] = useState(false);
+  const [filterType, setFilterType] = useState<TypeFilter>(initialType ?? 'ALL');
+  const [sortBy, setSortBy] = useState<SortKey>('NEWEST');
 
   const personalQuery = useQuery({
     queryKey: ['materials', courseId, 'personal'],
@@ -193,7 +202,26 @@ export function MaterialsWorkspace({
   // đúng `fe`'s `filteredCourseResources.map(...)` rồi `filteredOfficialMaterials.map(...)` nối
   // tiếp nhau trong CÙNG `<div className="space-y-4">`.
   const official: Row[] = [...resources, ...shared];
-  const currentData: Row[] = activeTab === 'official' ? official : personal;
+  // Lọc theo loại học liệu như trang Học liệu trên web (Tất cả / Sơ đồ tư duy / Flashcard / Trắc nghiệm); kho Official có thêm "Tài liệu".
+  // Kho cá nhân sắp xếp được theo ngày tạo hoặc tên.
+  const matchesType = (item: Row) =>
+    filterType === 'ALL' || (filterType === 'RESOURCE' ? isResource(item) : !isResource(item) && item.materialType === filterType);
+  const visibleOfficial = official.filter(matchesType);
+  const visiblePersonal = personal
+    .filter(matchesType)
+    .sort((a, b) => {
+      if (sortBy === 'OLDEST') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (sortBy === 'NAME_ASC') return titleFor(a).localeCompare(titleFor(b), 'vi');
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  const currentData: Row[] = activeTab === 'official' ? visibleOfficial : visiblePersonal;
+  const filters: { id: TypeFilter; label: string }[] = [
+    { id: 'ALL', label: 'Tất cả' },
+    { id: 'FLASHCARD', label: 'Flashcard' },
+    { id: 'QUIZ', label: 'Trắc nghiệm' },
+    { id: 'MINDMAP', label: 'Sơ đồ tư duy' },
+    ...(activeTab === 'official' ? [{ id: 'RESOURCE' as const, label: 'Tài liệu' }] : []),
+  ];
 
   return (
     <View style={{ gap: 16 }}>
@@ -208,6 +236,35 @@ export function MaterialsWorkspace({
         />
         <TabPill label="Kho Học Liệu Cá Nhân" active={activeTab === 'personal'} onPress={() => setActiveTab('personal')} />
       </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, alignItems: 'center' }}>
+        {filters.map((f) => (
+          <Pressable
+            key={f.id}
+            onPress={() => setFilterType(f.id)}
+            accessibilityState={{ selected: filterType === f.id }}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: filterType === f.id ? COLORS.accent : COLORS.line,
+              backgroundColor: filterType === f.id ? COLORS.tint : COLORS.surfaceRaised,
+            }}
+          >
+            <Text style={{ fontSize: 12.5, fontWeight: '600', color: filterType === f.id ? COLORS.accentDark : COLORS.inkMuted }}>{f.label}</Text>
+          </Pressable>
+        ))}
+        {activeTab === 'personal' ? (
+          <Pressable
+            onPress={() => setSortBy((cur) => SORT_ORDER[(SORT_ORDER.indexOf(cur) + 1) % SORT_ORDER.length] ?? 'NEWEST')}
+            accessibilityLabel="Đổi cách sắp xếp"
+            style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.surface }}
+          >
+            <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>{SORT_LABEL[sortBy]}</Text>
+          </Pressable>
+        ) : null}
+      </ScrollView>
 
       {activeTab === 'personal' ? (
         <Pressable

@@ -10,14 +10,14 @@ import { COLORS } from '@/lib/theme/colors';
  * phản hồi: trước đây "Học liệu" chỉ là nút điều hướng sang màn riêng, không phải tab ngang hàng
  * Tổng quan/Hỏi đáp/... như bên web). */
 export default function MaterialsScreen() {
-  const { courseId, lessonId } = useLocalSearchParams<{ courseId: string; lessonId?: string }>();
+  const { courseId, lessonId, type } = useLocalSearchParams<{ courseId: string; lessonId?: string; type?: string }>();
   const id = Number(courseId);
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.surfaceRaised }}>
       <Stack.Screen options={{ headerShown: true, title: 'Học liệu', headerLeft: () => <BackButton /> }} />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <MaterialsWorkspace courseId={id} lessonId={lessonId ? Number(lessonId) : undefined} enrolled courseSlug="" />
+        <MaterialsWorkspace courseId={id} lessonId={lessonId ? Number(lessonId) : undefined} enrolled courseSlug="" initialType={type === 'FLASHCARD' || type === 'QUIZ' || type === 'MINDMAP' ? type : undefined} />
       </ScrollView>
     </View>
   );

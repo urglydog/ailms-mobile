@@ -590,7 +590,18 @@ export default function LessonPlayerScreen() {
     ytPlayable && youtubeId ? (
       <YouTubeView key={youtubeId} controller={yt} youtubeId={youtubeId} startSec={ytResumeSec ?? seekSec ?? lesson.lastPositionSec} />
     ) : (
-      <VideoView player={videoPlayer} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: false }} nativeControls={false} />
+      // Khung cắt phần thừa: `VideoView` được kéo dài lên/xuống 80px (video vẫn nằm giữa, không đổi cỡ) để nút toàn màn hình gốc của iOS
+      // (vẫn hiện dù đã tắt điều khiển gốc, đè lên nút của app) rơi ra ngoài vùng nhìn thấy.
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <VideoView
+          player={videoPlayer}
+          style={{ position: 'absolute', left: 0, right: 0, top: -80, bottom: -80 }}
+          contentFit="contain"
+          fullscreenOptions={{ enable: false }}
+          nativeControls={false}
+          allowsPictureInPicture={false}
+        />
+      </View>
     );
 
   const renderSurface = (isFullscreen: boolean) => (

@@ -9,6 +9,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { syncService } from '@/lib/db/syncService';
 import { isOnlineNow, onReconnect, probeOnline } from '@/lib/network';
+import { AppHeader } from '@/components/AppHeader';
+import { BackButton } from '@/components/BackButton';
 import { DiscoveryChat } from '@/components/chat/DiscoveryChat';
 
 const queryClient = new QueryClient();
@@ -63,9 +65,21 @@ export default function RootLayout() {
         <AuthProvider>
           <ThemeProvider value={theme}>
             <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-            <Stack key={scheme} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.surface } }}>
-              <Stack.Screen name="notifications" options={{ presentation: 'modal', headerShown: true }} />
-            </Stack>
+            {/* Màn hình nào đặt `headerShown: true` sẽ dùng `AppHeader` (nằm trong luồng bố cục, chừa vùng an toàn phía trên) thay cho tiêu đề gốc. */}
+            <Stack
+              key={scheme}
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: COLORS.surface },
+                header: ({ options, route, back }) => (
+                  <AppHeader
+                    title={typeof options.headerTitle === 'string' ? options.headerTitle : (options.title ?? route.name)}
+                    left={options.headerLeft ? options.headerLeft({ canGoBack: !!back, tintColor: COLORS.accent }) : back ? <BackButton /> : null}
+                    right={options.headerRight ? options.headerRight({ canGoBack: !!back, tintColor: COLORS.accent }) : null}
+                  />
+                ),
+              }}
+            />
             <DiscoveryChat key={`chat-${scheme}`} />
           </ThemeProvider>
         </AuthProvider>

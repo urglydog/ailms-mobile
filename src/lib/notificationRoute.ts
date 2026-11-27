@@ -1,5 +1,8 @@
 import type { Href } from 'expo-router';
 
+import { materialsApi } from '@/lib/api/materials';
+import { isOnlineNow } from '@/lib/network';
+
 /** Đọc một tham số trong chuỗi truy vấn (`a=1&b=2`) mà không cần `URLSearchParams`. */
 function queryParam(query: string, key: string): string | null {
   for (const pair of query.split('&')) {
@@ -77,4 +80,29 @@ export function notificationHref(n: { type: string; linkUrl: string | null }): H
     default:
       return null;
   }
+}
+
+/**
+ * Như {@link notificationHref} nhưng thông minh hơn với nhắc ôn flashcard (`SRS_REMINDER`, link `/materials?courseId=N`): đi thẳng tới bộ flashcard
+ * của khoá đó thay vì danh sách học liệu. Khoá có đúng một bộ thẻ → mở bộ thẻ; nhiều bộ → danh sách học liệu của khoá đã lọc sẵn theo Flashcard;
+ * đang mất mạng → màn ôn tập offline.
+ */
+export async function resolveNotificationHref(n: { type: string; linkUrl: string | null }): Promise<Href | null> {
+  const base = notificationHref(n);
+  const courseId = n.type === 'SRS_REMINDER' && n.linkUrl ? n.linkUrl.match(/courseId=(\d+)/)?.[1] : undefined;
+  if (!courseId) return base;
+  if (!isOnlineNow()) return '/offline-flashcards' as Href;
+  try {
+    const [personal, shared] = await Promise.all([
+      materialsApi.listForCourse(Number(courseId)).catch(() => []),
+      materialsApi.listSharedForCourse(Number(courseId)).catch(() => []),
+    ]);
+    const decks = [...personal, ...shared].filter((m) => m.materialType === 'FLASHCARD' && m.status === 'COMPLETED');
+    const only = decks.length === 1 ? decks[0] : undefined;
+    if (only) return `/material/${only.id}` as Href;
+    if (decks.length > 1) return `/materials/${courseId}?type=FLASHCARD` as Href;
+  } catch {
+    // Không tra được danh sách bộ thẻ — dùng đích mặc định.
+  }
+  return base;
 }

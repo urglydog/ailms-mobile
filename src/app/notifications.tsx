@@ -5,7 +5,7 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native
 
 import { ApiError } from '@/lib/api/client';
 import { notificationsApi } from '@/lib/api/notifications';
-import { notificationHref } from '@/lib/notificationRoute';
+import { resolveNotificationHref } from '@/lib/notificationRoute';
 import { BackButton } from '@/components/BackButton';
 import type { Notification } from '@/types/notification';
 import { COLORS } from '@/lib/theme/colors';
@@ -104,8 +104,9 @@ export default function NotificationsScreen() {
                 item={item}
                 onPress={() => {
                   if (!item.isRead) markReadMutation.mutate(item.id);
-                  const href = notificationHref(item);
-                  if (href) router.push(href);
+                  void resolveNotificationHref(item).then((href) => {
+                    if (href) router.push(href);
+                  });
                 }}
               />
             )}
@@ -123,7 +124,8 @@ function NotificationRow({ item, onPress }: { item: Notification; onPress: () =>
       style={{
         flexDirection: 'row',
         gap: 10,
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.lineSoft,
         backgroundColor: item.isRead ? COLORS.surfaceRaised : COLORS.tint,
@@ -131,9 +133,9 @@ function NotificationRow({ item, onPress }: { item: Notification; onPress: () =>
     >
       {!item.isRead ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.accent, marginTop: 6 }} /> : <View style={{ width: 8 }} />}
       <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ color: COLORS.ink, fontWeight: '600' }}>{item.title}</Text>
-        <Text style={{ color: COLORS.inkMuted }}>{item.content}</Text>
-        <Text style={{ color: COLORS.lineDot, fontSize: 12 }}>{timeAgo(item.createdAt)}</Text>
+        <Text style={{ color: COLORS.ink, fontWeight: '700', fontSize: 14 }} numberOfLines={2}>{item.title}</Text>
+        <Text style={{ color: COLORS.inkMuted, fontSize: 13, lineHeight: 18 }} numberOfLines={3}>{item.content}</Text>
+        <Text style={{ color: COLORS.lineDot, fontSize: 11.5 }}>{timeAgo(item.createdAt)}</Text>
       </View>
     </Pressable>
   );

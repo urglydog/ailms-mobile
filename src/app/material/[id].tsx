@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, FileUp, ListChecks, Pencil, Plus, Trash2, Volume2, X } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
@@ -384,6 +384,14 @@ type WorkspaceMode = 'browse' | 'study';
 
 function FlashcardWorkspace({ materialId, initialCards, language, isOfficial, offlineCache }: { materialId: number; initialCards: FlashcardCard[]; language: string; isOfficial: boolean; offlineCache: boolean }) {
   const [mode, setMode] = useState<WorkspaceMode>('study');
+  // Rời màn hình (nhấn mũi tên quay lại, chuyển sang màn khác) thì dừng giọng đọc đang phát.
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        Speech.stop();
+      };
+    }, []),
+  );
   // Số lượt ôn đang chờ đồng bộ lên server — cho học viên thấy chế độ offline đang hoạt động.
   const { data: pending = 0 } = useQuery({
     queryKey: ['flashcard-sync-pending'],
@@ -404,8 +412,8 @@ function FlashcardWorkspace({ materialId, initialCards, language, isOfficial, of
         </View>
       ) : null}
       <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft }}>
-        <ModeTab label="Ôn tập" active={mode === 'study'} onPress={() => setMode('study')} />
-        <ModeTab label="Xem tất cả" active={mode === 'browse'} onPress={() => setMode('browse')} />
+        <ModeTab label="Ôn tập" active={mode === 'study'} onPress={() => { Speech.stop(); setMode('study'); }} />
+        <ModeTab label="Xem tất cả" active={mode === 'browse'} onPress={() => { Speech.stop(); setMode('browse'); }} />
       </View>
       {mode === 'study' ? (
         <FlashcardStudy materialId={materialId} initialCards={initialCards} language={language} />
@@ -480,6 +488,7 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
       void queryClient.invalidateQueries({ queryKey: ['flashcard-sync-pending'] });
     },
     onSuccess: (_, { flashcardId }) => {
+      Speech.stop();
       setCompletedIds((prev) => new Set(prev).add(flashcardId));
       setIsFlipped(false);
     },

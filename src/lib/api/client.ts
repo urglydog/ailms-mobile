@@ -17,6 +17,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import { Platform } from 'react-native';
 import type { ProblemDetail } from '@/types/domain';
+import { reportNetworkError, reportNetworkOk } from '@/lib/network';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -122,6 +123,10 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
+/** Làm mới token không thành công vì server từ chối hoặc đang bận (KHÔNG phải mất mạng). Request đang chờ nhận lỗi này
+ * rồi báo lại đúng phản hồi 401/403 ban đầu; lỗi mất mạng thì được ném thẳng để màn hình biết đang offline. */
+class RefreshFailedError extends Error {}
+
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (token: string) => void;
@@ -156,10 +161,17 @@ async function fetchWithRefresh(
     ...(token ? extraAuthHeaders(token) : {}),
   });
 
-  let response = await fetch(`${resolveBaseUrl()}${path}`, {
-    ...init,
-    headers: buildHeaders(currentToken ?? undefined),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${resolveBaseUrl()}${path}`, {
+      ...init,
+      headers: buildHeaders(currentToken ?? undefined),
+    });
+  } catch (err) {
+    reportNetworkError();
+    throw err;
+  }
+  reportNetworkOk();
 
   if (response.status === 401 || response.status === 403) {
     const refreshToken = await tokenStorage.getItem(REFRESH_TOKEN_KEY);
@@ -170,8 +182,9 @@ async function fetchWithRefresh(
             failedQueue.push({ resolve, reject });
           });
           response = await fetch(`${resolveBaseUrl()}${path}`, { ...init, headers: buildHeaders(newToken) });
-        } catch {
-          throw new ApiError(await parseProblem(response));
+        } catch (err) {
+          if (err instanceof RefreshFailedError) throw new ApiError(await parseProblem(response));
+          throw err;
         }
       } else {
         isRefreshing = true;
@@ -188,15 +201,20 @@ async function fetchWithRefresh(
             processQueue(null, data.accessToken);
 
             response = await fetch(`${resolveBaseUrl()}${path}`, { ...init, headers: buildHeaders(data.accessToken) });
-          } else {
-            processQueue(new Error('Refresh failed'));
+          } else if (refreshRes.status === 400 || refreshRes.status === 401 || refreshRes.status === 403) {
+            // Server xác nhận phiên đăng nhập đã hết hạn/bị thu hồi → mới đăng xuất.
+            processQueue(new RefreshFailedError('Refresh rejected'));
             await clearTokens();
             authFailureHandler?.();
+          } else {
+            // Server đang bận/lỗi tạm thời (5xx, 429...) → giữ nguyên đăng nhập, báo lỗi của request ban đầu.
+            processQueue(new RefreshFailedError('Refresh unavailable'));
           }
         } catch (err) {
+          // Mất mạng giữa chừng: KHÔNG đăng xuất (trước đây xoá token khiến học viên đang ôn offline bị đẩy ra màn đăng nhập).
+          if (err instanceof TypeError) reportNetworkError();
           processQueue(err as Error);
-          await clearTokens();
-          authFailureHandler?.();
+          throw err;
         } finally {
           isRefreshing = false;
         }

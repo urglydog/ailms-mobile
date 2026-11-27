@@ -20,7 +20,8 @@ export interface FlashcardCard {
   id: number;
   frontText: string;
   backText: string;
-  nextReviewAt: string;
+  /** Thẻ mới chưa từng ôn có thể chưa có giờ ôn (null) — coi là đến hạn ngay. */
+  nextReviewAt: string | null;
   intervalDays: number;
   repetitions: number;
   easiness: number;

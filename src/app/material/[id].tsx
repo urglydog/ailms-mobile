@@ -12,6 +12,8 @@ import { flashcardsApi } from '@/lib/api/flashcards';
 import { materialsApi } from '@/lib/api/materials';
 import { flashcardDb } from '@/lib/db/flashcardDb';
 import { syncService } from '@/lib/db/syncService';
+import { formatInterval, previewIntervalMs } from '@/lib/db/srs';
+import { isOnlineNow } from '@/lib/network';
 import { saveAndShareDataUrl } from '@/lib/files';
 import { MindmapView, type MindmapViewHandle } from '@/components/material/MindmapView';
 import { MindmapToolbar } from '@/components/material/MindmapToolbar';
@@ -33,6 +35,15 @@ function isRealOfficialExam(material: MaterialDetail): boolean {
   return material.quizType === 'OFFICIAL_EXAM' && !!material.isOfficial;
 }
 
+/** Đọc bộ thẻ đã lưu trên máy (kèm trạng thái ôn mới nhất). `null` nếu chưa lưu. */
+async function loadOfflineMaterial(materialId: number): Promise<MaterialDetail | null> {
+  const cached = await flashcardDb.getMaterialCache(materialId);
+  if (!cached) return null;
+  const data = JSON.parse(cached) as MaterialDetail;
+  data.flashcards = await flashcardDb.getOfflineFlashcards(materialId);
+  return { ...data, fromOfflineCache: true };
+}
+
 export default function MaterialDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const materialId = Number(id);
@@ -40,24 +51,24 @@ export default function MaterialDetailScreen() {
   const { data: material, isLoading, error, refetch } = useQuery({
     queryKey: ['material', materialId],
     queryFn: async () => {
+      // Đã biết là đang mất mạng và có bản lưu trên máy → mở ngay bản lưu, khỏi chờ gọi server hết thời gian.
+      if (!isOnlineNow()) {
+        const offline = await loadOfflineMaterial(materialId);
+        if (offline) return offline;
+      }
       try {
         // Đẩy review offline lên trước để dữ liệu server mới nhất khi tải lại thẻ.
         await syncService.syncOfflineReviews();
         const data = await materialsApi.getDetail(materialId);
-        if (data.materialType === 'FLASHCARD' && data.flashcards) {
-          await flashcardDb.syncMaterialFlashcards(materialId, data.flashcards);
-          await flashcardDb.saveMaterialCache(materialId, JSON.stringify(data));
-        }
+        await flashcardDb.saveDeck(data);
         return data;
       } catch (err) {
         // Lỗi từ server (ApiError: 403/404...) → báo như cũ. Chỉ khi KHÔNG kết nối được (mất mạng)
         // mới dùng bản đã lưu để học flashcard offline.
         if (err instanceof ApiError) throw err;
-        const cached = await flashcardDb.getMaterialCache(materialId);
-        if (!cached) throw err;
-        const data = JSON.parse(cached) as MaterialDetail;
-        data.flashcards = await flashcardDb.getOfflineFlashcards(materialId);
-        return { ...data, fromOfflineCache: true };
+        const offline = await loadOfflineMaterial(materialId);
+        if (!offline) throw err;
+        return offline;
       }
     },
     retry: false,
@@ -75,10 +86,21 @@ export default function MaterialDetailScreen() {
   if (error || !material) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
-        <Text style={{ color: COLORS.ink }}>{error instanceof ApiError ? error.message : 'Không tải được học liệu.'}</Text>
+        <Text style={{ color: COLORS.ink, textAlign: 'center' }}>
+          {error instanceof ApiError
+            ? error.message
+            : error
+              ? 'Không có kết nối mạng và học liệu này chưa được lưu trên máy.'
+              : 'Không tải được học liệu.'}
+        </Text>
         <Pressable onPress={() => refetch()}>
           <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
         </Pressable>
+        {error && !(error instanceof ApiError) ? (
+          <Pressable onPress={() => router.push('/offline-flashcards' as Href)}>
+            <Text style={{ color: COLORS.accentDark }}>Mở các bộ thẻ đã lưu trên máy</Text>
+          </Pressable>
+        ) : null}
       </View>
     );
   }
@@ -482,17 +504,13 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
     );
   }
 
-  const fmt = (deltaMs: number) => {
-    if (deltaMs < 3_600_000) return `${Math.round(deltaMs / 60_000)} phút`;
-    if (deltaMs < 86_400_000) return `${Math.round(deltaMs / 3_600_000)} giờ`;
-    return `${Math.round(deltaMs / 86_400_000)} ngày`;
-  };
+  // Thời gian tới lần ôn kế tiếp tính theo đúng công thức của hệ thống (xem `lib/db/srs.ts`) nên khớp với lịch thật.
   const ratingButtons = [
-    { label: 'Khó quá', quality: 0, delta: 1 * 60_000, color: COLORS.danger },
-    { label: 'Khó', quality: 2, delta: 6 * 60_000, color: COLORS.warning },
-    { label: 'Tốt', quality: 3, delta: 10 * 60_000, color: COLORS.success },
-    { label: 'Dễ', quality: 5, delta: 3 * 86_400_000, color: COLORS.accentDark },
-  ];
+    { label: 'Khó quá', quality: 0, color: COLORS.danger },
+    { label: 'Khó', quality: 2, color: COLORS.warning },
+    { label: 'Tốt', quality: 3, color: COLORS.success },
+    { label: 'Dễ', quality: 5, color: COLORS.accentDark },
+  ].map((btn) => ({ ...btn, delta: previewIntervalMs(currentCard, btn.quality) }));
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12, justifyContent: 'center' }}>
@@ -549,7 +567,7 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                 <CalendarClock size={10} color={COLORS.lineDot} />
-                <Text style={{ fontSize: 10, color: COLORS.lineDot }}>{fmt(btn.delta)}</Text>
+                <Text style={{ fontSize: 10, color: COLORS.lineDot }}>{formatInterval(btn.delta)}</Text>
               </View>
               <View style={{ backgroundColor: btn.color, borderRadius: 8, paddingVertical: 10, width: '100%', alignItems: 'center' }}>
                 <Text style={{ color: COLORS.white, fontWeight: '600', fontSize: 13 }}>{btn.label}</Text>

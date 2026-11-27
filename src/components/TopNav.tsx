@@ -7,6 +7,7 @@ import { cartApi } from '@/lib/api/cart';
 import { messageApi } from '@/lib/api/communication';
 import { notificationsApi } from '@/lib/api/notifications';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { OfflineStrip } from '@/components/OfflineStrip';
 import { COLORS } from '@/lib/theme/colors';
 
 export function TopNav() {
@@ -36,6 +37,7 @@ export function TopNav() {
   const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
   return (
+    <>
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, backgroundColor: COLORS.surfaceRaised }}>
       <Text style={{ fontSize: 20, fontWeight: '900', color: COLORS.accentDark, letterSpacing: -0.5 }}>ai<Text style={{ color: COLORS.ink }}>lms.</Text></Text>
       
@@ -83,5 +85,7 @@ export function TopNav() {
         </View>
       )}
     </View>
+    <OfflineStrip />
+    </>
   );
 }

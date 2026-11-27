@@ -35,6 +35,8 @@ const webDb = {
 
     if (normalized.startsWith('INSERT OR REPLACE INTO MATERIAL_CACHE')) {
       materialCacheTable.set(args[0] as number, args[1] as string);
+    } else if (normalized.startsWith('DELETE FROM MATERIAL_CACHE')) {
+      materialCacheTable.delete(args[0] as number);
     } else if (normalized.startsWith('DELETE FROM FLASHCARDS')) {
       const materialId = args[0];
       for (let i = flashcardsTable.length - 1; i >= 0; i--) {
@@ -59,7 +61,11 @@ const webDb = {
 
   async getAllAsync<T>(sql: string, params?: unknown): Promise<T[]> {
     const normalized = sql.trim().toUpperCase();
+    if (normalized.startsWith('SELECT * FROM MATERIAL_CACHE')) {
+      return [...materialCacheTable.entries()].map(([material_id, json]) => ({ material_id, json })) as T[];
+    }
     if (normalized.startsWith('SELECT * FROM FLASHCARDS')) {
+      if (params === undefined) return [...flashcardsTable] as T[];
       const materialId = Array.isArray(params) ? params[0] : params;
       return flashcardsTable.filter((r) => r.material_id === materialId) as T[];
     }

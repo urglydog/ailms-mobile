@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { syncService } from '@/lib/db/syncService';
+import { isOnlineNow, onReconnect, probeOnline } from '@/lib/network';
 import { DiscoveryChat } from '@/components/chat/DiscoveryChat';
 
 const queryClient = new QueryClient();
@@ -17,9 +18,24 @@ export default function RootLayout() {
   useEffect(() => {
     syncService.syncOfflineReviews().catch(() => {});
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') syncService.syncOfflineReviews().catch(() => {});
+      if (state === 'active') {
+        syncService.syncOfflineReviews().catch(() => {});
+        if (!isOnlineNow()) void probeOnline();
+      }
     });
-    return () => sub.remove();
+    // Mạng trở lại → gửi ngay các lượt ôn đã làm offline (không chờ hết thời gian chờ thử lại).
+    const offReconnect = onReconnect(() => {
+      syncService.syncOfflineReviews({ force: true }).catch(() => {});
+    });
+    // Đang mất mạng thì cứ 15 giây hỏi thử server một lần để biết khi nào có mạng lại.
+    const probeTimer = setInterval(() => {
+      if (!isOnlineNow()) void probeOnline();
+    }, 15_000);
+    return () => {
+      sub.remove();
+      offReconnect();
+      clearInterval(probeTimer);
+    };
   }, []);
 
   // UI v2 (21/11/2026): bật chế độ tối theo hệ điều hành. Trước đây ép sáng vì màn hình dùng màu

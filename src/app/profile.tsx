@@ -12,7 +12,7 @@ import { usersApi } from '@/lib/api/users';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { UserProfile } from '@/types/user';
 import { COLORS } from '@/lib/theme/colors';
-import { Award, Bell, BookOpen, Trophy, ChevronRight, FileText, Heart, LifeBuoy, MessageSquare, Radio, Receipt, ShieldAlert, type LucideIcon } from 'lucide-react-native';
+import { Award, Bell, BookOpen, Trophy, ChevronRight, FileText, Heart, LifeBuoy, MessageSquare, Radio, Receipt, ShieldAlert, WifiOff, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 
 export default function ProfileScreen() {
@@ -111,6 +111,7 @@ export default function ProfileScreen() {
           {/* UI v2: chia menu thành nhóm có tiêu đề, mỗi dòng có icon — dễ dò hơn 1 danh sách 10 dòng liền. */}
           <MenuGroup title="Học tập">
             <MenuRow icon={BookOpen} label="Khoá học của tôi" href={'/my-courses' as Href} />
+            <MenuRow icon={WifiOff} label="Ôn tập offline" href={'/offline-flashcards' as Href} />
             <MenuRow icon={Heart} label="Yêu thích" href={'/wishlist' as Href} />
             <MenuRow icon={Award} label="Chứng chỉ của tôi" href={'/certificates' as Href} />
             <MenuRow icon={Radio} label="Buổi live" href={'/live' as Href} />

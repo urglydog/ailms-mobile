@@ -9,6 +9,14 @@ import { ApiError } from '@/lib/api/client';
 import { disputesApi } from '@/lib/api/disputes';
 import { paymentsApi } from '@/lib/api/payments';
 import { COLORS } from '@/lib/theme/colors';
+import {
+  EMPTY_REFUND_ACCOUNT,
+  RefundAccountFields,
+  refundAccountDigits,
+  refundAccountHasInput,
+  refundAccountProblem,
+  type RefundAccountDraft,
+} from '@/components/disputes/RefundAccountFields';
 import type { DisputeCategory, DisputeRes, PickedEvidence } from '@/types/dispute';
 import type { PaymentRecord } from '@/types/payment';
 
@@ -18,6 +26,17 @@ const STATUS_LABEL: Record<DisputeRes['status'], string> = {
   RESOLVED_REJECTED: 'Đã từ chối',
   REOPENED: 'Đang chờ xử lý lại',
 };
+/** Nhãn cho học viên: "Đã hoàn tiền" CHỈ khi tiền đã thật sự được chuyển; đã duyệt mà chưa chuyển thì nói rõ đang chờ chuyển, hoặc cần cập nhật tài khoản. */
+function statusLabel(d: DisputeRes): string {
+  if (d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'PENDING_TRANSFER') return 'Đã duyệt · chờ chuyển tiền';
+  if (d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'AWAITING_ACCOUNT') return 'Cần cập nhật tài khoản';
+  return STATUS_LABEL[d.status];
+}
+function statusTone(d: DisputeRes): string {
+  if (d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'PENDING_TRANSFER') return COLORS.accent;
+  if (d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'AWAITING_ACCOUNT') return COLORS.danger;
+  return statusColor()[d.status];
+}
 const statusColor = (): Record<DisputeRes['status'], string> => ({
   OPEN: COLORS.warning,
   RESOLVED_REFUNDED: COLORS.success,
@@ -56,7 +75,7 @@ export default function DisputesScreen() {
   const [category, setCategory] = useState<DisputeCategory>('CHANGED_MIND');
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
-  const [bank, setBank] = useState('');
+  const [account, setAccount] = useState<RefundAccountDraft>(EMPTY_REFUND_ACCOUNT);
   const [files, setFiles] = useState<PickedEvidence[]>([]);
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +91,12 @@ export default function DisputesScreen() {
   // Mỗi giao dịch chỉ có MỘT khiếu nại (BE từ 11/11/2026) — đã có khiếu nại ở bất kỳ trạng thái nào thì không gửi thêm.
   const alreadyDisputed = (txnRef: string) => (disputes.data ?? []).some((d) => d.paymentTxnRef === txnRef);
 
+  const accountProblem = refundAccountProblem(account, false);
+
   const canReopen = (d: DisputeRes) =>
     d.status === 'RESOLVED_REFUNDED' &&
     d.refundTransferStatus !== 'PENDING_TRANSFER' &&
+    d.refundTransferStatus !== 'AWAITING_ACCOUNT' &&
     !d.reopenedAt &&
     d.resolvedAt != null &&
     nowMs - new Date(d.resolvedAt).getTime() < REOPEN_WINDOW_DAYS * 24 * 60 * 60 * 1000;
@@ -107,9 +129,16 @@ export default function DisputesScreen() {
           paymentTxnRef: selected!.txnRef,
           reason: reason.trim(),
           description: description.trim() || undefined,
-          refundBankAccount: bank.trim() || undefined,
           termsAccepted: accepted,
           category,
+          ...(refundAccountHasInput(account)
+            ? {
+                refundBankCode: account.bankCode,
+                refundAccountNumber: refundAccountDigits(account),
+                refundAccountHolder: account.holder.trim(),
+                refundAccountOwnConfirmed: account.own,
+              }
+            : {}),
         },
         files,
       ),
@@ -119,7 +148,7 @@ export default function DisputesScreen() {
       setCategory('CHANGED_MIND');
       setReason('');
       setDescription('');
-      setBank('');
+      setAccount(EMPTY_REFUND_ACCOUNT);
       setFiles([]);
       setAccepted(false);
       setError(null);
@@ -255,12 +284,14 @@ export default function DisputesScreen() {
                 numberOfLines={4}
                 style={[inputStyle(), { minHeight: 90, textAlignVertical: 'top' }]}
               />
-              <TextInput placeholderTextColor={COLORS.inkFaint}
-                placeholder="Tài khoản nhận hoàn tiền (vd: Vietcombank - 0123456789 - Nguyễn Văn A)"
-                value={bank}
-                onChangeText={setBank}
-                style={inputStyle()}
-              />
+              <View style={{ gap: 8, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 10, padding: 12, backgroundColor: COLORS.surface }}>
+                <Text style={{ fontWeight: '700', color: COLORS.ink }}>Tài khoản nhận hoàn tiền (nên điền)</Text>
+                <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>
+                  Khoản hoàn được chuyển đúng theo thông tin bạn khai. Hãy nhập thật cẩn thận: nếu số tài khoản sai mà vẫn là một tài khoản có thật, tiền sẽ chuyển tới người khác và khó thu hồi.
+                  Nếu chưa điền ở bước này, bạn có thể bổ sung sau khi khiếu nại được duyệt.
+                </Text>
+                <RefundAccountFields draft={account} onChange={setAccount} />
+              </View>
 
               <View style={{ gap: 6 }}>
                 <Pressable
@@ -286,14 +317,14 @@ export default function DisputesScreen() {
               </View>
 
               <Pressable
-                disabled={fileMutation.isPending || !reason.trim() || !accepted}
+                disabled={fileMutation.isPending || !reason.trim() || !accepted || accountProblem !== null}
                 onPress={() => fileMutation.mutate()}
                 style={{
                   backgroundColor: COLORS.accent,
                   borderRadius: 8,
                   padding: 12,
                   alignItems: 'center',
-                  opacity: fileMutation.isPending || !reason.trim() || !accepted ? 0.5 : 1,
+                  opacity: fileMutation.isPending || !reason.trim() || !accepted || accountProblem !== null ? 0.5 : 1,
                 }}
               >
                 <Text style={{ color: COLORS.white, fontWeight: '700' }}>
@@ -315,8 +346,8 @@ export default function DisputesScreen() {
                         Mã GD: {d.paymentTxnRef} — {d.reason}
                       </Text>
                     </View>
-                    <Text style={{ color: statusColor()[d.status], fontWeight: '700', fontSize: 12 }}>
-                      {STATUS_LABEL[d.status]}
+                    <Text style={{ color: statusTone(d), fontWeight: '700', fontSize: 12 }}>
+                      {statusLabel(d)}
                     </Text>
                   </View>
 
@@ -326,11 +357,16 @@ export default function DisputesScreen() {
 
                   {d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'PENDING_TRANSFER' ? (
                     <Text style={{ fontSize: 12, color: COLORS.ink }}>
-                      Đã chấp nhận hoàn tiền, quyền truy cập khóa học đã được thu hồi. Chúng tôi sẽ chuyển khoản và báo lại cho bạn.
+                      Yêu cầu hoàn tiền đã được chấp nhận, quyền truy cập khóa học đã được thu hồi. LinguaLearn sẽ chuyển khoản hoàn vào tài khoản bạn đã khai và báo lại qua email và thông báo khi hoàn tất.
                     </Text>
                   ) : null}
+                  {d.status === 'RESOLVED_REFUNDED' && (d.refundTransferStatus === 'PENDING_TRANSFER' || d.refundTransferStatus === 'AWAITING_ACCOUNT') ? (
+                    <RefundAccountEditor dispute={d} />
+                  ) : null}
                   {d.status === 'RESOLVED_REFUNDED' && d.refundTransferStatus === 'TRANSFERRED' ? (
-                    <Text style={{ fontSize: 12, color: COLORS.success }}>Đã chuyển tiền hoàn cho bạn. Nếu chưa nhận được, hãy báo lại bên dưới.</Text>
+                    <Text style={{ fontSize: 12, color: COLORS.success }}>
+                      {`Khoản hoàn tiền đã được chuyển vào ${d.refundAccountSummary ? `tài khoản ${d.refundAccountSummary}` : 'tài khoản bạn đã đăng ký'}. Nếu chưa nhận được, bạn có thể báo lại bên dưới.`}
+                    </Text>
                   ) : null}
 
                   {(d.status === 'RESOLVED_REFUNDED' || d.status === 'RESOLVED_REJECTED') && d.adminNote ? (
@@ -371,6 +407,67 @@ export default function DisputesScreen() {
             </View>
           ) : null}
         </ScrollView>
+      )}
+    </View>
+  );
+}
+
+/** Học viên cập nhật tài khoản nhận hoàn tiền sau khi đã gửi khiếu nại. Máy chủ quyết định được sửa hay không (`canEditRefundAccount`):
+ * không được thì chỉ hiện lý do. Cần nhập lại số tài khoản và xác nhận chính chủ. */
+function RefundAccountEditor({ dispute }: { dispute: DisputeRes }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(dispute.refundTransferStatus === 'AWAITING_ACCOUNT');
+  const [draft, setDraft] = useState<RefundAccountDraft>(EMPTY_REFUND_ACCOUNT);
+  const problem = refundAccountProblem(draft, true);
+
+  const save = useMutation({
+    mutationFn: () =>
+      disputesApi.updateRefundAccount(dispute.id, {
+        refundBankCode: draft.bankCode,
+        refundAccountNumber: refundAccountDigits(draft),
+        refundAccountHolder: draft.holder.trim(),
+        refundAccountOwnConfirmed: draft.own,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['my-disputes'] });
+      setOpen(false);
+      setDraft(EMPTY_REFUND_ACCOUNT);
+      Alert.alert('Đã cập nhật', 'Tài khoản nhận hoàn tiền của bạn đã được cập nhật. Chúng tôi sẽ chuyển khoản hoàn vào tài khoản này.');
+    },
+    onError: (err: unknown) =>
+      Alert.alert('Chưa cập nhật được', err instanceof ApiError ? err.message : 'Không cập nhật được tài khoản, vui lòng thử lại.'),
+  });
+
+  if (!dispute.canEditRefundAccount) {
+    return dispute.refundAccountHint ? <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>{dispute.refundAccountHint}</Text> : null;
+  }
+
+  return (
+    <View style={{ gap: 8, borderWidth: 1, borderColor: COLORS.line, borderRadius: 10, padding: 10, backgroundColor: COLORS.surface }}>
+      {dispute.refundAccountHint ? <Text style={{ fontSize: 12, color: COLORS.ink }}>{dispute.refundAccountHint}</Text> : null}
+      {dispute.refundAccountSummary ? (
+        <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>Tài khoản đang khai: {dispute.refundAccountSummary}</Text>
+      ) : null}
+      {!open ? (
+        <Pressable onPress={() => setOpen(true)}>
+          <Text style={{ color: COLORS.accentDark, fontWeight: '600' }}>Đổi tài khoản nhận hoàn tiền</Text>
+        </Pressable>
+      ) : (
+        <View style={{ gap: 10 }}>
+          <RefundAccountFields draft={draft} onChange={setDraft} required />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Pressable
+              disabled={save.isPending || problem !== null}
+              onPress={() => save.mutate()}
+              style={{ backgroundColor: COLORS.accent, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16, opacity: save.isPending || problem !== null ? 0.5 : 1 }}
+            >
+              <Text style={{ color: COLORS.white, fontWeight: '700' }}>{save.isPending ? 'Đang lưu...' : 'Lưu tài khoản'}</Text>
+            </Pressable>
+            <Pressable onPress={() => setOpen(false)}>
+              <Text style={{ color: COLORS.inkMuted, fontWeight: '600' }}>Hủy</Text>
+            </Pressable>
+          </View>
+        </View>
       )}
     </View>
   );

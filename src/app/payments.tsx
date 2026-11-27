@@ -1,18 +1,44 @@
 import { useQuery } from '@tanstack/react-query';
 import { Stack, router, type Href } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { FileText } from 'lucide-react-native';
 
 import { paymentsApi } from '@/lib/api/payments';
+import { invoicesApi } from '@/lib/api/invoices';
 import { ApiError } from '@/lib/api/client';
+import { saveAndShareBlob } from '@/lib/files';
 import { BackButton } from '@/components/BackButton';
+import type { Invoice } from '@/types/invoice';
 import type { PaymentRecord } from '@/types/payment';
 import { COLORS } from '@/lib/theme/colors';
+
+type OrderInvoices = { receipt?: Invoice; refund?: Invoice };
 
 export default function PaymentsScreen() {
   const { data: payments, isLoading, error, refetch } = useQuery({
     queryKey: ['my-payments'],
     queryFn: () => paymentsApi.listMine(),
   });
+
+  // Chứng từ của chính mình, ghép vào từng giao dịch theo mã đơn: biên lai (đơn đã thanh toán) và phiếu hoàn tiền (đơn đã hoàn xong) — giống trang Thanh toán trên web.
+  const { data: invoices } = useQuery({
+    queryKey: ['my-invoices'],
+    queryFn: () => invoicesApi.listMine(),
+  });
+  const byOrder = useMemo(() => {
+    const map = new Map<string, OrderInvoices>();
+    for (const inv of invoices ?? []) {
+      if (inv.type !== 'RECEIPT' && inv.type !== 'REFUND') continue;
+      for (const ref of inv.refs) {
+        const entry = map.get(ref) ?? {};
+        if (inv.type === 'RECEIPT') entry.receipt = inv;
+        else entry.refund = inv;
+        map.set(ref, entry);
+      }
+    }
+    return map;
+  }, [invoices]);
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.surface }}>
@@ -36,7 +62,7 @@ export default function PaymentsScreen() {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
           {payments.map((p) => (
-            <PaymentCard key={p.txnRef} payment={p} />
+            <PaymentCard key={p.txnRef} payment={p} invoices={byOrder.get(p.txnRef)} invoicesLoaded={invoices !== undefined} />
           ))}
         </ScrollView>
       )}
@@ -44,7 +70,21 @@ export default function PaymentsScreen() {
   );
 }
 
-function PaymentCard({ payment }: { payment: PaymentRecord }) {
+function PaymentCard({ payment, invoices, invoicesLoaded }: { payment: PaymentRecord; invoices?: OrderInvoices; invoicesLoaded: boolean }) {
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+
+  const downloadInvoice = async (inv: Invoice) => {
+    setDownloadingId(inv.id);
+    try {
+      const blob = await invoicesApi.pdf(inv.id);
+      await saveAndShareBlob(blob, `${inv.number.replace(/[^A-Za-z0-9._-]/g, '_')}.pdf`, 'application/pdf');
+    } catch (err) {
+      Alert.alert('Chưa tải được chứng từ', err instanceof ApiError ? err.message : 'Vui lòng thử lại sau ít phút.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const isPaid = payment.status === 'PAID';
   const isPending = payment.status === 'PENDING';
   const isFailed = payment.status === 'FAILED' || payment.status === 'EXPIRED';
@@ -86,6 +126,28 @@ function PaymentCard({ payment }: { payment: PaymentRecord }) {
           <Text style={{ color: COLORS.ink, fontSize: 12, fontWeight: '500' }}>
             {new Date(payment.paidAt).toLocaleString('vi-VN')}
           </Text>
+        </View>
+      ) : null}
+
+      {isPaid || isRefunded ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          {[invoices?.receipt, invoices?.refund].map((inv) =>
+            inv ? (
+              <Pressable
+                key={inv.id}
+                onPress={() => downloadInvoice(inv)}
+                disabled={downloadingId === inv.id}
+                accessibilityLabel={`Tải ${inv.type === 'REFUND' ? 'phiếu hoàn tiền' : 'biên lai'} ${inv.number}`}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: COLORS.line, opacity: downloadingId === inv.id ? 0.6 : 1 }}
+              >
+                {downloadingId === inv.id ? <ActivityIndicator size="small" color={COLORS.accentDark} /> : <FileText size={14} color={COLORS.accentDark} />}
+                <Text style={{ color: COLORS.accentDark, fontSize: 12.5, fontWeight: '600' }}>{inv.type === 'REFUND' ? 'Phiếu hoàn' : 'Biên lai'}</Text>
+              </Pressable>
+            ) : null,
+          )}
+          {!invoices && invoicesLoaded ? (
+            <Text style={{ color: COLORS.inkFaint, fontSize: 12 }}>Biên lai đang được tạo, thường trong vài phút.</Text>
+          ) : null}
         </View>
       ) : null}
 

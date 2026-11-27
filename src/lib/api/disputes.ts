@@ -1,5 +1,5 @@
 import { api, apiFormData } from '@/lib/api/client';
-import type { DisputeRes, FileDisputeReq, PickedEvidence } from '@/types/dispute';
+import type { DisputeRes, FileDisputeReq, PayoutBank, PickedEvidence, UpdateRefundAccountReq } from '@/types/dispute';
 
 export const disputesApi = {
   /** multipart: field "request" là JSON, "files" (0-5) là minh chứng — khớp web `disputesApi.file`. */
@@ -17,5 +17,15 @@ export const disputesApi = {
 
   reopen(id: number, reopenReason: string): Promise<DisputeRes> {
     return api.post<DisputeRes>(`/api/v1/disputes/mine/${id}/reopen`, { reopenReason });
+  },
+
+  /** Danh sách ngân hàng cho form tài khoản nhận hoàn tiền (chọn từ danh sách, không gõ tự do). */
+  banks(): Promise<PayoutBank[]> {
+    return api.get<PayoutBank[]>('/api/v1/disputes/banks');
+  },
+
+  /** Học viên cập nhật tài khoản nhận hoàn tiền; máy chủ quyết định được phép hay không theo trạng thái khoản hoàn. */
+  updateRefundAccount(id: number, req: UpdateRefundAccountReq): Promise<DisputeRes> {
+    return api.put<DisputeRes>(`/api/v1/disputes/mine/${id}/refund-account`, req);
   },
 };

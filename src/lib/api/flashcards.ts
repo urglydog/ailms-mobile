@@ -1,5 +1,10 @@
-import { api } from '@/lib/api/client';
-import type { FlashcardReviewResult } from '@/types/material';
+import { api, apiFormData } from '@/lib/api/client';
+import type { FlashcardCard, FlashcardReviewResult } from '@/types/material';
+
+export interface FlashcardImportResult {
+  importedCount: number;
+  errors: string[];
+}
 
 export const flashcardsApi = {
   /** `quality`: 0=Again, 2=Hard, 3=Good, 5=Easy — khớp thang điểm thuật toán SM-2 phía BE. */
@@ -15,5 +20,17 @@ export const flashcardsApi = {
 
   delete(flashcardId: number): Promise<void> {
     return api.delete(`/api/v1/flashcards/${flashcardId}`);
+  },
+
+  /** Thêm một thẻ vào bộ thẻ CÁ NHÂN. Dù path ghi `deck`, tham số là ID học liệu (bản sinh) chứ không phải ID bộ thẻ — giống web. */
+  add(materialId: number, data: { frontText: string; backText: string }): Promise<FlashcardCard> {
+    return api.post<FlashcardCard>(`/api/v1/flashcards/deck/${materialId}`, data);
+  },
+
+  /** Nhập thẻ từ file .txt (mỗi dòng: mặt trước, ký tự Tab, mặt sau — định dạng xuất của Anki/Quizlet). */
+  importTxt(materialId: number, file: { uri: string; name: string; mimeType: string }): Promise<FlashcardImportResult> {
+    const formData = new FormData();
+    formData.append('file', { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
+    return apiFormData<FlashcardImportResult>(`/api/v1/flashcards/deck/${materialId}/import-txt`, formData);
   },
 };

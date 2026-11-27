@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ApiError } from '@/lib/api/client';
 import { notificationsApi } from '@/lib/api/notifications';
+import { notificationHref } from '@/lib/notificationRoute';
 import { BackButton } from '@/components/BackButton';
 import type { Notification } from '@/types/notification';
 import { COLORS } from '@/lib/theme/colors';
@@ -99,7 +100,14 @@ export default function NotificationsScreen() {
               </View>
             }
             renderItem={({ item }) => (
-              <NotificationRow item={item} onPress={() => !item.isRead && markReadMutation.mutate(item.id)} />
+              <NotificationRow
+                item={item}
+                onPress={() => {
+                  if (!item.isRead) markReadMutation.mutate(item.id);
+                  const href = notificationHref(item);
+                  if (href) router.push(href);
+                }}
+              />
             )}
           />
         </>

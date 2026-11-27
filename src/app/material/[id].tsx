@@ -2,9 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
-import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ListChecks, Pencil, Trash2, Volume2, X } from 'lucide-react-native';
+import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, FileUp, ListChecks, Pencil, Plus, Trash2, Volume2, X } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import * as Clipboard from 'expo-clipboard';
+import * as DocumentPicker from 'expo-document-picker';
 import type { Href } from 'expo-router';
 
 import { ApiError } from '@/lib/api/client';
@@ -13,7 +14,7 @@ import { materialsApi } from '@/lib/api/materials';
 import { flashcardDb } from '@/lib/db/flashcardDb';
 import { syncService } from '@/lib/db/syncService';
 import { formatInterval, previewIntervalMs } from '@/lib/db/srs';
-import { isOnlineNow } from '@/lib/network';
+import { isOnlineNow, useIsOnline } from '@/lib/network';
 import { saveAndShareDataUrl } from '@/lib/files';
 import { MindmapView, type MindmapViewHandle } from '@/components/material/MindmapView';
 import { MindmapToolbar } from '@/components/material/MindmapToolbar';
@@ -409,7 +410,7 @@ function FlashcardWorkspace({ materialId, initialCards, language, isOfficial, of
       {mode === 'study' ? (
         <FlashcardStudy materialId={materialId} initialCards={initialCards} language={language} />
       ) : (
-        <FlashcardBrowse cards={initialCards} language={language} readOnly={isOfficial} />
+        <FlashcardBrowse key={initialCards.length} materialId={materialId} cards={initialCards} language={language} readOnly={isOfficial} />
       )}
     </View>
   );
@@ -583,8 +584,10 @@ function FlashcardStudy({ materialId, initialCards, language }: { materialId: nu
 /** Duyệt toàn bộ thẻ (không tính SRS) — cổng rút gọn từ `FlashcardViewer.tsx`, bỏ sửa/xoá (chỉ
  * xem, đúng quyền học viên trên app — sửa/xoá vẫn làm trên Web). (12/10/2026) đã bổ sung phát âm
  * (trước đây bỏ cùng lúc với sửa/xoá, nhưng phát âm không liên quan quyền chỉnh sửa gì cả). */
-function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: FlashcardCard[]; language: string; readOnly?: boolean }) {
+function FlashcardBrowse({ materialId, cards: initialCards, language, readOnly }: { materialId: number; cards: FlashcardCard[]; language: string; readOnly?: boolean }) {
+  const queryClient = useQueryClient();
   const [cards, setCards] = useState(initialCards);
+  const [adding, setAdding] = useState(false);
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -610,10 +613,27 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
     ]);
   };
 
+  const refreshMaterial = () => {
+    void queryClient.invalidateQueries({ queryKey: ['material', materialId] });
+    void queryClient.invalidateQueries({ queryKey: ['offline-flashcards', materialId] });
+  };
+
   if (!card) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 16 }}>
         <Text style={{ color: COLORS.inkFaint }}>Bộ thẻ này chưa có thẻ nào.</Text>
+        {!readOnly ? <AddCardsBar materialId={materialId} onAdd={() => setAdding(true)} onImported={refreshMaterial} /> : null}
+        {adding ? (
+          <AddFlashcardModal
+            materialId={materialId}
+            onClose={() => setAdding(false)}
+            onAdded={(added) => {
+              setCards((prev) => [...prev, added]);
+              setAdding(false);
+              refreshMaterial();
+            }}
+          />
+        ) : null}
       </View>
     );
   }
@@ -664,6 +684,8 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
       {/* Khớp `fe`'s `FlashcardViewer({ readOnly })` — chỉ học liệu CÁ NHÂN (không official) mới
           cho sửa/xoá thẻ, vì học liệu Official do giảng viên phát hành (rà soát lại 16/10/2026,
           trước đây hiện nhầm cho cả 2 loại). */}
+      {!readOnly ? <AddCardsBar materialId={materialId} onAdd={() => setAdding(true)} onImported={refreshMaterial} /> : null}
+
       {!readOnly ? (
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}>
           <Pressable
@@ -681,6 +703,20 @@ function FlashcardBrowse({ cards: initialCards, language, readOnly }: { cards: F
             <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.danger }}>Xoá</Text>
           </Pressable>
         </View>
+      ) : null}
+
+      {adding ? (
+        <AddFlashcardModal
+          materialId={materialId}
+          onClose={() => setAdding(false)}
+          onAdded={(added) => {
+            setCards((prev) => [...prev, added]);
+            setIndex(cards.length);
+            setIsFlipped(false);
+            setAdding(false);
+            refreshMaterial();
+          }}
+        />
       ) : null}
 
       {editing ? (
@@ -753,6 +789,123 @@ function EditFlashcardModal({ card, onClose, onSaved }: { card: FlashcardCard; o
             style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: COLORS.accent, opacity: saving ? 0.6 : 1 }}
           >
             {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 14 }}>Lưu</Text>}
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+/** Nút "Thêm thẻ" và "Nhập từ file .txt" của bộ thẻ cá nhân. Cần có mạng — khi đang offline thì hiện lời nhắc thay vì nút. */
+function AddCardsBar({ materialId, onAdd, onImported }: { materialId: number; onAdd: () => void; onImported: () => void }) {
+  const online = useIsOnline();
+  const [importing, setImporting] = useState(false);
+
+  const handleImport = async () => {
+    const picked = await DocumentPicker.getDocumentAsync({ copyToCacheDirectory: true, multiple: false });
+    const asset = picked.canceled ? null : picked.assets[0];
+    if (!asset) return;
+    setImporting(true);
+    try {
+      const result = await flashcardsApi.importTxt(materialId, {
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType ?? 'text/plain',
+      });
+      onImported();
+      const skipped = result.errors.length;
+      Alert.alert('Đã nhập thẻ', `Đã nhập ${result.importedCount} thẻ vào bộ thẻ của bạn.${skipped > 0 ? ` Có ${skipped} dòng chưa nhập được do sai định dạng.` : ''}`);
+    } catch (err) {
+      Alert.alert('Chưa nhập được', err instanceof ApiError ? err.message : 'Không nhập được file. Vui lòng kiểm tra kết nối mạng và thử lại.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  if (!online) {
+    return <Text style={{ textAlign: 'center', color: COLORS.inkFaint, fontSize: 12 }}>Cần có kết nối mạng để thêm hoặc nhập thẻ.</Text>;
+  }
+
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10 }}>
+      <Pressable
+        onPress={onAdd}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: COLORS.tint, borderWidth: 1, borderColor: COLORS.accent }}
+      >
+        <Plus size={14} color={COLORS.accent} strokeWidth={2} />
+        <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.accent }}>Thêm thẻ</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => void handleImport()}
+        disabled={importing}
+        accessibilityLabel="Nhập thẻ từ file văn bản (.txt) xuất từ Anki hoặc Quizlet"
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.lineSoft, opacity: importing ? 0.6 : 1 }}
+      >
+        {importing ? <ActivityIndicator size="small" color={COLORS.inkFaint} /> : <FileUp size={14} color={COLORS.inkFaint} strokeWidth={2} />}
+        <Text style={{ fontSize: 12.5, fontWeight: '600', color: COLORS.ink }}>Nhập .txt</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function AddFlashcardModal({ materialId, onClose, onAdded }: { materialId: number; onClose: () => void; onAdded: (card: FlashcardCard) => void }) {
+  const [frontText, setFrontText] = useState('');
+  const [backText, setBackText] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!frontText.trim() || !backText.trim()) {
+      Alert.alert('Chưa đủ thông tin', 'Vui lòng nhập cả mặt trước và mặt sau của thẻ.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const added = await flashcardsApi.add(materialId, { frontText: frontText.trim(), backText: backText.trim() });
+      onAdded(added);
+    } catch (err) {
+      Alert.alert('Chưa thêm được thẻ', err instanceof ApiError ? err.message : 'Không thêm được thẻ. Vui lòng kiểm tra kết nối mạng và thử lại.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal visible transparent presentationStyle="overFullScreen" animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.5)', justifyContent: 'flex-end' }}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={{ maxHeight: '85%', backgroundColor: COLORS.surfaceRaised, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, gap: 14 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.ink }}>Thêm thẻ</Text>
+            <Pressable onPress={onClose} hitSlop={8}>
+              <X size={20} color={COLORS.inkFaint} />
+            </Pressable>
+          </View>
+          <View style={{ gap: 6 }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Mặt trước</Text>
+            <TextInput
+              placeholderTextColor={COLORS.inkFaint}
+              value={frontText}
+              onChangeText={setFrontText}
+              multiline
+              style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+            />
+          </View>
+          <View style={{ gap: 6 }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: COLORS.inkMuted }}>Mặt sau</Text>
+            <TextInput
+              placeholderTextColor={COLORS.inkFaint}
+              value={backText}
+              onChangeText={setBackText}
+              multiline
+              style={{ color: COLORS.ink, borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 8, padding: 10, fontSize: 14, minHeight: 60 }}
+            />
+          </View>
+          <Pressable
+            onPress={handleSave}
+            disabled={saving}
+            style={{ alignItems: 'center', paddingVertical: 12, borderRadius: 10, backgroundColor: COLORS.accent, opacity: saving ? 0.6 : 1 }}
+          >
+            {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 14 }}>Thêm thẻ</Text>}
           </Pressable>
         </View>
       </View>

@@ -1,17 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { PanResponder, Pressable, Text, View } from 'react-native';
-import { useEvent } from 'expo';
-import { VideoView, type VideoPlayer } from 'expo-video';
 import { FileText, Maximize2, Minimize2, Pause, Play, RotateCcw, RotateCw, Settings, Volume2, VolumeX } from 'lucide-react-native';
 import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
-import { usePlayerTime, useReallyPlaying } from '@/hooks/usePlayerTime';
+import { usePlayerMuted, usePlayerTime, useReallyPlaying } from '@/hooks/usePlayerTime';
 import type { SubtitleSegment } from '@/types/lesson';
+import type { PlayerLike } from '@/types/player';
 import type { SubtitleSettings } from '@/lib/subtitleSettings';
 
 import { COLORS } from '@/lib/theme/colors';
 export const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
-function seekTo(player: VideoPlayer, sec: number) {
+function seekTo(player: PlayerLike, sec: number) {
   try {
     player.currentTime = Math.max(0, player.duration > 0 ? Math.min(player.duration, sec) : sec);
   } catch {
@@ -19,7 +18,7 @@ function seekTo(player: VideoPlayer, sec: number) {
   }
 }
 
-function togglePlay(player: VideoPlayer, reallyPlaying: boolean) {
+function togglePlay(player: PlayerLike, reallyPlaying: boolean) {
   try {
     if (reallyPlaying) player.pause();
     else player.play();
@@ -28,7 +27,7 @@ function togglePlay(player: VideoPlayer, reallyPlaying: boolean) {
   }
 }
 
-function toggleVideoMute(player: VideoPlayer) {
+function toggleVideoMute(player: PlayerLike) {
   try {
     player.muted = !player.muted;
   } catch {
@@ -76,7 +75,9 @@ function createSeekPan(
 }
 
 interface Props {
-  player: VideoPlayer;
+  player: PlayerLike;
+  /** Lớp hình ảnh nằm dưới thanh điều khiển: `VideoView` (video tải lên) hoặc `YouTubeView` (YouTube). */
+  video: ReactNode;
   originalSubtitles: SubtitleSegment[];
   translatedSubtitles: SubtitleSegment[];
   settings: SubtitleSettings;
@@ -99,7 +100,7 @@ interface Props {
 export function PlayerSurface(p: Props) {
   const { player } = p;
   const isPlaying = useReallyPlaying(player);
-  const { muted: videoMuted } = useEvent(player, 'mutedChange', { muted: player.muted });
+  const videoMuted = usePlayerMuted(player);
   const sec = usePlayerTime(player, true);
   const duration = player.duration;
 
@@ -127,7 +128,7 @@ export function PlayerSurface(p: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.black }}>
-      <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: false }} nativeControls={false} />
+      {p.video}
       <SubtitleOverlay
         originalSubtitles={p.originalSubtitles}
         translatedSubtitles={p.translatedSubtitles}

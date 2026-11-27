@@ -19,6 +19,28 @@ export function usePlayerTime(player: { currentTime: number }, active: boolean, 
   return sec;
 }
 
+/** Trạng thái tắt tiếng của trình phát — đọc định kỳ để dùng chung cho cả video tải lên lẫn YouTube. */
+export function usePlayerMuted(player: { muted: boolean }, intervalMs = 250): boolean {
+  const [muted, setMuted] = useState(() => {
+    try {
+      return player.muted;
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    const id = setInterval(() => {
+      try {
+        setMuted(player.muted);
+      } catch {
+        // Player đã bị giải phóng — bỏ qua.
+      }
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [player, intervalMs]);
+  return muted;
+}
+
 /** Video có THỰC SỰ đang chạy không: `player.playing` có thể báo true dù trình duyệt chặn tự phát (video đứng im), nên
  * chỉ coi là đang chạy khi thời gian thật sự tiến lên (cho 1,5s đầu để kịp khởi động). */
 export function useReallyPlaying(player: { currentTime: number; playing: boolean }, intervalMs = 250): boolean {

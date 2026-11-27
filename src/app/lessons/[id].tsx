@@ -1,7 +1,11 @@
 import { useEventListener } from 'expo';
-import { useVideoPlayer } from 'expo-video';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import * as SecureStore from 'expo-secure-store';
 import { PlayerSurface } from '@/components/player/PlayerSurface';
+import { YouTubeView } from '@/components/player/YouTubeView';
+import { useYouTubeController } from '@/components/player/youtubeController';
+import { isValidYoutubeId } from '@/components/player/youtubeHtml';
+import type { PlayerLike } from '@/types/player';
 import { SubtitleSettingsModal } from '@/components/player/SubtitleSettingsModal';
 import { DEFAULT_SUBTITLE_SETTINGS, loadSubtitleSettings, saveSubtitleSettings, type SubtitleSettings } from '@/lib/subtitleSettings';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -363,21 +367,58 @@ export default function LessonPlayerScreen() {
     return null;
   };
   const audioSrc = resolveAudio();
-  // Video bản thân có native code riêng (iOS AVPlayer/Android ExoPlayer qua expo-video) nên chỉ
-  // tạo player khi đã có `videoUrl` — nguồn YouTube (videoSource khác) không phát được qua đây.
+  // Video tải lên phát bằng expo-video (iOS AVPlayer/Android ExoPlayer) — chỉ tạo nguồn khi có `videoUrl`
+  // và không phải YouTube. Bài YouTube phát trong WebView (IFrame API) qua `YouTubeController`; cả hai nguồn
+  // đều đưa ra cùng giao diện `PlayerLike` (biến `player` bên dưới) nên thanh điều khiển, phụ đề, transcript,
+  // giọng lồng tiếng và ghi tiến độ dùng chung.
   const isDirectVideo = !!lesson?.videoUrl && !lesson.youtubeId;
-  const player = useVideoPlayer(isDirectVideo ? lesson!.videoUrl : null, (p) => {
+  const youtubeId = lesson?.youtubeId && isValidYoutubeId(lesson.youtubeId) ? lesson.youtubeId : null;
+  const [ytFailed, setYtFailed] = useState(false);
+  const ytPlayable = !!youtubeId && !ytFailed && Platform.OS !== 'web';
+  const hasPlayer = isDirectVideo || ytPlayable;
+  const videoPlayer = useVideoPlayer(isDirectVideo ? lesson!.videoUrl : null, (p) => {
     if (!lesson) return;
     p.currentTime = seekSec ?? lesson.lastPositionSec;
     p.timeUpdateEventInterval = 0.25;
     p.play();
   });
 
+  const lastReportedAtRef = useRef(0);
+  const reportProgress = (currentTime: number) => {
+    if (!lesson) return;
+    if (currentTime - lastReportedAtRef.current >= PROGRESS_REPORT_INTERVAL_SEC) {
+      lastReportedAtRef.current = currentTime;
+      lessonsApi.recordProgress(lessonId, Math.round(currentTime), Math.round(currentTime)).catch(() => {
+        // Best-effort — mất 1 lần report không đáng chặn việc xem tiếp, lần sau tự gửi lại.
+      });
+    }
+  };
+  // Tự chuyển bài tiếp theo khi hết video (giống `handleVideoEnded` của web, bật/tắt được).
+  const flatLessons = lesson?.chapters.flatMap((c) => c.lessons) ?? [];
+  const lessonIdx = flatLessons.findIndex((l) => l.lessonId === lessonId);
+  const canOpen = (l?: { isPreview: boolean }) => !!l && (lesson?.enrolled === true || l.isPreview);
+  const prevLessonId = lessonIdx > 0 && canOpen(flatLessons[lessonIdx - 1]) ? (flatLessons[lessonIdx - 1]?.lessonId ?? null) : null;
+  const nextLessonId = lessonIdx >= 0 && lessonIdx < flatLessons.length - 1 && canOpen(flatLessons[lessonIdx + 1]) ? (flatLessons[lessonIdx + 1]?.lessonId ?? null) : null;
+  const goNextLesson = () => {
+    if (autoNext && nextLessonId) router.replace(`/lessons/${nextLessonId}` as Href);
+  };
+
+  const yt = useYouTubeController({
+    onTime: reportProgress,
+    onEnded: goNextLesson,
+    // YouTube không cho nhúng video này (hoặc không nạp được trình phát) → hiện nút mở trên YouTube.
+    onError: () => setYtFailed(true),
+  });
+  useEffect(() => {
+    if (lesson) yt.setFallbackDuration(lesson.durationSec);
+  }, [lesson, yt]);
+  const player: PlayerLike = ytPlayable ? yt : videoPlayer;
+
   // Player có thể chưa sẵn sàng ngay lúc đặt `currentTime` ở callback khởi tạo (đặt khi chưa load xong
   // metadata bị bỏ qua, không báo lỗi) — thử lại vài lần trong ~2 giây, rồi bỏ param để quay lại bài
   // sau không tua lại lần nữa (cùng cách web `?seek=`).
   useEffect(() => {
-    if (seekSec === null || !lesson || !isDirectVideo) return;
+    if (seekSec === null || !lesson || !hasPlayer) return;
     let attempts = 0;
     const timer = setInterval(() => {
       attempts += 1;
@@ -389,7 +430,7 @@ export default function LessonPlayerScreen() {
     }, 400);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seekSec, lesson?.lessonId, isDirectVideo]);
+  }, [seekSec, lesson?.lessonId, hasPlayer]);
 
   // Giọng lồng tiếng chạy ở `DubAudioSync` (mount phía client, tự đồng bộ vị trí với video).
 
@@ -465,39 +506,20 @@ export default function LessonPlayerScreen() {
     }
   };
 
-  const lastReportedAtRef = useRef(0);
-
   // Tốc độ phát (giọng lồng tiếng tự bám theo ở `DubAudioSync`); áp lại khi đổi bài (player mới).
   useEffect(() => {
     applyRate(player, rate);
   }, [player, rate]);
 
-  // Tự chuyển bài tiếp theo khi hết video (giống `handleVideoEnded` của web, bật/tắt được).
-  const flatLessons = lesson?.chapters.flatMap((c) => c.lessons) ?? [];
-  const lessonIdx = flatLessons.findIndex((l) => l.lessonId === lessonId);
-  const canOpen = (l?: { isPreview: boolean }) => !!l && (lesson?.enrolled === true || l.isPreview);
-  const prevLessonId = lessonIdx > 0 && canOpen(flatLessons[lessonIdx - 1]) ? (flatLessons[lessonIdx - 1]?.lessonId ?? null) : null;
-  const nextLessonId = lessonIdx >= 0 && lessonIdx < flatLessons.length - 1 && canOpen(flatLessons[lessonIdx + 1]) ? (flatLessons[lessonIdx + 1]?.lessonId ?? null) : null;
-  useEventListener(player, 'playToEnd', () => {
-    if (autoNext && nextLessonId) router.replace(`/lessons/${nextLessonId}` as Href);
-  });
-
-
-  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
-    if (!lesson) return;
-    if (currentTime - lastReportedAtRef.current >= PROGRESS_REPORT_INTERVAL_SEC) {
-      lastReportedAtRef.current = currentTime;
-      lessonsApi.recordProgress(lessonId, Math.round(currentTime), Math.round(currentTime)).catch(() => {
-        // Best-effort — mất 1 lần report không đáng chặn việc xem tiếp, lần sau tự gửi lại.
-      });
-    }
-  });
+  // Chỉ video tải lên (expo-video) phát các sự kiện này; bài YouTube báo qua `useYouTubeController` ở trên.
+  useEventListener(videoPlayer, 'playToEnd', goNextLesson);
+  useEventListener(videoPlayer, 'timeUpdate', ({ currentTime }) => reportProgress(currentTime));
 
   // Gửi nốt vị trí cuối lúc rời màn hình (chuyển bài/back) — nếu không thì tối đa mất
   // PROGRESS_REPORT_INTERVAL_SEC giây tiến độ chưa lưu.
   useEffect(() => {
     return () => {
-      if (!lesson || !isDirectVideo) return;
+      if (!lesson || !hasPlayer) return;
       // `expo-video` có thể đã giải phóng native player trước khi cleanup này chạy (race giữa
       // thứ tự cleanup của các effect lúc unmount) — đọc `player.currentTime` lúc đó ném
       // `NotFoundException` (native shared object không còn), crash cả app nếu không try/catch.
@@ -514,7 +536,7 @@ export default function LessonPlayerScreen() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonId, isDirectVideo]);
+  }, [lessonId, hasPlayer]);
 
   useEffect(() => {
     player.muted = audioSrc !== null;
@@ -541,9 +563,17 @@ export default function LessonPlayerScreen() {
 
 
 
+  const videoLayer =
+    ytPlayable && youtubeId ? (
+      <YouTubeView key={youtubeId} controller={yt} youtubeId={youtubeId} startSec={seekSec ?? lesson.lastPositionSec} />
+    ) : (
+      <VideoView player={videoPlayer} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: false }} nativeControls={false} />
+    );
+
   const renderSurface = (isFullscreen: boolean) => (
     <PlayerSurface
       player={player}
+      video={videoLayer}
       originalSubtitles={lesson.originalSubtitles ?? []}
       translatedSubtitles={currentLang?.subtitles ?? []}
       settings={subSettings}
@@ -580,14 +610,17 @@ export default function LessonPlayerScreen() {
             <Text style={{ color: COLORS.white, fontWeight: '600' }}>Giành quyền phát</Text>
           </Pressable>
         </View>
-      ) : isDirectVideo ? (
+      ) : hasPlayer ? (
         <View style={fullscreen ? fullscreenStyle : VIDEO_FRAME}>{renderSurface(fullscreen)}</View>
       ) : lesson.youtubeId ? (
         <Pressable
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}
-          style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}
+          style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 }}
         >
-          <Text style={{ color: COLORS.white }}>Video YouTube — chạm để mở</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '700', textAlign: 'center' }}>
+            {ytFailed ? 'Video này chưa phát được trong ứng dụng.' : 'Video YouTube'}
+          </Text>
+          <Text style={{ color: COLORS.white, opacity: 0.8, textAlign: 'center', fontSize: 13 }}>Chạm để mở video trên YouTube.</Text>
         </Pressable>
       ) : (
         <View style={{ ...VIDEO_FRAME, alignItems: 'center', justifyContent: 'center' }}>
@@ -640,7 +673,7 @@ export default function LessonPlayerScreen() {
 
         {/* Công tắc "Nghe bản gốc" như web (`DubbingBar`): bật = nghe âm thanh gốc (bỏ giọng lồng tiếng);
             tắt = quay lại giọng lồng tiếng vừa dùng, hoặc giọng đã sẵn sàng đầu tiên. */}
-        {isDirectVideo ? (
+        {hasPlayer ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: COLORS.lineSoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: COLORS.surfaceRaised }}>
             <Text style={{ color: COLORS.ink, fontWeight: '600' }}>Nghe bản gốc</Text>
             <Switch

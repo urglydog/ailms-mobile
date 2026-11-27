@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
-import type { VideoPlayer } from 'expo-video';
 import type { AudioTrack } from '@/types/lesson';
+import type { PlayerLike } from '@/types/player';
 
 /** Chu kỳ kiểm tra (ms) và ngưỡng lệch (giây) — cổng từ `fe/hooks/useDualPlayerSync.ts` (web 0,2s;
  * mobile 0,6s vì player native báo `currentTime` thô hơn, ngưỡng chặt sẽ liên tục tua → lặp câu). */
@@ -19,7 +19,7 @@ function resolveAudio(track: AudioTrack, sec: number): { src: string | null; off
   return { src: chunk?.fileUrl ?? null, offsetSec: chunk?.startSec ?? 0 };
 }
 
-function silence(video: VideoPlayer) {
+function silence(video: PlayerLike) {
   try {
     video.muted = true;
   } catch {
@@ -44,7 +44,7 @@ function applyMuted(dub: { muted: boolean }, muted: boolean) {
  * Tách component riêng để chỉ mount phía client (`Audio` không tồn tại khi render server web) và
  * để đổi ngôn ngữ thì remount theo `key`.
  */
-export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video: VideoPlayer; muted: boolean }) {
+export function DubAudioSync({ track, video, muted }: { track: AudioTrack; video: PlayerLike; muted: boolean }) {
   const [resolved, setResolved] = useState(() => resolveAudio(track, video.currentTime));
   const dub = useAudioPlayer(resolved.src);
 

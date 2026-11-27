@@ -5,6 +5,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { ChevronRight, Play, Search } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';
+import { StreakChip } from '@/components/streak/StreakChip';
 import { FeaturedShelf } from '@/components/course/FeaturedShelf';
 import { BottomNav } from '@/components/BottomNav';
 import { HomeShelf, SHELVES } from '@/components/course/HomeShelves';
@@ -57,11 +58,14 @@ export default function HomeScreen() {
         <View style={{ gap: 14 }}>
           <SystemAnnouncementBanner />
           <View style={{ paddingHorizontal: 16, gap: 12, paddingTop: 4 }}>
-            <View>
-              <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.ink }} accessibilityRole="header">
-                {firstName ? `Chào ${firstName} 👋` : 'Chào bạn 👋'}
-              </Text>
-              <Text style={{ fontSize: 14, color: COLORS.inkMuted }}>Hôm nay bạn muốn học gì?</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 24, fontWeight: '800', color: COLORS.ink }} accessibilityRole="header">
+                  {firstName ? `Chào ${firstName} 👋` : 'Chào bạn 👋'}
+                </Text>
+                <Text style={{ fontSize: 14, color: COLORS.inkMuted }}>Hôm nay bạn muốn học gì?</Text>
+              </View>
+              <StreakChip enabled={enabled} />
             </View>
             <Pressable
               onPress={() => router.push('/search' as Href)}
@@ -128,6 +132,17 @@ export default function HomeScreen() {
         </Pressable>
 
         <RankingBanner />
+
+        {/* Web có chân trang; app gom các liên kết đó thành một dòng cuối trang (đầy đủ hơn ở Tài khoản → Trợ giúp / Thông tin & Chính sách). */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, paddingHorizontal: 16 }}>
+          <Pressable onPress={() => router.push('/help' as Href)} hitSlop={8}>
+            <Text style={{ fontSize: 12.5, color: COLORS.inkMuted, fontWeight: '600' }}>Trợ giúp & Hỗ trợ</Text>
+          </Pressable>
+          <Text style={{ color: COLORS.lineDot }}>·</Text>
+          <Pressable onPress={() => router.push('/legal' as Href)} hitSlop={8}>
+            <Text style={{ fontSize: 12.5, color: COLORS.inkMuted, fontWeight: '600' }}>Điều khoản & Chính sách</Text>
+          </Pressable>
+        </View>
       </ScrollView>
       <BottomNav />
     </View>

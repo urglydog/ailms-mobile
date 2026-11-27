@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
 import { ApiError } from '@/lib/api/client';
@@ -23,6 +23,7 @@ function timeAgo(iso: string): string {
 export default function NotificationsScreen() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+  const openingRef = useRef(false);
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['notifications'],
@@ -103,10 +104,19 @@ export default function NotificationsScreen() {
               <NotificationRow
                 item={item}
                 onPress={() => {
+                  // Bấm liên tục (kể cả spam) chỉ mở một lần: bỏ qua mọi lần chạm khi một lần mở đang xử lý, và thêm ~1 giây sau khi mở.
+                  if (openingRef.current) return;
+                  openingRef.current = true;
                   if (!item.isRead) markReadMutation.mutate(item.id);
-                  void resolveNotificationHref(item).then((href) => {
-                    if (href) router.push(href);
-                  });
+                  void resolveNotificationHref(item)
+                    .then((href) => {
+                      if (href) router.push(href);
+                    })
+                    .finally(() => {
+                      setTimeout(() => {
+                        openingRef.current = false;
+                      }, 1000);
+                    });
                 }}
               />
             )}

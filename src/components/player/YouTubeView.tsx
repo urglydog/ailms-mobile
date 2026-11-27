@@ -1,10 +1,16 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { buildYouTubeHtml } from '@/components/player/youtubeHtml';
 import type { YouTubeController } from '@/components/player/youtubeController';
 import { COLORS } from '@/lib/theme/colors';
 import { WEB_URL } from '@/lib/webUrl';
+
+// WebView mặc định có chuỗi nhận diện khác trình duyệt thật; YouTube có thể phát chế độ chỉ tiếng cho kiểu đó. Dùng chuỗi của Safari/Chrome di động.
+const IOS_SAFARI_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+const ANDROID_CHROME_UA =
+  'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36';
 
 interface Props {
   controller: YouTubeController;
@@ -38,6 +44,7 @@ export function YouTubeView({ controller, youtubeId, startSec }: Props) {
         domStorageEnabled
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
+        userAgent={Platform.OS === 'ios' ? IOS_SAFARI_UA : ANDROID_CHROME_UA}
         allowsFullscreenVideo={false}
         scrollEnabled={false}
         bounces={false}

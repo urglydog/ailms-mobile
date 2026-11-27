@@ -13,6 +13,9 @@ export const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 /** Thời gian (mili giây) không chạm thì thanh điều khiển bắt đầu mờ đi khi video đang phát. */
 const CONTROLS_HIDE_AFTER_MS = 3000;
 /** Sau khi tua, coi là "đã tới nơi" khi vị trí phát cách điểm đích dưới ngần này giây; quá `SEEK_HOLD_MAX_MS` thì thôi giữ chấm. */
+const TAP_SLOP_PX = 10;
+/** Vuốt xa ngần này (px) khi đang toàn màn hình thì thu nhỏ video. */
+const SWIPE_EXIT_PX = 70;
 const SEEK_SETTLE_SEC = 1.5;
 const SEEK_HOLD_MAX_MS = 1500;
 
@@ -139,6 +142,21 @@ export function PlayerSurface(p: Props) {
     if (showControls && isPlaying) setAwake(false);
     else poke();
   };
+  // Cử chỉ trên mặt video: tay gần như đứng yên = chạm; kéo xa hơn ngưỡng khi đang toàn màn hình = thu nhỏ. Dùng ref để cử chỉ luôn gọi bản mới nhất của hàm.
+  const gestureRef = useRef({ tap: onTapVideo, exit: p.onToggleFullscreen, fullscreen: p.isFullscreen });
+  useEffect(() => {
+    gestureRef.current = { tap: onTapVideo, exit: p.onToggleFullscreen, fullscreen: p.isFullscreen };
+  });
+  const [swipe] = useState(() =>
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderRelease: (_e, g) => {
+        const moved = Math.max(Math.abs(g.dx), Math.abs(g.dy));
+        if (moved < TAP_SLOP_PX) gestureRef.current.tap();
+        else if (moved >= SWIPE_EXIT_PX && gestureRef.current.fullscreen) gestureRef.current.exit();
+      },
+    }),
+  );
 
   // Thanh tua: kéo/chạm để tua.
   const barWidth = useRef(1);
@@ -183,7 +201,14 @@ export function PlayerSurface(p: Props) {
       />
 
       {/* Chạm vào video: hiện thanh điều khiển nếu đang ẩn, ẩn ngay nếu đang hiện lúc video chạy. Phát/dừng dùng nút giữa hoặc nút ở thanh dưới. */}
-      <Pressable onPress={onTapVideo} accessibilityLabel="Hiện hoặc ẩn thanh điều khiển" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+      {/* Chạm: hiện/ẩn thanh điều khiển. Đang toàn màn hình thì vuốt (lên, xuống hoặc ngang) để thu nhỏ video. */}
+      <View
+        {...swipe.panHandlers}
+        accessibilityRole="button"
+        accessibilityLabel="Hiện hoặc ẩn thanh điều khiển"
+        onAccessibilityTap={onTapVideo}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      />
 
       <Animated.View
         onTouchStart={poke}

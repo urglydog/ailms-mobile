@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useEffect } from 'react';
-import { AppState, useColorScheme } from 'react-native';
+import { AppState, Platform, useColorScheme } from 'react-native';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { StatusBar } from 'expo-status-bar';
 import { applyColorScheme, COLORS } from '@/lib/theme/colors';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -17,6 +18,12 @@ const queryClient = new QueryClient();
 
 export default function RootLayout() {
   // Đồng bộ review flashcard làm offline mỗi khi app mở / quay lại foreground.
+  // App khoá chiều dọc; chỉ màn bài học mở khoá để xoay ngang xem toàn màn hình (xem `lessons/[id].tsx`).
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
+  }, []);
+
   useEffect(() => {
     syncService.syncOfflineReviews().catch(() => {});
     const sub = AppState.addEventListener('change', (state) => {

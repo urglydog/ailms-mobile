@@ -10,8 +10,9 @@ import { SubtitleSettingsModal } from '@/components/player/SubtitleSettingsModal
 import { DEFAULT_SUBTITLE_SETTINGS, loadSubtitleSettings, saveSubtitleSettings, type SubtitleSettings } from '@/lib/subtitleSettings';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StatusBar, Switch, Text, View, Platform, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Linking, Pressable, ScrollView, StatusBar, Switch, Text, View, Platform, useWindowDimensions } from 'react-native';
 import { DubAudioSync } from '@/components/player/DubAudioSync';
 import { usePlayerTime } from '@/hooks/usePlayerTime';
 
@@ -202,6 +203,34 @@ export default function LessonPlayerScreen() {
   // Đổi ngôn ngữ lồng tiếng khi đang xem thì video phải tiếp tục phát (như web) — nếu nền tảng làm video dừng
   // do đổi nguồn âm thanh thì tự phát lại trong ~1,5s đầu.
   const toggleFullscreen = (next: boolean) => setFullscreen(next);
+
+  // Xoay ngang điện thoại → vào toàn màn hình; xoay dọc lại → thu nhỏ. Màn bài học mở khoá xoay; rời màn thì khoá dọc lại như các màn khác.
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS === 'web') return;
+      ScreenOrientation.unlockAsync().catch(() => {});
+      const sub = ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
+        const o = orientationInfo.orientation;
+        if (o === ScreenOrientation.Orientation.LANDSCAPE_LEFT || o === ScreenOrientation.Orientation.LANDSCAPE_RIGHT) setFullscreen(true);
+        else if (o === ScreenOrientation.Orientation.PORTRAIT_UP) setFullscreen(false);
+      });
+      return () => {
+        sub.remove();
+        setFullscreen(false);
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
+      };
+    }, []),
+  );
+
+  // Android: nút Back khi đang toàn màn hình thì chỉ thu nhỏ video, không rời bài học.
+  useEffect(() => {
+    if (!fullscreen) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setFullscreen(false);
+      return true;
+    });
+    return () => sub.remove();
+  }, [fullscreen]);
 
   const changeLang = (code: string | null) => {
     let wasPlaying = false;

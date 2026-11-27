@@ -112,6 +112,23 @@ function applyRate(player: { playbackRate: number }, rate: number) {
   }
 }
 
+function applyMuted(player: { muted: boolean }, muted: boolean) {
+  try {
+    player.muted = muted;
+  } catch {
+    // Player đã giải phóng.
+  }
+}
+
+function seekAndPlay(player: { currentTime: number; play: () => void }, sec: number) {
+  try {
+    player.currentTime = sec;
+    player.play();
+  } catch {
+    // Player đã giải phóng.
+  }
+}
+
 const VIDEO_FRAME = { width: '100%', aspectRatio: 16 / 9, backgroundColor: COLORS.black } as const;
 
 export default function LessonPlayerScreen() {
@@ -223,6 +240,8 @@ export default function LessonPlayerScreen() {
 
   const { lastEvent } = useDubbingSocket(mode === 'processing' ? lessonId : null);
 
+  /* Hai effect dưới đồng bộ trạng thái giao diện theo sự kiện từ socket lồng tiếng và theo ngôn ngữ đang chọn — đặt state trong effect là chủ ý. */
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!lastEvent) return;
 
@@ -322,6 +341,7 @@ export default function LessonPlayerScreen() {
       setMode('activate');
     }
   }, [activeLang, lesson]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleActivateDubbing = () => {
     if (!activeLang) return;
@@ -374,6 +394,8 @@ export default function LessonPlayerScreen() {
   const isDirectVideo = !!lesson?.videoUrl && !lesson.youtubeId;
   const youtubeId = lesson?.youtubeId && isValidYoutubeId(lesson.youtubeId) ? lesson.youtubeId : null;
   const [ytFailed, setYtFailed] = useState(false);
+  // Vị trí đang xem dở khi khung YouTube bị gỡ (vd bị giới hạn phiên xem) để tạo lại đúng chỗ.
+  const [ytResumeSec, setYtResumeSec] = useState<number | null>(null);
   const ytPlayable = !!youtubeId && !ytFailed && Platform.OS !== 'web';
   const hasPlayer = isDirectVideo || ytPlayable;
   const videoPlayer = useVideoPlayer(isDirectVideo ? lesson!.videoUrl : null, (p) => {
@@ -477,6 +499,7 @@ export default function LessonPlayerScreen() {
         await lessonsApi.sendHeartbeat(lessonId, sessionIdRef.current, `${Platform.OS} App`, force);
       } catch (err) {
         if (err instanceof ApiError && err.status === 409) {
+          setYtResumeSec(Math.floor(player.currentTime));
           setStreamConflict(true);
           player.pause();
         }
@@ -539,7 +562,7 @@ export default function LessonPlayerScreen() {
   }, [lessonId, hasPlayer]);
 
   useEffect(() => {
-    player.muted = audioSrc !== null;
+    applyMuted(player, audioSrc !== null);
   }, [audioSrc, player]);
 
   if (isLoading) {
@@ -565,7 +588,7 @@ export default function LessonPlayerScreen() {
 
   const videoLayer =
     ytPlayable && youtubeId ? (
-      <YouTubeView key={youtubeId} controller={yt} youtubeId={youtubeId} startSec={seekSec ?? lesson.lastPositionSec} />
+      <YouTubeView key={youtubeId} controller={yt} youtubeId={youtubeId} startSec={ytResumeSec ?? seekSec ?? lesson.lastPositionSec} />
     ) : (
       <VideoView player={videoPlayer} style={{ width: '100%', height: '100%' }} contentFit="contain" fullscreenOptions={{ enable: false }} nativeControls={false} />
     );
@@ -593,7 +616,6 @@ export default function LessonPlayerScreen() {
     />
   );
 
-  const activeLangOption = voiceOptions?.find((vo) => vo.language === activeLang);
   const voicesForActiveLang = voiceOptions?.filter((vo) => vo.language === activeLang) ?? [];
 
   return (
@@ -819,10 +841,7 @@ export default function LessonPlayerScreen() {
               player={player}
               originalSubtitles={lesson.originalSubtitles ?? []}
               translatedSubtitles={currentLang?.subtitles ?? []}
-              onSeek={(sec) => {
-                player.currentTime = sec;
-                player.play();
-              }}
+              onSeek={(sec) => seekAndPlay(player, sec)}
             />
           </View>
         )}

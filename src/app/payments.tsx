@@ -87,7 +87,6 @@ function PaymentCard({ payment, invoices, invoicesLoaded }: { payment: PaymentRe
 
   const isPaid = payment.status === 'PAID';
   const isPending = payment.status === 'PENDING';
-  const isFailed = payment.status === 'FAILED' || payment.status === 'EXPIRED';
   // REFUNDED (11/11/2026): giao dịch đã hoàn tiền — không phải lỗi nên không dùng màu đỏ.
   const isRefunded = payment.status === 'REFUNDED';
 

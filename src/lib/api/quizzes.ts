@@ -1,5 +1,4 @@
-import { api } from '@/lib/api/client';
-import { getAccessToken, resolveBaseUrl } from '@/lib/api/client';
+import { api, getAccessToken, resolveBaseUrl } from '@/lib/api/client';
 import * as FileSystem from 'expo-file-system/legacy';
 import type {
   CourseGradebook,

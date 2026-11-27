@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { ActivityIndicator, Alert, BackHandler, Pressable, ScrollView, Text, View } from 'react-native';
 import { Flag, ShieldAlert } from 'lucide-react-native';
 
@@ -74,7 +74,7 @@ export default function ExamScreen() {
   const [elapsedSec, setElapsedSec] = useState(0);
   const autoSubmittedRef = useRef(false);
   const camRef = useRef<ProctoringHandle>(null);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const questionYs = useRef<Record<number, number>>({});
 
   const { data: history } = useQuery({

@@ -202,7 +202,7 @@ export default function SearchScreen() {
             </View>
           ) : data && !hasNextPage && (data.pages[0]?.totalElements ?? 0) > 0 ? (
             <Text style={{ textAlign: 'center', color: COLORS.inkFaint, fontSize: 12, padding: 16 }}>Bạn đã xem hết khoá học phù hợp.</Text>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item }) => <CourseCard course={item} list={view === 'list'} />}
       />

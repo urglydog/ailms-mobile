@@ -165,7 +165,7 @@ export default function OfflineFlashcardsScreen() {
               <Layers size={40} color={COLORS.lineDot} strokeWidth={1.5} />
               <Text style={{ color: COLORS.ink, fontWeight: '700', textAlign: 'center' }}>Chưa có bộ thẻ nào được lưu trên máy</Text>
               <Text style={{ color: COLORS.inkFaint, textAlign: 'center', fontSize: 13 }}>
-                Khi có mạng, bấm "Lưu các bộ thẻ của tôi về máy". Mỗi bộ thẻ bạn mở cũng được tự động lưu lại.
+                Khi có mạng, bấm “Lưu các bộ thẻ của tôi về máy”. Mỗi bộ thẻ bạn mở cũng được tự động lưu lại.
               </Text>
             </View>
           }

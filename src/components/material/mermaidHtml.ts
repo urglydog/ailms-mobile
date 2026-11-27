@@ -1,5 +1,5 @@
 
-import { COLORS } from '@/lib/theme/colors';export type MermaidDirection = 'TB' | 'LR' | 'BT' | 'RL';
+export type MermaidDirection = 'TB' | 'LR' | 'BT' | 'RL';
 
 /** Áp hướng vẽ sơ đồ — port đúng regex từ `fe/components/materials/MermaidViewer.tsx` (chỉ phần
  * đổi hướng graph/flowchart, không port phần sanitize FISHBONE/MATRIX/bullet-list — không liên quan). */

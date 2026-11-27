@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { View, Text, Pressable, ScrollView, Switch } from 'react-native';
 import type { SubtitleSegment } from '@/types/lesson';
 import { COLORS } from '@/lib/theme/colors';
@@ -33,7 +33,7 @@ export function TranscriptPanel({ originalSubtitles, translatedSubtitles, curren
   const activeIndex = originalSubtitles.findIndex((s) => currentSec >= s.startSec && currentSec < s.endSec);
 
   // Tự cuộn tới dòng đang nói: mỗi dòng báo vị trí Y khi layout, đổi dòng active thì cuộn tới đó.
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const rowYs = useRef<number[]>([]);
   useEffect(() => {
     if (!autoScroll || activeIndex < 0) return;

@@ -1,7 +1,6 @@
 import { Client } from '@stomp/stompjs';
 import { useEffect, useRef, useState } from 'react';
-import { getAccessToken } from '@/lib/api/client';
-import { resolveBaseUrl } from '@/lib/api/client';
+import { getAccessToken, resolveBaseUrl } from '@/lib/api/client';
 import type { DubbingProgressEvent } from '@/types/dubbing';
 
 export function useDubbingSocket(lessonId: number | null) {

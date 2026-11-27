@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
 import { ChevronRight, Play, Search } from 'lucide-react-native';
 
 import { TopNav } from '@/components/TopNav';

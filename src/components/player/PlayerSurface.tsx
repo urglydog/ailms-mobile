@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentRef, type ReactNode } from 'react';
 import { PanResponder, Pressable, Text, View } from 'react-native';
 import { FileText, Maximize2, Minimize2, Pause, Play, RotateCcw, RotateCw, Settings, Volume2, VolumeX } from 'lucide-react-native';
 import { SubtitleOverlay } from '@/components/player/SubtitleOverlay';
@@ -45,7 +45,7 @@ function fmt(raw: number): string {
 
 /** Bộ xử lý cử chỉ cho thanh tua: kéo/chạm để chọn vị trí, thả tay thì tua. Đặt ngoài component để không đọc ref lúc render. */
 function createSeekPan(
-  barRef: React.RefObject<View | null>,
+  barRef: React.RefObject<ComponentRef<typeof View> | null>,
   boxRef: React.RefObject<{ left: number; width: number }>,
   durationRef: React.RefObject<number>,
   setDrag: (v: number | null) => void,
@@ -107,7 +107,7 @@ export function PlayerSurface(p: Props) {
   const [drag, setDrag] = useState<number | null>(null);
 
   // Thanh tua: kéo/chạm để tua (đo vị trí thanh trong cửa sổ để tính %).
-  const barRef = useRef<View>(null);
+  const barRef = useRef<ComponentRef<typeof View>>(null);
   const barBox = useRef({ left: 0, width: 1 });
   const durationRef = useRef(0);
   useEffect(() => {

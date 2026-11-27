@@ -195,7 +195,7 @@ export default function MyCoursesScreen() {
               <Text style={{ textAlign: 'center', color: COLORS.inkFaint, padding: 24 }}>Không tìm thấy khoá học phù hợp.</Text>
             )
           }
-          ListFooterComponent={footer}
+          ListFooterComponent={footer ?? undefined}
           renderItem={({ item, index }) => (
             <Reveal index={index} style={view === 'grid' ? { flex: 1 } : { paddingHorizontal: 16 }}>
               {view === 'grid' ? <GridCard enrollment={item} /> : <RowCard enrollment={item} />}

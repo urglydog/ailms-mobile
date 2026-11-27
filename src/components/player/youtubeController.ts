@@ -30,7 +30,6 @@ export class YouTubeController implements PlayerLike {
   private view: InjectableView | null = null;
   private inited = false;
   private pending: { cmd: string; arg: unknown }[] = [];
-  private videoId: string | null = null;
   private time = 0;
   private timeAt = 0;
   private dur = 0;
@@ -51,18 +50,6 @@ export class YouTubeController implements PlayerLike {
   /** Độ dài dự phòng (từ thông tin bài học) cho tới khi trang báo độ dài thật. */
   setFallbackDuration(sec: number): void {
     this.fallbackDur = num(sec, 0);
-  }
-
-  /** Gọi khi khung hiển thị được tạo: nếu đổi sang video khác thì xoá trạng thái cũ. Trả về vị trí đã xem dở (giây). */
-  prepare(videoId: string): number {
-    if (this.videoId !== videoId) {
-      this.videoId = videoId;
-      this.time = 0;
-      this.dur = 0;
-      this.state = -1;
-      this.pending = [];
-    }
-    return this.time;
   }
 
   /** Gắn/gỡ WebView (dùng làm `ref`). Gỡ thì coi như trang đã mất: lệnh chờ bị bỏ và chờ thông báo `init` mới. */

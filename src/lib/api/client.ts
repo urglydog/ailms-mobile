@@ -128,10 +128,10 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
 class RefreshFailedError extends Error {}
 
 let isRefreshing = false;
-let failedQueue: Array<{
+let failedQueue: {
   resolve: (token: string) => void;
   reject: (err: Error) => void;
-}> = [];
+}[] = [];
 
 function processQueue(error: Error | null, token: string | null = null) {
   failedQueue.forEach((prom) => {

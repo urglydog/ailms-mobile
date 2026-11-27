@@ -52,6 +52,10 @@ export default function ProfileScreen() {
           <Pressable onPress={() => refetch()}>
             <Text style={{ color: COLORS.accentDark }}>Thử lại</Text>
           </Pressable>
+          {/* Hồ sơ không tải được (vd phiên đăng nhập hỏng) vẫn phải đăng xuất được để đăng nhập lại. */}
+          <Pressable onPress={() => logout()}>
+            <Text style={{ color: COLORS.danger, fontWeight: '600' }}>Đăng xuất</Text>
+          </Pressable>
         </View>
       ) : (
         <View style={{ padding: 16, gap: 12 }}>

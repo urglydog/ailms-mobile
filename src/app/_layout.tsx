@@ -64,7 +64,7 @@ export default function RootLayout() {
           <ThemeProvider value={theme}>
             <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
             <Stack key={scheme} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.surface } }}>
-              <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="notifications" options={{ presentation: 'modal', headerShown: true }} />
             </Stack>
             <DiscoveryChat key={`chat-${scheme}`} />
           </ThemeProvider>

@@ -201,8 +201,9 @@ async function fetchWithRefresh(
             processQueue(null, data.accessToken);
 
             response = await fetch(`${resolveBaseUrl()}${path}`, { ...init, headers: buildHeaders(data.accessToken) });
-          } else if (refreshRes.status === 400 || refreshRes.status === 401 || refreshRes.status === 403) {
-            // Server xác nhận phiên đăng nhập đã hết hạn/bị thu hồi → mới đăng xuất.
+          } else if (refreshRes.status >= 400 && refreshRes.status < 500 && refreshRes.status !== 408 && refreshRes.status !== 429) {
+            // Server xác nhận phiên đăng nhập đã hết hạn/bị thu hồi (BE trả 422 khi refresh token hết hạn, 401/403 khi bị khoá...) → mới đăng xuất.
+            // Chỉ lỗi tạm thời (5xx, 408, 429) mới giữ nguyên đăng nhập.
             processQueue(new RefreshFailedError('Refresh rejected'));
             await clearTokens();
             authFailureHandler?.();

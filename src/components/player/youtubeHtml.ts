@@ -44,11 +44,17 @@ export function buildYouTubeHtml(videoId: string, startSec: number): string {
     if (!ready) { queue.push([c, a]); return; }
     run(c, a);
   };
-  function onYouTubeIframeAPIReady() {
+  var apiReady = false;
+  function onYouTubeIframeAPIReady() { apiReady = true; create(); }
+  // Chỉ tạo trình phát khi khung đã có kích thước thật: nếu tạo lúc khung còn 0x0 (WebView chưa kịp bố cục), YouTube có thể chọn
+  // chế độ chỉ-tiếng (không dựng hình) dù vẫn phát được âm thanh.
+  function create() {
+    if (yt || !apiReady) return;
+    if (window.innerWidth < 60 || window.innerHeight < 60) { setTimeout(create, 100); return; }
     yt = new YT.Player('p', {
       videoId: ${vid},
-      width: '100%',
-      height: '100%',
+      width: String(window.innerWidth),
+      height: String(window.innerHeight),
       playerVars: { origin: (location.origin && location.origin !== 'null') ? location.origin : undefined, autoplay: 1, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, rel: 0, playsinline: 1, iv_load_policy: 3, start: ${start} },
       events: {
         onReady: function () {
@@ -62,9 +68,12 @@ export function buildYouTubeHtml(videoId: string, startSec: number): string {
       }
     });
   }
+  window.addEventListener('resize', function () {
+    try { if (yt && yt.setSize) yt.setSize(window.innerWidth, window.innerHeight); } catch (e) {}
+  });
   setInterval(function () {
     if (!ready) return;
-    try { post({ type: 'tick', t: yt.getCurrentTime(), d: yt.getDuration(), s: yt.getPlayerState() }); } catch (e) {}
+    try { post({ type: 'tick', t: yt.getCurrentTime(), d: yt.getDuration(), s: yt.getPlayerState(), w: window.innerWidth, h: window.innerHeight }); } catch (e) {}
   }, 250);
   setTimeout(function () { if (!ready) post({ type: 'error', c: -1 }); }, 15000);
   post({ type: 'init' });

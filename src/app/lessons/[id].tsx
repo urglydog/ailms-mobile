@@ -426,6 +426,7 @@ export default function LessonPlayerScreen() {
   // Mã lỗi của YouTube khi không nhúng được (101/150/153: chủ video chặn nhúng hoặc thiếu nguồn nhúng; -1: không nạp được trình phát).
   const [ytErrorCode, setYtErrorCode] = useState<number | null>(null);
   const ytFailed = ytErrorCode !== null;
+  const [ytDebug, setYtDebug] = useState('');
   // Vị trí đang xem dở khi khung YouTube bị gỡ (vd bị giới hạn phiên xem) để tạo lại đúng chỗ.
   const [ytResumeSec, setYtResumeSec] = useState<number | null>(null);
   const ytPlayable = !!youtubeId && !ytFailed && Platform.OS !== 'web';
@@ -462,6 +463,7 @@ export default function LessonPlayerScreen() {
     onEnded: goNextLesson,
     // YouTube không cho nhúng video này (hoặc không nạp được trình phát) → hiện nút mở trên YouTube.
     onError: (code) => setYtErrorCode(code),
+    onDebug: setYtDebug,
   });
   useEffect(() => {
     if (lesson) yt.setFallbackDuration(lesson.durationSec);
@@ -677,7 +679,13 @@ export default function LessonPlayerScreen() {
           </Pressable>
         </View>
       ) : hasPlayer ? (
-        <View style={fullscreen ? fullscreenStyle : VIDEO_FRAME}>{renderSurface(fullscreen)}</View>
+        <View style={fullscreen ? fullscreenStyle : VIDEO_FRAME}>
+          {renderSurface(fullscreen)}
+          {/* Chỉ khi chạy thử (Expo Go/dev): kích thước khung YouTube và mã trạng thái trình phát, để chẩn đoán lỗi không có hình. */}
+          {__DEV__ && ytPlayable && ytDebug ? (
+            <Text style={{ position: 'absolute', top: 4, left: 6, color: '#7CFC00', fontSize: 10, pointerEvents: 'none' }}>{`YT ${ytDebug}`}</Text>
+          ) : null}
+        </View>
       ) : lesson.youtubeId ? (
         <Pressable
           onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${lesson.youtubeId}`)}

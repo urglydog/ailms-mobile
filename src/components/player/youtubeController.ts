@@ -11,6 +11,8 @@ export interface YouTubeHandlers {
   onEnded?: () => void;
   /** Mã lỗi của YouTube (101/150/153: chủ video không cho nhúng; -1: không nạp được trình phát). */
   onError?: (code: number) => void;
+  /** Chuỗi chẩn đoán (kích thước khung + trạng thái trình phát), chỉ đổi khi có thay đổi — dùng hiện lên lúc chạy thử. */
+  onDebug?: (info: string) => void;
 }
 
 const MAX_PENDING = 30;
@@ -38,6 +40,7 @@ export class YouTubeController implements PlayerLike {
   private desiredRate = 1;
   private isMuted = false;
   private handlers: YouTubeHandlers = {};
+  private lastDebug = '';
 
   get player(): PlayerLike {
     return this;
@@ -89,6 +92,11 @@ export class YouTubeController implements PlayerLike {
         this.state = num(m.s, this.state);
         this.timeAt = Date.now();
         if (this.state === 1) this.handlers.onTime?.(this.time);
+        const info = `${num(m.w, 0)}x${num(m.h, 0)} s${this.state}`;
+        if (info !== this.lastDebug) {
+          this.lastDebug = info;
+          this.handlers.onDebug?.(info);
+        }
         break;
       }
       case 'state': {
@@ -175,9 +183,9 @@ export class YouTubeController implements PlayerLike {
 /** Tạo (một lần) bộ điều khiển YouTube cho màn hình và cập nhật các hàm xử lý sự kiện mỗi khi chúng đổi. */
 export function useYouTubeController(handlers: YouTubeHandlers): YouTubeController {
   const [controller] = useState(() => new YouTubeController());
-  const { onTime, onEnded, onError } = handlers;
+  const { onTime, onEnded, onError, onDebug } = handlers;
   useEffect(() => {
-    controller.setHandlers({ onTime, onEnded, onError });
-  }, [controller, onTime, onEnded, onError]);
+    controller.setHandlers({ onTime, onEnded, onError, onDebug });
+  }, [controller, onTime, onEnded, onError, onDebug]);
   return controller;
 }

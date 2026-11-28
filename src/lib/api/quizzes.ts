@@ -1,4 +1,6 @@
-import { api, apiFormData } from '@/lib/api/client';
+import { Directory, File, Paths } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
+import { api, getAccessToken, resolveBaseUrl } from '@/lib/api/client';
 import type {
   CourseGradebook,
   ProctorFrameReq,
@@ -53,12 +55,42 @@ export const quizzesApi = {
     return api.post<ExplainWrongAnswerRes>('/api/v1/quizzes/tutor/explain', data);
   },
 
-  /** Tải video giám sát: đi qua `apiFormData` (tự làm mới token khi hết hạn, ghi nhận mất mạng). Tên `attempt-<id>.mp4` vì BE quyết định đuôi/loại tệp lưu
-   * theo tên gốc — tên khác `.mp4` bị lưu thành `.webm` sai và người chấm không phát được. */
+  /**
+   * Tải video giám sát bằng bộ tải NATIVE của hệ điều hành (`FileSystem.uploadAsync`, đọc thẳng từ tệp — ổn định với tệp lớn). Đi qua `fetch` + `FormData`
+   * của React Native thì trên iPhone báo lỗi mạng ngay lập tức dù mạng bình thường. Vì không có sẵn cơ chế làm mới token của `api`, gọi trước một yêu cầu nhẹ
+   * để token được làm mới nếu đã hết hạn. BE quyết định đuôi/loại tệp lưu theo TÊN GỐC nên sao chép tệp thành `attempt-<id>.mp4` (tên khác `.mp4` bị lưu
+   * thành `.webm` sai và người chấm không phát được).
+   */
   async uploadRecording(attemptId: number, fileUri: string, durationSec: number): Promise<void> {
-    const formData = new FormData();
-    formData.append('file', { uri: fileUri, name: `attempt-${attemptId}.mp4`, type: 'video/mp4' } as unknown as Blob);
-    await apiFormData<void>(`/api/v1/quizzes/attempts/${attemptId}/recording?durationSec=${durationSec}`, formData);
+    try {
+      await api.get('/api/v1/users/me');
+    } catch {
+      // Lỗi mạng/phiên sẽ lộ ra ở bước tải bên dưới.
+    }
+    const token = await getAccessToken();
+
+    let uploadUri = fileUri;
+    try {
+      const dir = new Directory(Paths.cache, 'proctoring');
+      if (!dir.exists) dir.create({ intermediates: true });
+      const target = new File(dir, `attempt-${attemptId}.mp4`);
+      if (target.exists) target.delete();
+      new File(fileUri).copy(target);
+      uploadUri = target.uri;
+    } catch {
+      uploadUri = fileUri; // không đổi tên được thì tải tệp gốc
+    }
+
+    const response = await FileSystem.uploadAsync(`${resolveBaseUrl()}/api/v1/quizzes/attempts/${attemptId}/recording?durationSec=${durationSec}`, uploadUri, {
+      httpMethod: 'POST',
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: 'video/mp4',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (response.status >= 400) {
+      throw new Error(`Máy chủ trả mã ${response.status}: ${response.body.slice(0, 160)}`);
+    }
   },
 };
 

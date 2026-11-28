@@ -72,6 +72,7 @@ export default function ExamScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   // Tải video giám sát chạy NỀN sau khi đã nộp bài: kết quả hiện ngay, không chờ video (video lên chậm/đứt mạng không còn kẹt màn hình).
   const [recordingUpload, setRecordingUpload] = useState<'idle' | 'uploading' | 'done' | 'failed'>('idle');
+  const [recordingError, setRecordingError] = useState('');
   const pendingRecordingRef = useRef<{ attemptId: number; uri: string; durationSec: number } | null>(null);
   const [violationCount, setViolationCount] = useState(0);
   const [maxViolations, setMaxViolations] = useState<number | null>(null);
@@ -161,7 +162,8 @@ export default function ExamScreen() {
         pendingRecordingRef.current = null;
         setRecordingUpload('done');
         return;
-      } catch {
+      } catch (err) {
+        setRecordingError(err instanceof Error ? err.message : String(err));
         // thử lại ở vòng sau
       }
     }
@@ -330,8 +332,11 @@ export default function ExamScreen() {
                 ? 'Đang lưu bản ghi giám sát lên hệ thống. Bạn có thể xem kết quả ngay; vui lòng chưa đóng ứng dụng cho tới khi lưu xong.'
                 : recordingUpload === 'done'
                   ? 'Đã lưu bản ghi giám sát.'
-                  : 'Chưa lưu được bản ghi giám sát do kết nối mạng. Điểm bài thi không bị ảnh hưởng.'}
+                  : 'Chưa lưu được bản ghi giám sát. Điểm bài thi không bị ảnh hưởng.'}
             </Text>
+            {__DEV__ && recordingUpload === 'failed' && recordingError ? (
+              <Text style={{ color: COLORS.dangerInk, fontSize: 11 }}>{`Chi tiết (chỉ hiện khi chạy thử): ${recordingError}`}</Text>
+            ) : null}
             {recordingUpload === 'failed' ? (
               <Pressable onPress={() => void uploadRecordingInBackground()} accessibilityLabel="Thử lưu lại bản ghi giám sát">
                 <Text style={{ color: COLORS.accentDark, fontWeight: '700' }}>Thử lại</Text>

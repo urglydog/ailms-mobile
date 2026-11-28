@@ -73,6 +73,14 @@ export default function ExamScreen() {
   // Tải video giám sát chạy NỀN sau khi đã nộp bài: kết quả hiện ngay, không chờ video (video lên chậm/đứt mạng không còn kẹt màn hình).
   const [recordingUpload, setRecordingUpload] = useState<'idle' | 'uploading' | 'done' | 'failed'>('idle');
   const [recordingError, setRecordingError] = useState('');
+  // Cảnh báo vi phạm hiện bằng dải thông báo TRONG màn hình (tự tắt sau 8 giây), không dùng hộp thoại hệ thống: hộp thoại chặn giao diện cho tới khi bấm OK và
+  // khiến việc giám sát (chụp ảnh camera) bị ngưng trong lúc nó đang hiện.
+  const [violationNotice, setViolationNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!violationNotice) return;
+    const timer = setTimeout(() => setViolationNotice(null), 8_000);
+    return () => clearTimeout(timer);
+  }, [violationNotice]);
   const pendingRecordingRef = useRef<{ attemptId: number; uri: string; durationSec: number } | null>(null);
   const [violationCount, setViolationCount] = useState(0);
   const [maxViolations, setMaxViolations] = useState<number | null>(null);
@@ -221,10 +229,10 @@ export default function ExamScreen() {
     if (autoSubmittedRef.current) return;
     if (res.shouldAutoSubmit) {
       autoSubmittedRef.current = true;
-      Alert.alert('Vi phạm quá số lần cho phép', `Bạn đã vi phạm quá ${res.maxViolations ?? 3} lần. Hệ thống tự động nộp bài!`);
+      setViolationNotice(`Bạn đã vi phạm quá ${res.maxViolations ?? 3} lần cho phép. Hệ thống đang tự động nộp bài.`);
       void doSubmitRef.current();
     } else {
-      Alert.alert('Cảnh báo vi phạm', `(${res.violationCount}/${res.maxViolations ?? 3}): ${reason}`);
+      setViolationNotice(`Cảnh báo vi phạm (${res.violationCount}/${res.maxViolations ?? 3}): ${reason}`);
     }
   };
 
@@ -463,6 +471,17 @@ export default function ExamScreen() {
       )}
 
       {submitError && reviewing ? <Text style={{ color: COLORS.danger, padding: 12 }}>{submitError}</Text> : null}
+
+      {violationNotice && !submitStage ? (
+        <Pressable
+          onPress={() => setViolationNotice(null)}
+          accessibilityLabel="Đóng cảnh báo vi phạm"
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 200, backgroundColor: COLORS.danger, paddingHorizontal: 16, paddingVertical: 12 }}
+        >
+          <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 13.5 }}>{violationNotice}</Text>
+          <Text style={{ color: COLORS.white, opacity: 0.85, fontSize: 11.5, marginTop: 2 }}>Chạm để đóng. Giám sát vẫn đang hoạt động.</Text>
+        </Pressable>
+      ) : null}
 
       {submitStage ? (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(10,37,64,0.75)', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 }}>

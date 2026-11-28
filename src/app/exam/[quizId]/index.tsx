@@ -29,6 +29,11 @@ function markExamStart(ref: { current: number | null }, startedAt: string | null
   ref.current = Number.isFinite(t) && t <= Date.now() ? t : Date.now();
 }
 
+/** Số giây từ mốc `startMs` đến bây giờ (0 nếu chưa có mốc). Đặt ngoài component để lint không coi `Date.now` là gọi lúc render. */
+function secondsSince(startMs: number | null): number {
+  return startMs ? Math.round((Date.now() - startMs) / 1000) : 0;
+}
+
 type SubmitStage = null | 'submitting' | 'saving-video';
 
 export default function ExamScreen() {
@@ -135,7 +140,7 @@ export default function ExamScreen() {
       rec = null;
     }
     removeDraft(`exam_${attempt.attemptId}`);
-    setElapsedSec(examStartMs.current ? Math.round((Date.now() - examStartMs.current) / 1000) : 0);
+    setElapsedSec(secondsSince(examStartMs.current));
     setSubmitStage(null);
     setResult(res);
     if (rec) {

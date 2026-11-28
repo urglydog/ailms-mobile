@@ -161,7 +161,6 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
     return () => {
       if (proctorFrameTimer.current) clearTimeout(proctorFrameTimer.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isStarted, cameraReady, attemptId]);
 
   if (!camPermission?.granted || !micPermission?.granted) {

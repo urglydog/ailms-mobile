@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { syncService } from '@/lib/db/syncService';
 import { isOnlineNow, onReconnect, probeOnline } from '@/lib/network';
+import { flushRecordings } from '@/lib/recordingQueue';
 import { AppHeader } from '@/components/AppHeader';
 import { BackButton } from '@/components/BackButton';
 import { DiscoveryChat } from '@/components/chat/DiscoveryChat';
@@ -26,15 +27,19 @@ export default function RootLayout() {
 
   useEffect(() => {
     syncService.syncOfflineReviews().catch(() => {});
+    // Video giám sát phòng thi chưa tải lên được (đóng app/mất mạng giữa chừng) → tự tải lại.
+    void flushRecordings();
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         syncService.syncOfflineReviews().catch(() => {});
+        void flushRecordings();
         if (!isOnlineNow()) void probeOnline();
       }
     });
     // Mạng trở lại → gửi ngay các lượt ôn đã làm offline (không chờ hết thời gian chờ thử lại).
     const offReconnect = onReconnect(() => {
       syncService.syncOfflineReviews({ force: true }).catch(() => {});
+      void flushRecordings();
     });
     // Đang mất mạng thì cứ 15 giây hỏi thử server một lần để biết khi nào có mạng lại.
     const probeTimer = setInterval(() => {

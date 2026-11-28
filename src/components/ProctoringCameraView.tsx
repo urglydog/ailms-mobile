@@ -1,5 +1,6 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { View, Text, StyleSheet, AppState, AppStateStatus } from 'react-native';
+import { View, Text, StyleSheet, AppState, AppStateStatus, Platform } from 'react-native';
+import * as ScreenCapture from 'expo-screen-capture';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { ShieldAlert, Video } from 'lucide-react-native';
 import { quizzesApi } from '@/lib/api/quizzes';
@@ -85,6 +86,30 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
       }
     });
     return () => sub.remove();
+  }, [isStarted]);
+
+  // Chặn chụp/quay màn hình trong lúc thi (Android: màn hình bị che khi chụp; iOS: nội dung bị che khi đang quay màn hình) và ghi nhận vi phạm nếu phát hiện
+  // ảnh chụp. Tuỳ hệ điều hành/thiết bị: nếu không hỗ trợ thì bỏ qua êm, không ảnh hưởng việc thi.
+  useEffect(() => {
+    if (!isStarted || Platform.OS === 'web') return;
+    const key = 'proctored-exam';
+    let sub: { remove: () => void } | null = null;
+    try {
+      void ScreenCapture.preventScreenCaptureAsync(key).catch(() => {});
+      sub = ScreenCapture.addScreenshotListener(() => {
+        onViolationRef.current('SCREENSHOT', 'Học viên chụp hoặc quay màn hình trong lúc thi');
+      });
+    } catch {
+      // không hỗ trợ: bỏ qua
+    }
+    return () => {
+      try {
+        sub?.remove();
+        void ScreenCapture.allowScreenCaptureAsync(key).catch(() => {});
+      } catch {
+        // bỏ qua
+      }
+    };
   }, [isStarted]);
 
   const startRecording = () => {

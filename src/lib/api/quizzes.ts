@@ -11,6 +11,16 @@ import type {
   ViolationRes,
 } from '@/types/quiz';
 
+/** Lỗi khi tải video giám sát; `status` là mã HTTP máy chủ trả về (0 nếu không tới được máy chủ). */
+export class RecordingUploadError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'RecordingUploadError';
+    this.status = status;
+  }
+}
+
 export interface ExplainWrongAnswerReq {
   questionId: number;
   selectedOptionId: number | null;
@@ -61,7 +71,12 @@ export const quizzesApi = {
    * để token được làm mới nếu đã hết hạn. BE quyết định đuôi/loại tệp lưu theo TÊN GỐC nên sao chép tệp thành `attempt-<id>.mp4` (tên khác `.mp4` bị lưu
    * thành `.webm` sai và người chấm không phát được).
    */
-  async uploadRecording(attemptId: number, fileUri: string, durationSec: number): Promise<void> {
+  async uploadRecording(
+    attemptId: number,
+    fileUri: string,
+    durationSec: number,
+    onProgress?: (sentBytes: number, totalBytes: number) => void,
+  ): Promise<void> {
     try {
       await api.get('/api/v1/users/me');
     } catch {
@@ -70,26 +85,42 @@ export const quizzesApi = {
     const token = await getAccessToken();
 
     let uploadUri = fileUri;
-    try {
-      const dir = new Directory(Paths.cache, 'proctoring');
-      if (!dir.exists) dir.create({ intermediates: true });
-      const target = new File(dir, `attempt-${attemptId}.mp4`);
-      if (target.exists) target.delete();
-      new File(fileUri).copy(target);
-      uploadUri = target.uri;
-    } catch {
-      uploadUri = fileUri; // không đổi tên được thì tải tệp gốc
+    // Tệp trong hàng đợi đã mang đúng tên `attempt-<id>.mp4` nên không cần sao chép thêm (tránh tốn gấp đôi dung lượng).
+    const alreadyNamed = fileUri.endsWith(`/attempt-${attemptId}.mp4`);
+    if (!alreadyNamed) {
+      try {
+        const dir = new Directory(Paths.cache, 'proctoring');
+        if (!dir.exists) dir.create({ intermediates: true });
+        const target = new File(dir, `attempt-${attemptId}.mp4`);
+        if (target.exists) target.delete();
+        new File(fileUri).copy(target);
+        uploadUri = target.uri;
+      } catch {
+        uploadUri = fileUri; // không đổi tên được thì tải tệp gốc
+      }
     }
 
-    const response = await FileSystem.uploadAsync(`${resolveBaseUrl()}/api/v1/quizzes/attempts/${attemptId}/recording?durationSec=${durationSec}`, uploadUri, {
-      httpMethod: 'POST',
-      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-      fieldName: 'file',
-      mimeType: 'video/mp4',
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const task = FileSystem.createUploadTask(
+      `${resolveBaseUrl()}/api/v1/quizzes/attempts/${attemptId}/recording?durationSec=${durationSec}`,
+      uploadUri,
+      {
+        httpMethod: 'POST',
+        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+        fieldName: 'file',
+        mimeType: 'video/mp4',
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      (p) => onProgress?.(p.totalBytesSent, p.totalBytesExpectedToSend),
+    );
+    let response: Awaited<ReturnType<typeof task.uploadAsync>>;
+    try {
+      response = await task.uploadAsync();
+    } catch (err) {
+      throw new RecordingUploadError(err instanceof Error ? err.message : 'Không kết nối được máy chủ', 0);
+    }
+    if (!response) throw new RecordingUploadError('Việc tải lên đã bị dừng', 0);
     if (response.status >= 400) {
-      throw new Error(`Máy chủ trả mã ${response.status}: ${response.body.slice(0, 160)}`);
+      throw new RecordingUploadError(`Máy chủ trả mã ${response.status}: ${response.body.slice(0, 160)}`, response.status);
     }
   },
 };

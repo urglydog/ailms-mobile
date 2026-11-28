@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from 'react';
 import { ActivityIndicator, Alert, BackHandler, Pressable, ScrollView, Text, View } from 'react-native';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { Flag, ShieldAlert } from 'lucide-react-native';
 
 import { ExamResultView } from '@/components/ExamResultView';
@@ -13,6 +14,7 @@ import { ProctoringCameraView, type ProctoringHandle, type ProctoringRecording }
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
 import { readDraft, removeDraft, writeDraft } from '@/lib/draftStore';
+import { enqueueRecording, flushRecordings, subscribeRecordingProgress } from '@/lib/recordingQueue';
 import type { ProctorFrameRes, QuizAttemptResult, QuizQuestion, ViolationRes } from '@/types/quiz';
 import { COLORS } from '@/lib/theme/colors';
 
@@ -81,7 +83,17 @@ export default function ExamScreen() {
     const timer = setTimeout(() => setViolationNotice(null), 8_000);
     return () => clearTimeout(timer);
   }, [violationNotice]);
-  const pendingRecordingRef = useRef<{ attemptId: number; uri: string; durationSec: number } | null>(null);
+  // Tiến độ tải video (0–100) và mã lượt thi đang tải, để chỉ hiện đúng tiến độ của bài vừa nộp.
+  const [recordingProgress, setRecordingProgress] = useState(0);
+  const recordingAttemptRef = useRef<number | null>(null);
+  useEffect(
+    () =>
+      subscribeRecordingProgress((p) => {
+        if (p.attemptId !== recordingAttemptRef.current || p.totalBytes <= 0) return;
+        setRecordingProgress(Math.min(100, Math.round((p.sentBytes / p.totalBytes) * 100)));
+      }),
+    [],
+  );
   const [violationCount, setViolationCount] = useState(0);
   const [maxViolations, setMaxViolations] = useState<number | null>(null);
   // Mốc giờ kết thúc tuyệt đối (không phải đếm lùi cộng dồn) — tính 1 lần trong effect khi
@@ -153,29 +165,20 @@ export default function ExamScreen() {
     setSubmitStage(null);
     setResult(res);
     if (rec) {
-      pendingRecordingRef.current = { attemptId: attempt.attemptId, uri: rec.uri, durationSec: rec.durationSec };
+      // Lưu video vào hàng đợi bền vững trước rồi mới tải: nếu đóng app/mất mạng giữa chừng, lần mở sau ứng dụng tự tải lại.
+      enqueueRecording(attempt.attemptId, rec.uri, rec.durationSec);
+      recordingAttemptRef.current = attempt.attemptId;
       void uploadRecordingInBackground();
     }
   };
 
-  /** Tải video giám sát lên, thử tối đa 3 lần (ngay, sau 5 giây, sau 15 giây). Thất bại hẳn thì giữ tệp để bấm "Thử lại". */
+  /** Tải mọi video giám sát đang chờ, mỗi video thử tối đa 3 lần (ngay, sau 5 giây, sau 15 giây). Thất bại hẳn thì video vẫn được giữ và tự tải lại ở lần mở app sau. */
   const uploadRecordingInBackground = async () => {
-    const rec = pendingRecordingRef.current;
-    if (!rec) return;
     setRecordingUpload('uploading');
-    for (const waitMs of [0, 5_000, 15_000]) {
-      if (waitMs) await new Promise((resolve) => setTimeout(resolve, waitMs));
-      try {
-        await quizzesApi.uploadRecording(rec.attemptId, rec.uri, rec.durationSec);
-        pendingRecordingRef.current = null;
-        setRecordingUpload('done');
-        return;
-      } catch (err) {
-        setRecordingError(err instanceof Error ? err.message : String(err));
-        // thử lại ở vòng sau
-      }
-    }
-    setRecordingUpload('failed');
+    setRecordingProgress(0);
+    const res = await flushRecordings(3);
+    setRecordingError(res.error);
+    setRecordingUpload(res.state === 'failed' ? 'failed' : 'done');
   };
   const doSubmitRef = useRef(doSubmit);
   useEffect(() => {
@@ -186,6 +189,24 @@ export default function ExamScreen() {
   useEffect(() => {
     if (attempt) markExamStart(examStartMs, attempt.startedAt);
   }, [attempt]);
+
+  // Giữ màn hình luôn sáng trong lúc làm bài: để máy tự khoá màn hình giữa chừng sẽ làm app tạm dừng, camera ngừng quay và bị tính là rời khỏi bài thi.
+  const examRunning = !!attempt && !result;
+  useEffect(() => {
+    if (!examRunning) return;
+    try {
+      void activateKeepAwakeAsync('exam').catch(() => {});
+    } catch {
+      // thiết bị không hỗ trợ: bỏ qua
+    }
+    return () => {
+      try {
+        void deactivateKeepAwake('exam').catch(() => {});
+      } catch {
+        // bỏ qua
+      }
+    };
+  }, [examRunning]);
 
   // Khôi phục nháp đáp án (app bị đóng/văng giữa chừng) và lưu nháp mỗi khi đổi đáp án.
   // `draftLoadStartedRef`: đã bắt đầu đọc nháp; `draftReadyRef`: đọc XONG. Chỉ được ghi nháp sau khi đọc xong — trước đây ghi ngay lúc vừa bắt đầu đọc
@@ -337,11 +358,16 @@ export default function ExamScreen() {
           <View style={{ paddingHorizontal: 16, paddingVertical: 10, gap: 6, backgroundColor: recordingUpload === 'failed' ? COLORS.dangerTint : COLORS.tint }}>
             <Text style={{ color: recordingUpload === 'failed' ? COLORS.dangerInk : COLORS.ink, fontSize: 13, fontWeight: '600' }}>
               {recordingUpload === 'uploading'
-                ? 'Đang lưu bản ghi giám sát lên hệ thống. Bạn có thể xem kết quả ngay; vui lòng chưa đóng ứng dụng cho tới khi lưu xong.'
+                ? `Đang lưu bản ghi giám sát lên hệ thống (${recordingProgress}%). Bạn có thể xem kết quả ngay; vui lòng chưa đóng ứng dụng cho tới khi lưu xong.`
                 : recordingUpload === 'done'
                   ? 'Đã lưu bản ghi giám sát.'
-                  : 'Chưa lưu được bản ghi giám sát. Điểm bài thi không bị ảnh hưởng.'}
+                  : 'Chưa lưu được bản ghi giám sát. Điểm bài thi không bị ảnh hưởng. Ứng dụng sẽ tự thử lại khi bạn mở lại hoặc khi có mạng; bạn cũng có thể bấm Thử lại ngay.'}
             </Text>
+            {recordingUpload === 'uploading' ? (
+              <View style={{ height: 6, borderRadius: 3, backgroundColor: COLORS.line, overflow: 'hidden' }}>
+                <View style={{ width: `${recordingProgress}%`, height: 6, backgroundColor: COLORS.accent }} />
+              </View>
+            ) : null}
             {__DEV__ && recordingUpload === 'failed' && recordingError ? (
               <Text style={{ color: COLORS.dangerInk, fontSize: 11 }}>{`Chi tiết (chỉ hiện khi chạy thử): ${recordingError}`}</Text>
             ) : null}

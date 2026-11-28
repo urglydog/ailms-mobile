@@ -147,6 +147,8 @@ export function PlayerSurface(p: Props) {
   useEffect(() => {
     gestureRef.current = { tap: onTapVideo, exit: p.onToggleFullscreen, fullscreen: p.isFullscreen };
   });
+  // `gestureRef` chỉ được đọc trong callback cử chỉ (không phải lúc render) — lint không phân biệt được.
+  /* eslint-disable react-hooks/refs */
   const [swipe] = useState(() =>
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -157,6 +159,7 @@ export function PlayerSurface(p: Props) {
       },
     }),
   );
+  /* eslint-enable react-hooks/refs */
 
   // Thanh tua: kéo/chạm để tua.
   const barWidth = useRef(1);

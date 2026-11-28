@@ -178,17 +178,24 @@ export default function ExamScreen() {
   }, [attempt]);
 
   // Khôi phục nháp đáp án (app bị đóng/văng giữa chừng) và lưu nháp mỗi khi đổi đáp án.
-  const draftLoadedRef = useRef(false);
+  // `draftLoadStartedRef`: đã bắt đầu đọc nháp; `draftReadyRef`: đọc XONG. Chỉ được ghi nháp sau khi đọc xong — trước đây ghi ngay lúc vừa bắt đầu đọc
+  // nên nháp rỗng đè lên nháp cũ trước khi kịp đọc (vào lại bài thi dở thì mất hết đáp án).
+  const draftLoadStartedRef = useRef(false);
+  const draftReadyRef = useRef(false);
   useEffect(() => {
-    if (!attempt || draftLoadedRef.current) return;
-    draftLoadedRef.current = true;
-    void readDraft<{ answers: Record<number, number[]>; flagged: Record<number, boolean> }>(`exam_${attempt.attemptId}`).then((d) => {
-      if (d?.answers) setAnswers(d.answers);
-      if (d?.flagged) setFlagged(d.flagged);
-    });
+    if (!attempt || draftLoadStartedRef.current) return;
+    draftLoadStartedRef.current = true;
+    void readDraft<{ answers: Record<number, number[]>; flagged: Record<number, boolean> }>(`exam_${attempt.attemptId}`)
+      .then((d) => {
+        if (d?.answers) setAnswers(d.answers);
+        if (d?.flagged) setFlagged(d.flagged);
+      })
+      .finally(() => {
+        draftReadyRef.current = true;
+      });
   }, [attempt]);
   useEffect(() => {
-    if (!attempt || !draftLoadedRef.current || result) return;
+    if (!attempt || !draftReadyRef.current || result) return;
     writeDraft(`exam_${attempt.attemptId}`, { answers, flagged });
   }, [answers, flagged, attempt, result]);
 
@@ -339,7 +346,7 @@ export default function ExamScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: true, title: info.title, headerLeft: () => null }} />
+      <Stack.Screen options={{ headerShown: true, title: info.title, headerLeft: () => null, gestureEnabled: false }} />
 
       {/* Thanh trạng thái: giờ còn lại, tiến độ, vi phạm */}
       <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: COLORS.surfaceRaised, borderBottomWidth: 1, borderBottomColor: COLORS.lineSoft, gap: 6 }}>

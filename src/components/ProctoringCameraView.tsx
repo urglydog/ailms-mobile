@@ -93,7 +93,7 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
     startTimeRef.current = Date.now();
     recordPromiseRef.current = (async () => {
       try {
-        const video = await cameraRef.current.recordAsync({ maxDuration: 60 * 60 * 2, mute: false });
+        const video = await cameraRef.current.recordAsync({ maxDuration: 60 * 60 * 2, mute: false, codec: 'avc1' });
         isRecordingRef.current = false;
         if (!video?.uri) return null;
         return { uri: video.uri as string, durationSec: Math.max(1, Math.round((Date.now() - startTimeRef.current) / 1000)) };
@@ -196,14 +196,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 13,
   },
+  // Đặt NGAY DƯỚI thanh trạng thái (giờ còn lại, số câu, vi phạm) và dãy số câu hỏi, nhỏ hơn trước — trước đây đè lên đồng hồ đếm ngược.
   cameraWrapper: {
-    width: 100,
-    height: 140,
+    width: 76,
+    height: 104,
     borderRadius: 12,
     overflow: 'hidden',
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 92,
+    right: 12,
     zIndex: 100,
     borderWidth: 2,
     borderColor: COLORS.accent,

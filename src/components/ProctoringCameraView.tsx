@@ -1,5 +1,7 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, StyleSheet, AppState, AppStateStatus, Platform } from 'react-native';
+// Bộ phân giải import của ESLint báo nhầm riêng gói này (tsc và Metro tìm thấy bình thường); chỉ tắt đúng dòng này.
+// eslint-disable-next-line import/no-unresolved
 import * as ScreenCapture from 'expo-screen-capture';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { ShieldAlert, Video } from 'lucide-react-native';

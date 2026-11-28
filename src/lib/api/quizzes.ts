@@ -1,5 +1,4 @@
-import { api, getAccessToken, resolveBaseUrl } from '@/lib/api/client';
-import * as FileSystem from 'expo-file-system/legacy';
+import { api, apiFormData } from '@/lib/api/client';
 import type {
   CourseGradebook,
   ProctorFrameReq,
@@ -54,22 +53,12 @@ export const quizzesApi = {
     return api.post<ExplainWrongAnswerRes>('/api/v1/quizzes/tutor/explain', data);
   },
 
+  /** Tải video giám sát: đi qua `apiFormData` (tự làm mới token khi hết hạn, ghi nhận mất mạng). Tên `attempt-<id>.mp4` vì BE quyết định đuôi/loại tệp lưu
+   * theo tên gốc — tên khác `.mp4` bị lưu thành `.webm` sai và người chấm không phát được. */
   async uploadRecording(attemptId: number, fileUri: string, durationSec: number): Promise<void> {
-    const token = await getAccessToken();
-    const url = `${resolveBaseUrl()}/api/v1/quizzes/attempts/${attemptId}/recording?durationSec=${durationSec}`;
-    
-    const response = await FileSystem.uploadAsync(url, fileUri, {
-      httpMethod: 'POST',
-      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-      fieldName: 'file',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.status >= 400) {
-      throw new Error(`Upload failed with status ${response.status}: ${response.body}`);
-    }
+    const formData = new FormData();
+    formData.append('file', { uri: fileUri, name: `attempt-${attemptId}.mp4`, type: 'video/mp4' } as unknown as Blob);
+    await apiFormData<void>(`/api/v1/quizzes/attempts/${attemptId}/recording?durationSec=${durationSec}`, formData);
   },
 };
 

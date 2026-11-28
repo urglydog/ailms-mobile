@@ -29,6 +29,11 @@ function randomProctorDelayMs(): number {
   return 30_000 + Math.random() * 30_000;
 }
 
+/** Lần chụp ĐẦU TIÊN đến sớm (~8-12s sau khi vào bài) để bài thi ngắn (dưới 30s) vẫn được kiểm tra ít nhất một lần. */
+function firstProctorDelayMs(): number {
+  return 8_000 + Math.random() * 4_000;
+}
+
 /** Rời app dưới ngưỡng này (ms) không tính vi phạm — tránh báo nhầm khi hộp thoại hệ thống/thanh thông báo kéo xuống. */
 const MIN_AWAY_MS = 2000;
 /** Bỏ qua vi phạm "rời app" trong khoảng đầu mới vào thi (ms): thường là hộp thoại xin quyền/camera khởi động. */
@@ -48,6 +53,14 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
   const recordPromiseRef = useRef<Promise<ProctoringRecording | null> | null>(null);
   const isRecordingRef = useRef<boolean>(false);
   const proctorFrameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Luôn gọi bản MỚI NHẤT của hai hàm xử lý: vòng chụp định kỳ chỉ khởi tạo một lần nên nếu giữ bản cũ, sau khi nộp bài nó vẫn thấy "chưa nộp"
+  // và tiếp tục báo vi phạm/chụp ảnh (nghe tiếng màn trập) dù bài đã nộp.
+  const onViolationRef = useRef(onViolation);
+  const onProctorResultRef = useRef(onProctorResult);
+  useEffect(() => {
+    onViolationRef.current = onViolation;
+    onProctorResultRef.current = onProctorResult;
+  });
 
   useEffect(() => {
     if (!camPermission?.granted) requestCam();
@@ -68,11 +81,11 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
       const away = leftAt === null ? 0 : Date.now() - leftAt;
       leftAt = null;
       if (away >= MIN_AWAY_MS && Date.now() - startedAtRef.current > START_GRACE_MS) {
-        onViolation('TAB_SWITCH', `Học viên rời khỏi ứng dụng ${Math.round(away / 1000)} giây trong lúc thi`);
+        onViolationRef.current('TAB_SWITCH', `Học viên rời khỏi ứng dụng ${Math.round(away / 1000)} giây trong lúc thi`);
       }
     });
     return () => sub.remove();
-  }, [isStarted, onViolation]);
+  }, [isStarted]);
 
   const startRecording = () => {
     if (!cameraRef.current || isRecordingRef.current) return;
@@ -124,7 +137,7 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
     const captureAndSend = async () => {
       try {
         if (!cameraRef.current) return;
-        const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.5 });
+        const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.5, skipProcessing: true, shutterSound: false });
         if (!photo?.base64) return;
         const clientOffsetSec = Math.round((Date.now() - startTimeRef.current) / 1000);
         const res = await quizzesApi.analyzeProctorFrame(attemptId, {
@@ -132,18 +145,18 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
           mimeType: 'image/jpeg',
           clientOffsetSec,
         });
-        onProctorResult(res);
+        onProctorResultRef.current(res);
       } catch (err) {
         console.warn('Proctor frame error:', err);
       }
     };
 
-    const scheduleNext = () => {
+    const scheduleNext = (first: boolean) => {
       proctorFrameTimer.current = setTimeout(() => {
-        captureAndSend().finally(scheduleNext);
-      }, randomProctorDelayMs());
+        captureAndSend().finally(() => scheduleNext(false));
+      }, first ? firstProctorDelayMs() : randomProctorDelayMs());
     };
-    scheduleNext();
+    scheduleNext(true);
 
     return () => {
       if (proctorFrameTimer.current) clearTimeout(proctorFrameTimer.current);
@@ -162,7 +175,7 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
 
   return (
     <View style={styles.cameraWrapper}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="front" mode="video" onCameraReady={() => setCameraReady(true)} />
+      <CameraView ref={cameraRef} style={styles.camera} facing="front" mode="video" videoQuality="480p" onCameraReady={() => setCameraReady(true)} />
       <View style={styles.badge}>
         <Video size={12} color={COLORS.white} />
         <Text style={styles.badgeText}>REC</Text>

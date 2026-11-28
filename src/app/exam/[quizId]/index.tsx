@@ -9,7 +9,7 @@ import { ExamResultView } from '@/components/ExamResultView';
 import { ExamIntro, type ExamInfo } from '@/components/exam/ExamIntro';
 import { ExamReview } from '@/components/exam/ExamReview';
 import { BackButton } from '@/components/BackButton';
-import { ProctoringCameraView, type ProctoringHandle } from '@/components/ProctoringCameraView';
+import { ProctoringCameraView, type ProctoringHandle, type ProctoringRecording } from '@/components/ProctoringCameraView';
 import { ApiError } from '@/lib/api/client';
 import { quizzesApi } from '@/lib/api/quizzes';
 import { readDraft, removeDraft, writeDraft } from '@/lib/draftStore';
@@ -65,6 +65,9 @@ export default function ExamScreen() {
   const [reviewing, setReviewing] = useState(false);
   const [submitStage, setSubmitStage] = useState<SubmitStage>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // Tải video giám sát chạy NỀN sau khi đã nộp bài: kết quả hiện ngay, không chờ video (video lên chậm/đứt mạng không còn kẹt màn hình).
+  const [recordingUpload, setRecordingUpload] = useState<'idle' | 'uploading' | 'done' | 'failed'>('idle');
+  const pendingRecordingRef = useRef<{ attemptId: number; uri: string; durationSec: number } | null>(null);
   const [violationCount, setViolationCount] = useState(0);
   const [maxViolations, setMaxViolations] = useState<number | null>(null);
   // Mốc giờ kết thúc tuyệt đối (không phải đếm lùi cộng dồn) — tính 1 lần trong effect khi
@@ -123,17 +126,41 @@ export default function ExamScreen() {
       setSubmitError(err instanceof ApiError ? err.message : 'Nộp bài thất bại, vui lòng thử lại.');
       return;
     }
+    // Chỉ dừng ghi hình và lấy tệp (tối đa ~8 giây), rồi hiện kết quả ngay; việc tải lên chạy nền (xem `uploadRecordingInBackground`).
     setSubmitStage('saving-video');
+    let rec: ProctoringRecording | null = null;
     try {
-      const rec = await camRef.current?.finish();
-      if (rec) await quizzesApi.uploadRecording(attempt.attemptId, rec.uri, rec.durationSec);
+      rec = (await camRef.current?.finish()) ?? null;
     } catch {
-      Alert.alert('Không lưu được video giám sát', 'Điểm bài thi không bị ảnh hưởng.');
+      rec = null;
     }
     removeDraft(`exam_${attempt.attemptId}`);
     setElapsedSec(examStartMs.current ? Math.round((Date.now() - examStartMs.current) / 1000) : 0);
     setSubmitStage(null);
     setResult(res);
+    if (rec) {
+      pendingRecordingRef.current = { attemptId: attempt.attemptId, uri: rec.uri, durationSec: rec.durationSec };
+      void uploadRecordingInBackground();
+    }
+  };
+
+  /** Tải video giám sát lên, thử tối đa 3 lần (ngay, sau 5 giây, sau 15 giây). Thất bại hẳn thì giữ tệp để bấm "Thử lại". */
+  const uploadRecordingInBackground = async () => {
+    const rec = pendingRecordingRef.current;
+    if (!rec) return;
+    setRecordingUpload('uploading');
+    for (const waitMs of [0, 5_000, 15_000]) {
+      if (waitMs) await new Promise((resolve) => setTimeout(resolve, waitMs));
+      try {
+        await quizzesApi.uploadRecording(rec.attemptId, rec.uri, rec.durationSec);
+        pendingRecordingRef.current = null;
+        setRecordingUpload('done');
+        return;
+      } catch {
+        // thử lại ở vòng sau
+      }
+    }
+    setRecordingUpload('failed');
   };
   const doSubmitRef = useRef(doSubmit);
   useEffect(() => {
@@ -280,7 +307,27 @@ export default function ExamScreen() {
   }
 
   if (result) {
-    return <ExamResultView result={result} elapsedSec={elapsedSec} submittedAt={new Date()} />;
+    return (
+      <View style={{ flex: 1 }}>
+        {recordingUpload !== 'idle' ? (
+          <View style={{ paddingHorizontal: 16, paddingVertical: 10, gap: 6, backgroundColor: recordingUpload === 'failed' ? COLORS.dangerTint : COLORS.tint }}>
+            <Text style={{ color: recordingUpload === 'failed' ? COLORS.dangerInk : COLORS.ink, fontSize: 13, fontWeight: '600' }}>
+              {recordingUpload === 'uploading'
+                ? 'Đang lưu bản ghi giám sát lên hệ thống. Bạn có thể xem kết quả ngay; vui lòng chưa đóng ứng dụng cho tới khi lưu xong.'
+                : recordingUpload === 'done'
+                  ? 'Đã lưu bản ghi giám sát.'
+                  : 'Chưa lưu được bản ghi giám sát do kết nối mạng. Điểm bài thi không bị ảnh hưởng.'}
+            </Text>
+            {recordingUpload === 'failed' ? (
+              <Pressable onPress={() => void uploadRecordingInBackground()} accessibilityLabel="Thử lưu lại bản ghi giám sát">
+                <Text style={{ color: COLORS.accentDark, fontWeight: '700' }}>Thử lại</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+        <ExamResultView result={result} elapsedSec={elapsedSec} submittedAt={new Date()} />
+      </View>
+    );
   }
 
   const proctored = attempt.isProctored;
@@ -402,7 +449,7 @@ export default function ExamScreen() {
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(10,37,64,0.75)', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 }}>
           <ActivityIndicator color={COLORS.white} size="large" />
           <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: 16, textAlign: 'center' }}>
-            {submitStage === 'submitting' ? 'Đang nộp bài, vui lòng đợi...' : 'Đang lưu bản ghi giám sát...'}
+            {submitStage === 'submitting' ? 'Đang nộp bài, vui lòng đợi...' : 'Đang kết thúc ghi hình...'}
           </Text>
           {submitStage === 'saving-video' ? <Text style={{ color: COLORS.nightInk, fontSize: 12, textAlign: 'center' }}>Vui lòng không thoát ứng dụng.</Text> : null}
         </View>
@@ -412,7 +459,7 @@ export default function ExamScreen() {
         <ProctoringCameraView
           ref={camRef}
           attemptId={attempt.attemptId}
-          isStarted={!result}
+          isStarted={!result && submitStage === null}
           onViolation={handleViolation}
           onProctorResult={handleProctorResult}
         />

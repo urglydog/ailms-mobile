@@ -74,7 +74,7 @@ export function buildMermaidHtml(mermaidCode: string, direction?: MermaidDirecti
                 canvas.width = width * scale;
                 canvas.height = height * scale;
                 var ctx = canvas.getContext('2d');
-                ctx.fillStyle = COLORS.white;
+                ctx.fillStyle = '#ffffff'; // chạy TRONG WebView nên không dùng được hằng COLORS của app
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.scale(scale, scale);
                 ctx.drawImage(img, 0, 0, width, height);

@@ -185,10 +185,12 @@ export default function ExamScreen() {
   useEffect(() => {
     if (!attempt || draftLoadStartedRef.current) return;
     draftLoadStartedRef.current = true;
-    void readDraft<{ answers: Record<number, number[]>; flagged: Record<number, boolean> }>(`exam_${attempt.attemptId}`)
+    void readDraft<{ answers: Record<number, number[]>; flagged: Record<number, boolean>; violationCount?: number }>(`exam_${attempt.attemptId}`)
       .then((d) => {
         if (d?.answers) setAnswers(d.answers);
         if (d?.flagged) setFlagged(d.flagged);
+        // Số lần vi phạm cũng được nhớ: server khi trả bài làm dở không kèm số này, nên trước đây vào lại bài thì hiện 0 cho tới lần vi phạm kế tiếp.
+        if (typeof d?.violationCount === 'number') setViolationCount((cur) => Math.max(cur, d.violationCount ?? 0));
       })
       .finally(() => {
         draftReadyRef.current = true;
@@ -196,8 +198,8 @@ export default function ExamScreen() {
   }, [attempt]);
   useEffect(() => {
     if (!attempt || !draftReadyRef.current || result) return;
-    writeDraft(`exam_${attempt.attemptId}`, { answers, flagged });
-  }, [answers, flagged, attempt, result]);
+    writeDraft(`exam_${attempt.attemptId}`, { answers, flagged, violationCount });
+  }, [answers, flagged, violationCount, attempt, result]);
 
   // Chặn nút Back của Android trong lúc làm bài — chỉ thoát bằng cách nộp bài (đáp án nháp vẫn được giữ nếu app bị đóng).
   useEffect(() => {

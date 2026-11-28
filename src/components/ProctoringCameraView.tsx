@@ -174,7 +174,7 @@ export const ProctoringCameraView = forwardRef<ProctoringHandle, Props>(function
 
   return (
     <View style={styles.cameraWrapper}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="front" mode="video" videoQuality="480p" onCameraReady={() => setCameraReady(true)} />
+      <CameraView ref={cameraRef} style={styles.camera} facing="front" mode="video" videoQuality="480p" videoBitrate={700_000} onCameraReady={() => setCameraReady(true)} />
       <View style={styles.badge}>
         <Video size={12} color={COLORS.white} />
         <Text style={styles.badgeText}>REC</Text>
